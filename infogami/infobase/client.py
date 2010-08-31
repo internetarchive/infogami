@@ -182,8 +182,11 @@ class Site:
     def __init__(self, conn, sitename):
         self._conn = conn
         self.name = sitename
+        
         # cache for storing pages requested in this HTTP request
         self._cache = {}
+        
+        self._thingcache = {}
         
         self.store = Store(conn, sitename)
         self.seq = Sequence(conn, sitename)
@@ -219,7 +222,7 @@ class Site:
                 d[k] = self._process(v)
             return create_thing(self, None, d)
         elif isinstance(value, common.Reference):
-            return create_thing(self, unicode(value), None)
+            return self.get(unicode(value), lazy=True)
         else:
             return value
             
@@ -274,18 +277,31 @@ class Site:
         """Creates this site if not exists."""
         if not self.exists():
             self._request(path="", method="PUT")
+            
+    def _get_data(self, key, revision):        
+        revision = revision and int(revision)
+        
+        params = dict(key=key, revision=revision)
+        try:
+            data = self._request('/get', data=params)
+            return ThingData(self, data)
+        except ClientException, e:
+            if e.status.startswith('404'):
+                raise NotFound, key
+            else:
+                raise
     
     def get(self, key, revision=None, lazy=False):
-        assert key.startswith('/')
-        
-        if lazy:
-            data = None
-        else:
-            try:
-                data = self._load(key, revision)
-            except NotFound:
-                return None        
-        return create_thing(self, key, data, revision=revision)
+        try:
+            return self._thingcache[key, revision]
+        except:
+            if lazy:
+                doc = Thing(self, key, revision=revision)
+            else:
+                data = self._get_data(key, revision)
+                doc = create_thing(self, key, data, revision=revision)
+            self._thingcache[key, revision] = doc
+            return doc
 
     def get_many(self, keys):
         if not keys:
@@ -655,24 +671,89 @@ def create_thing(site, key, data, revision=None):
 
     return _thing_class_registry.get(type, Thing)(site, key, data, revision)
     
+class ThingData:
+    def __init__(self, site, data):
+        self._site = site
+        self._data = data
+        
+        self.__contains__ = self._data.__contains__
+        self.keys = self._data.keys
+        
+    def dict(self):
+        return self._data.copy()
+        
+    def __getitem__(self, key):
+        value = self._data[key]
+        value = self._process(value)
+        return value
+            
+    def __getattr__(self, key):
+        if key.startswith("_"):
+            raise AttributeError, key
+            
+        try:
+            value = self[key]
+            
+            # save the value in __dict__ of this object so that subsequent accesses are faster
+            setattr(self, key, value)
+            
+            return value
+        except KeyError:
+            return nothing
+            
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+            
+    def __iter__(self):
+        return ((k, self[v]) for k in self._data.keys())
+        
+    def __len__(self):
+        return len(self._data)
+        
+    def _process(self, value):
+        if isinstance(value, dict):
+            if len(value) == 1 and 'key' in value:
+                return self._site.get(value['key'], lazy=True)
+            else:
+                return ThingData(self._site, value)
+        elif isinstance(value, list):
+            return [self._process(v) for v in value]
+        else:
+            return value
+            
+    def __repr__(self):
+        return "<ThingData: %s>" % self._data
+
 class Thing:
     def __init__(self, site, key, data=None, revision=None):
         self._site = site
         self.key = key
         self._revision = revision
-        
-        assert data is None or isinstance(data, dict)
-        
+                
         self._data = data
         self._backreferences = None
         
         # no back-references for embeddable objects
         if self.key is None:
             self._backreferences = {}
+            
+    def _get_created(self):
+        self.created = parse_datetime(self["created"]["value"])
+        return self.created
+        
+    def _get_last_modified(self):
+        self.last_modified = parse_datetime(self["last_modified"]["value"])
+        return self.last_modified
+
+    created = property(_get_created)
+    last_modified = property(_get_last_modified)
         
     def _getdata(self):
         if self._data is None:
-            self._data = self._site._load(self.key, self._revision)
+            self._data = self._site._get_data(self.key, self._revision)
             
             # @@ Hack: change class based on type
             self.__class__ = _thing_class_registry.get(self._data.get('type').key, Thing)
@@ -715,6 +796,9 @@ class Thing:
             self.__dict__[key] = value
         else:
             self._getdata()[key] = value
+            
+    def __contains__(self, key):
+        return key in self._getdata()
 
     def __iter__(self):
         return iter(self._data)
