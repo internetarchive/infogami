@@ -194,7 +194,7 @@ class Site:
     def _request(self, path, method='GET', data=None):
         out = self._conn.request(self.name, path, method, data)
         out = simplejson.loads(out)
-        return storify(out)
+        return out
         
     def _get(self, key, revision=None):
         """Returns properties of the thing with the specified key."""
@@ -294,40 +294,45 @@ class Site:
     def get(self, key, revision=None, lazy=False):
         try:
             return self._thingcache[key, revision]
-        except:
+        except KeyError:
             if lazy:
                 doc = Thing(self, key, revision=revision)
             else:
-                data = self._get_data(key, revision)
+                try:
+                    data = self._get_data(key, revision)
+                except NotFound:
+                    return None
                 doc = create_thing(self, key, data, revision=revision)
             self._thingcache[key, revision] = doc
             return doc
-
+    
     def get_many(self, keys):
         if not keys:
-            return []
-        
-        # simple hack to avoid crossing URL length limit.
-        if len(keys) > 100:
-            things = []
-            while keys:
-                things += self.get_many(keys[:100])
-                keys = keys[100:]
-            return things
+             return []
+            
+        docs = {}
+        docs.update((k, self._thingcache[k]) for k in keys if k in self._thingcache)
+        keys2 = [k for k in keys if k not in docs]
 
-        data = dict(keys=simplejson.dumps(keys))
-        result = self._request('/get_many', data=data)
-        things = []
+         # simple hack to avoid crossing URL length limit.
+        for chunk in web.group(keys2, 100):
+            for doc in self._get_many(list(chunk)):
+                docs[doc['key']] = doc
         
-        for key in keys:
-            #@@ what if key is not there?
-            if key in result:
-                data = result[key]
-                data = web.storage(common.parse_query(data))
-                self._cache[key, None] = data
-                things.append(create_thing(self, key, self._process_dict(data)))
-        return things
+        return [docs[k] for k in keys if k in docs]
         
+    def _get_many(self, keys):
+         data = dict(keys=simplejson.dumps(keys))
+         result = self._request('/get_many', data=data)
+
+         for key in keys:
+             #@@ what if key is not there?
+             if key in result:
+                 data = result[key]
+                 data = ThingData(self, data)
+                 doc = create_thing(self, key, data, revision=None)
+                 yield doc
+            
     def new_key(self, type):
         data = {'type': type}
         result = self._request('/new_key', data=data)
@@ -717,12 +722,14 @@ class ThingData:
         if isinstance(value, dict):
             if len(value) == 1 and 'key' in value:
                 return self._site.get(value['key'], lazy=True)
+            elif 'value' in value and 'type' in value and value['type'] == '/type/text':
+                return value['value']
             else:
                 return ThingData(self._site, value)
         elif isinstance(value, list):
             return [self._process(v) for v in value]
         else:
-            return value
+            return value    
             
     def __repr__(self):
         return "<ThingData: %s>" % self._data
@@ -740,12 +747,18 @@ class Thing:
         if self.key is None:
             self._backreferences = {}
             
+    def _parse_datetime(self, value):
+        if isinstance(value, datetime.datetime):
+            return value
+        else:
+            return parse_datetime(value["value"])
+             
     def _get_created(self):
-        self.created = parse_datetime(self["created"]["value"])
+        self.created = self._parse_datetime(self["created"])
         return self.created
-        
+
     def _get_last_modified(self):
-        self.last_modified = parse_datetime(self["last_modified"]["value"])
+        self.last_modified = self._parse_datetime(self["last_modified"])
         return self.last_modified
 
     created = property(_get_created)
@@ -764,7 +777,7 @@ class Thing:
         if self._backreferences is None:
             self._backreferences = self._site._get_backreferences(self)
         return self._backreferences
-        
+    
     def _get_defaults(self):
         return {}
     
@@ -806,30 +819,10 @@ class Thing:
     def _save(self, comment=None, action=None, data=None):
         d = self.dict()
         return self._site.save(d, comment, action=action, data=data)
-        
-    def _format(self, d):
-        if isinstance(d, dict):
-            return dict((k, self._format(v)) for k, v in d.iteritems())
-        elif isinstance(d, list):
-            return [self._format(v) for v in d]
-        elif isinstance(d, common.Text):
-            return {'type': '/type/text', 'value': web.safeunicode(d)}
-        elif isinstance(d, Thing):
-            return d._dictrepr()
-        elif isinstance(d, datetime.datetime):
-            return {'type': '/type/datetime', 'value': d.isoformat()}
-        else:
-            return d
-    
+            
     def dict(self):
-        return self._format(self._getdata())
-    
-    def _dictrepr(self):
-        if self.key is None:
-            return self.dict()
-        else:
-            return {'key': self.key}
-    
+        return self._getdata().dict()
+        
     def update(self, data):
         data = common.parse_query(data)
         data = self._site._process_dict(data)
