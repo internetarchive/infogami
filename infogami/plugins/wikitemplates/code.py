@@ -122,7 +122,7 @@ def _compile_template(name, text):
     text = web.utf8(_stringify(text))
             
     try:
-        return web.template.Template(text, filter=web.websafe, filename=name)
+        return web.template.Template(text, filter=web.template.websafe, filename=name)
     except (web.template.ParseError, SyntaxError), e:
         print >> web.debug, 'Template parsing failed for ', name
         import traceback
