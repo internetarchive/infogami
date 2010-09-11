@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 import unittest
 import web
+=======
+import simplejson
+>>>>>>> master
 
 from infogami.infobase import client, server
 
@@ -165,6 +169,7 @@ class TestSeq:
         for i in range(10):
             seq.next_value("foo") == i+1
             
+<<<<<<< HEAD
             
 class MockSite:
     def get(self, key, lazy=False):
@@ -220,3 +225,9 @@ class TestThingData:
         assert thingdata.title == 'bar'
         assert thingdata.get('title') == 'bar'
         assert thingdata.dict()['title'] == 'bar'
+
+class TestSanity:
+    """Simple tests to make sure that queries are working fine via all these layers."""
+    def test_reindex(self):
+        keys = ['/type/page']
+        site._request("/reindex", method="POST", data={"keys": simplejson.dumps(keys)})

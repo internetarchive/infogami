@@ -158,6 +158,12 @@ class DBSiteStore(common.SiteStore):
         timestamp = timestamp or datetime.datetime.utcnow
         return self.save_many([doc], timestamp, comment, data, ip, author, action=action or "update")
         
+    def reindex(self, keys):
+        s = SaveImpl(self.db, self.schema, self.indexer, self.property_manager)
+        # Hack to allow processing of json before using. Required for OL legacy.
+        s.process_json = process_json        
+        return s.reindex(keys)
+        
     def get_property_id(self, type, name):
         return self.property_manager.get_property_id(type, name)
 
