@@ -709,6 +709,19 @@ class ThingData:
         except KeyError:
             return nothing
             
+    def __setitem__(self, name, value):
+        if name.startswith("_"):
+            return
+            
+        self._data[name] = value
+        
+        # delete cached value if any
+        self.__dict__.pop(name, None)
+        
+    def update(self, d):
+        for k, v in d.items():
+            self[k] = v
+    
     def get(self, key, default=None):
         try:
             return self[key]
@@ -732,7 +745,7 @@ class ThingData:
         elif isinstance(value, list):
             return [self._process(v) for v in value]
         else:
-            return value    
+            return value
             
     def __repr__(self):
         return "<ThingData: %s>" % self._data
@@ -877,7 +890,7 @@ class Type(Thing):
         for p in self.backreferences:
             if p.name == name:
                 return p
-                
+    
 class Changeset:
     def __init__(self, site, data):
         self._site = site

@@ -1,4 +1,5 @@
 import unittest
+import web
 
 from infogami.infobase import client, server
 
@@ -163,3 +164,59 @@ class TestSeq:
         
         for i in range(10):
             seq.next_value("foo") == i+1
+            
+            
+class MockSite:
+    def get(self, key, lazy=False):
+        return client.Thing(self, key=key)
+            
+class TestThingData:
+    def _verify_thingdata(self, thingdata, data):
+        def _verify(v1, v2):
+            if isinstance(v2, dict):
+                if "key" in v2:
+                    assert isinstance(v1, client.Thing) and v1.key == v2['key']
+                else:
+                    assert isinstance(v1, client.ThingData)
+                    self._verify_thingdata(v1, v2)
+            elif isinstance(v2, list):
+                assert len(v1) == len(v2)
+                for x, y in zip(v1, v2):
+                    _verify(x, y)
+            else:
+                assert v1 == v2
+        
+        assert thingdata.keys() == data.keys()
+        assert len(thingdata) == len(data)
+
+        for k in data:
+            _verify(thingdata[k], data[k])
+        
+    def test_data(self):
+        data = {
+            "key": "/foo",
+            "type": {"key": "/type/page"},
+            "title": "foo",
+            "links": ["http://foo.com", "http://bar.com"],
+            "nested": [{
+                "x": "a",
+                "y": "b"
+            }]
+        }
+        thingdata = client.ThingData(MockSite(), data)
+        self._verify_thingdata(thingdata, data)
+        
+    def test_setattr(self):
+        data = {
+            "key": "/foo",
+            "type": {"key": "/type/page"},
+            "title": "foo"
+        }
+        thingdata = client.ThingData(MockSite(), data)
+        
+        thingdata['title'] = "bar"
+
+        assert thingdata['title'] == 'bar'
+        assert thingdata.title == 'bar'
+        assert thingdata.get('title') == 'bar'
+        assert thingdata.dict()['title'] == 'bar'
