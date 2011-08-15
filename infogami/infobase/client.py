@@ -767,7 +767,7 @@ class ThingData:
             return default
             
     def __iter__(self):
-        return ((k, self[v]) for k in self._data.keys())
+        return iter(self._data.keys())
         
     def __len__(self):
         return len(self._data)
@@ -776,8 +776,10 @@ class ThingData:
         if isinstance(value, dict):
             if len(value) == 1 and 'key' in value:
                 return self._site.get(value['key'], lazy=True)
-            elif 'value' in value and 'type' in value and value['type'] == '/type/text':
+            elif 'value' in value and value.get('type') == '/type/text':
                 return value['value']
+            elif 'value' in value and value.get('type') == '/type/datetime':
+                return parse_datetime(value['value'])
             else:
                 return ThingData(self._site, value)
         elif isinstance(value, list):

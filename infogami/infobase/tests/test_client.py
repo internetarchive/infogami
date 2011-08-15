@@ -1,6 +1,7 @@
 import unittest
 import web
 import simplejson
+import datetime
 
 from infogami.infobase import client, server
 
@@ -248,3 +249,38 @@ class TestAccount:
             pass
         else:
             assert False, "Login should fail when used with wrong password"
+
+class TestThingData:
+    def test_basic(self):
+        data = {
+            "i": 5,
+            "name": "foo",
+            "text": {"type": "/type/text", "value": "text"},
+            "datetime": {"type": "/type/datetime", "value": "2010-01-02 03:04:05"},
+        }
+        
+        d = client.ThingData(None, data)
+        assert d.keys() == data.keys()
+        assert d.i == 5
+        assert d.name == 'foo'
+        assert d.text == 'text'
+        assert d.datetime == datetime.datetime(2010, 1, 2, 3, 4, 5)
+                
+    def test_reference(self):
+        class MockThing(web.storage): 
+            def __repr__(self):
+                return "<MockThing: %s>" % dict.__repr__(self)
+                
+        class MockSite:
+            def get(self, key, lazy=False): 
+                print "MockSite.get", key
+                return MockThing(key=key)
+                
+        data = {
+            "type": {"key": "/type/book"},
+            "authors": [{"key": "/authors/1"}]
+        }
+        d = client.ThingData(MockSite(), data)
+                
+        assert d.type == MockThing(key="/type/book")
+        assert d.authors == [MockThing(key="/authors/1")]
