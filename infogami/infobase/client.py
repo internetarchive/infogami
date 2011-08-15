@@ -7,9 +7,12 @@ import web
 import socket
 import datetime
 import time
+import logging
 
 from infogami import config
 from infogami.utils import stats
+
+logger = logging.getLogger("infobase.client")
 
 DEBUG = False
 
@@ -36,6 +39,12 @@ class ClientException(Exception):
         self.status = status
         self.json = json
         Exception.__init__(self, msg)
+
+    def get_data(self):
+        if self.json:
+            return simplejson.loads(self.json)
+        else:
+            return {}
 
 class NotFound(ClientException):
     def __init__(self, msg):
@@ -128,7 +137,7 @@ class RemoteConnection(Connection):
         if self.auth_token:
             import Cookie
             c = Cookie.SimpleCookie()
-            c['infobase_auth_token'] = self.auth_token
+            c['infobase_auth_token'] = urllib.quote(self.auth_token)
             cookie = c.output(header='').strip()
             headers = {'Cookie': cookie}
         else:
@@ -143,6 +152,7 @@ class RemoteConnection(Connection):
             stats.end()
         except socket.error:
             stats.end(error=True)
+            logger.error("Unable to connect to infobase server", exc_info=True)
             raise ClientException("503 Service Unavailable", "Unable to connect to infobase server")
 
         cookie = response.getheader('Set-Cookie')
@@ -151,7 +161,11 @@ class RemoteConnection(Connection):
             c = Cookie.SimpleCookie()
             c.load(cookie)
             if 'infobase_auth_token' in c:
-                self.set_auth_token(c['infobase_auth_token'].value)                
+                auth_token = c['infobase_auth_token'].value
+                # The auth token will be in urlquoted form, unquote it before use.
+                # Otherwise, it will be quoted twice this value is set as cookie.
+                auth_token = auth_token and urllib.unquote(auth_token)
+                self.set_auth_token(auth_token)
                 
         if web.config.debug:
             b = time.time()
@@ -437,7 +451,24 @@ class Site:
         data = dict(username=username, displayname=displayname, email=email, password=password)
         _run_hooks("before_register", data)
         return self._request('/account/register', 'POST', data)
-            
+
+    def activate_account(self, username):
+        data = dict(username=username)
+        return self._request('/account/activate', 'POST', data)
+        
+    def update_account(self, username, **kw):
+        """Updates an account.
+        """
+        data = dict(kw, username=username)
+        return self._request('/account/update', 'POST', data)
+        
+    def find_account(self, username=None, email=None):
+        """Finds account by username or email."""
+        if username is None and email is None:
+            return None
+        data = dict(username=username, email=email)
+        return self._request("/account/find", "GET", data)    
+
     def update_user(self, old_password, new_password, email):
         return self._request('/account/update_user', 'POST', 
             dict(old_password=old_password, new_password=new_password, email=email))
@@ -502,10 +533,9 @@ class Store:
         return self._request(key, method='DELETE')
         
     def update(self, d={}, **kw):
-        for k, v in d.items():
-            self[k] = v
-        for k, v in kw.items():
-            self[k] = v
+        d2 = dict(d, **kw)
+        docs = [dict(doc, _key=key) for key, doc in d2.items()]
+        self._request("_save_many", method="POST", data=simplejson.dumps(docs))
             
     def clear(self):
         """Removes all keys from the store. Use this with caution!"""
@@ -520,7 +550,7 @@ class Store:
         if limit == -1:
             return self.unlimited_query(type, name, value, offset=offset)
             
-        params = dict(type=type, name=name, value=value, limit=limit, offset=offset)
+        params = dict(type=type, name=name, value=value, limit=limit, offset=offset, include_docs=str(include_docs))
         params = dict((k, v) for k, v in params.items() if v is not None)
         return self._request("_query", method="GET", data=params)
         
@@ -566,16 +596,19 @@ class Store:
         return list(self.iterkeys(**kw))
         
     def itervalues(self, **kw):
-        return (self[k] for k in self.keys(**kw))
+        rows = self.query(include_docs=True, **kw)
+        return (row['doc'] for row in rows)
     
     def values(self, **kw):
-        return [self[k] for k in self.keys(**kw)]
+        return list(self.itervalues(**kw))
+        rows = self.query(**kw)
         
     def iteritems(self, **kw):
-        return ((k, self[k]) for k in self.keys(**kw))
+        rows = self.query(include_docs=True, **kw)
+        return ((row['key'], row['doc']) for row in rows)
         
     def items(self, **kw):
-        return [(k, self[k]) for k in self.keys(**kw)]
+        return list(self.iteritems(**kw))
         
 class Sequence:
     """Dynamic sequences. 
@@ -597,7 +630,7 @@ class Sequence:
         return self._request(name, method="GET")['value']
         
     def next_value(self, name):
-        return self._request(name, method="POST")['value']
+        return self._request(name, method="POST", data=" ")['value']
         
 def parse_datetime(datestring):
     """Parses from isoformat.
@@ -680,8 +713,9 @@ def create_thing(site, key, data, revision=None):
         # just for extra safety
         print >> web.debug, 'ERROR:', str(e)
         type = None
-
-    return _thing_class_registry.get(type, Thing)(site, key, data, revision)
+        
+    klass = _thing_class_registry.get(type) or _thing_class_registry.get(None)
+    return klass(site, key, data, revision)
     
 class ThingData:
     def __init__(self, site, data):
@@ -910,7 +944,7 @@ class Changeset:
         else:
             self.author = None
         self.ip = data['ip']
-        self.changes = data.get('changes', [])
+        self.changes = data.get('changes') or []
         self.data = web.storage(data['data'])
         self.init()
         
@@ -952,6 +986,7 @@ def register_changeset_class(kind, klass):
     _changeset_class_register[kind] = klass
     
 register_changeset_class(None, Changeset)
+register_thing_class(None, Thing)
 register_thing_class('/type/type', Type)
 
 # hooks can be registered by extending the hook class

@@ -30,6 +30,9 @@ of that request and then they are added to the global cache.
 
 import web
 import lru
+import logging
+
+logger = logging.getLogger("infobase.cache")
 
 class NoneDict:
     def __getitem__(self, key):
@@ -57,15 +60,17 @@ class MemcachedDict:
         
     def __setitem__(self, key, value):
         key = web.safestr(key)
+        logger.debug("MemcachedDict.set: %s", key)
         self.memcache_client.set(key, value)
         
     def update(self, d):
         d = dict((web.safestr(k), v) for k, v in d.items())
+        logger.debug("MemcachedDict.update: %s", d.keys())
         self.memcache_client.set_multi(d)
         
     def clear(self):
         self.memcache_client.flush_all()
-        
+
 _cache_classes = {}
 def register_cache(type, klass):
     _cache_classes[type] = klass
@@ -88,9 +93,9 @@ def loadhook():
 def unloadhook():
     """Called at the end of every request."""
     d = {}
-    d.update(web.ctx.new_objects)
     d.update(web.ctx.locally_added)
-    
+    d.update(web.ctx.new_objects)
+
     if d:
         global_cache.update(d)
     

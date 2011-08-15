@@ -7,12 +7,18 @@ import web
 import infobase
 import _json as simplejson
 import time
-from infobase import config
 import time
+import os
+import logging
 
+from infobase import config
 import common
 import cache
 import logreader
+
+from account import get_user_root
+
+logger = logging.getLogger("infobase")
 
 def setup_remoteip():
     web.ctx.ip = web.ctx.env.get('HTTP_X_REMOTE_IP', web.ctx.ip)
@@ -20,7 +26,7 @@ def setup_remoteip():
 urls = (
     "/", "server",
     "/_echo", "echo",
-    "/([^/]*)", "db",
+    "/([^_/][^/]*)", "db",
     "/([^/]*)/get", "withkey",
     "/([^/]*)/get_many", "get_many",
     '/([^/]*)/save(/.*)', 'save',
@@ -79,6 +85,8 @@ def jsonify(f):
             
             process_exception(e)
         except Exception, e:
+            logger.error("Error in processing request %s %s", web.ctx.get("method", "-"), web.ctx.get("path","-"), exc_info=True)
+
             common.record_exception()
             # call web.internalerror to send email when web.internalerror is set to web.emailerrors
             process_exception(common.InfobaseException(error="internal_error", message=str(e)))
@@ -98,7 +106,8 @@ def jsonify(f):
         querytime = web.ctx.pop('querytime', 0.0)
         queries = web.ctx.pop('queries', 0)
         
-        web.header("X-STATS", "tt: %0.3f, tq: %0.3f, nq: %d" % (totaltime, querytime, queries))
+        if config.get("enabled_stats"):
+            web.header("X-STATS", "tt: %0.3f, tq: %0.3f, nq: %d" % (totaltime, querytime, queries))
 
         if web.ctx.get('infobase_localmode'):
             return result
@@ -174,7 +183,7 @@ class db:
             raise web.HTTPError("412 Precondition Failed", {}, "")
         else:
             site = _infobase.create(name)
-            return {"ok": True}
+            return {"ok": "true"}
             
     @jsonify
     def DELETE(self, name):
@@ -306,16 +315,35 @@ class store_special:
             return self.GET_query(sitename)
         else:
             raise web.notfound("")
-    
+            
+    def POST(self, sitename, path):
+        if path == '_save_many':
+            return self.POST_save_many(sitename)
+        else:
+            raise web.notfound("")
+            
+    @jsonify
+    def POST_save_many(self, sitename):
+        store = get_site(sitename).get_store()
+        json = get_data()
+        docs = simplejson.loads(json)
+        store.put_many(docs)
+        
     @jsonify
     def GET_query(self, sitename):
-        i = input(type=None, name=None, value=None, limit=100, offset=0)
+        i = input(type=None, name=None, value=None, limit=100, offset=0, include_docs="false")
         
         i.limit = common.safeint(i.limit, 100)
         i.offset = common.safeint(i.offset, 0)
         
         store = get_site(sitename).get_store()
-        return store.query(type=i.type, name=i.name, value=i.value, limit=i.limit, offset=i.offset)
+        return store.query(
+            type=i.type, 
+            name=i.name, 
+            value=i.value, 
+            limit=i.limit, 
+            offset=i.offset, 
+            include_docs=i.include_docs.lower()=="true")
 
 class store:
     @jsonify
@@ -329,7 +357,9 @@ class store:
     @jsonify
     def PUT(self, sitename, path):
         store = get_site(sitename).get_store()
-        store.put_json(path, get_data())
+        json = get_data()
+        doc = simplejson.loads(json)
+        store.put(path, doc)
         return JSON('{"ok": true}')
         
     @jsonify
@@ -373,39 +403,69 @@ class account:
     def POST_login(self, site):
         i = input('username', 'password')
         a = site.get_account_manager()
-        user = a.login(i.username, i.password)
+        status = a.login(i.username, i.password)
         
-        if not user:
-            raise common.BadData(message='Invalid username or password')
-        elif config.verify_user_email and user.get('verified') is False:
-            raise common.BadData(message="User is not verified")
+        if status == "ok":
+            a.set_auth_token(get_user_root() + i.username)
+            return {"ok": True}
         else:
-            return user.format_data()
-
+            raise common.BadData(code=status, message="Login failed")
+        
     def POST_register(self, site):
         i = input('username', 'password', 'email')
         a = site.get_account_manager()
         username = i.pop('username')
         password = i.pop('password')
         email = i.pop('email')
-        a.register(username=username, email=email, password=password, data=i)
-        return ""
+        
+        activation_code = a.register(username=username, email=email, password=password, data=i)
+        return {"activation_code": activation_code, "email": email}
+
+    def POST_activate(self, site):
+        i = input('username')
+
+        a = site.get_account_manager()
+        status = a.activate(i.username)
+        if status == "ok":
+            return {"ok": "true"}
+        else:
+            raise common.BadData(error_code=status, message="Account activation failed.")
+            
+    def POST_update(self, site):
+        i = input('username')
+        username = i.pop("username")
+        
+        a = site.get_account_manager()
+        status = a.update(username, **i)
+        
+        if status == "ok":
+            return {"ok": "true"}
+        else:
+            raise common.BadData(error_code=status, message="Account activation failed.")
+        
+    def GET_find(self, site):
+        i = input(email=None, username=None)
+        a = site.get_account_manager()
+        return a.find_account(email=i.email, username=i.username)
 
     def GET_get_user(self, site):
         a = site.get_account_manager()
         user = a.get_user()
         if user:
             d = user.format_data()
-            d['email'] = a.get_email(user)
+            username = d['key'].split("/")[-1]
+            d['email'] = a.find_account(username=username)['email']
             return d
 
     def GET_get_reset_code(self, site):
+        # TODO: remove this
         i = input('email')
         a = site.get_account_manager()
         username, code = a.get_user_code(i.email)
         return dict(username=username, code=code)
         
     def GET_check_reset_code(self, site):
+        # TODO: remove this
         i = input('username', 'code')
         a = site.get_account_manager()
         a.check_reset_code(i.username, i.code)
@@ -414,16 +474,16 @@ class account:
     def GET_get_user_email(self, site):
         i = input('username')
         a = site.get_account_manager()
-        email = a.get_user_email(i.username)
-        return dict(email=email)
+        return a.find_account(username=i.username)
         
     def GET_find_user_by_email(self, site):
         i = input("email")
         a = site.get_account_manager()
-        username = a.find_user_by_email(i.email)
-        return username
+        account = a.find_account(email=i.email)
+        return account and account['key'].split("/")[-1]
 
     def POST_reset_password(self, site):
+        # TODO: remove this
         i = input('username', 'code', 'password')
         a = site.get_account_manager()
         return a.reset_password(i.username, i.code, i.password)
@@ -431,14 +491,27 @@ class account:
     def POST_update_user(self, site):
         i = input('old_password', new_password=None, email=None)
         a = site.get_account_manager()
-        return a.update_user(i.old_password, i.new_password, i.email)
+        
+        user = a.get_user()
+        username = user.key.split("/")[-1]
+        
+        status = a.login(username, i.old_password)
+        if status == "ok":
+            kw = {}
+            if i.new_password:
+                kw['password'] = i.new_password
+            if i.email:
+                kw['email'] = i.email 
+            a.update(username, **kw)
+        else:
+            raise common.BadData(code=status, message="Invalid password")
         
     def POST_update_user_details(self, site):
         i = input('username')
         username = i.pop('username')
         
         a = site.get_account_manager()
-        return a.update_user_details(username, **i)
+        return a.update(username, **i)
 
 class readlog:
     def get_log(self, offset, i):
@@ -518,7 +591,15 @@ def request(path, method, data):
         # hack to make cache work for local infobase connections
         cache.loadhook()
 
-        for pattern, classname in web.group(app.mapping, 2):
+        mapping = app.mapping
+
+        # Before web.py<0.36, the mapping is a list and need to be grouped. 
+        # From web.py 0.36 onwards, the mapping is already grouped.
+        # Checking the type to see if we need to group them here.
+        if mapping and not isinstance(mapping[0], (list, tuple)):
+            mapping = web.group(mapping, 2)
+
+        for pattern, classname in mapping:
             m = web.re_compile('^' + pattern + '$').match(path)
             if m:
                 args = m.groups()
@@ -536,12 +617,15 @@ def run():
 def parse_db_parameters(d):
     if d is None:
         return None
-
+        
     # support both <engine, database, username, password> and <dbn, db, user, pw>.
     if 'database' in d:
-        dbn, db, user, pw = d.get('engine', 'postgres'), d['database'], d['username'], d.get('password') or ''
+        dbn, db, user, pw = d.get('engine', 'postgres'), d['database'], d.get('username'), d.get('password') or ''
     else:
-        dbn, db, user, pw = d.get('dbn', 'postgres'), d['db'], d['user'], d.get('pw') or ''
+        dbn, db, user, pw = d.get('dbn', 'postgres'), d['db'], d.get('user'), d.get('pw') or ''
+        
+    if user is None:
+        user = os.getenv("USER")
      
     result = dict(dbn=dbn, db=db, user=user, pw=pw)
     if 'host' in d:
@@ -549,10 +633,18 @@ def parse_db_parameters(d):
     return result
     
 def start(config_file, *args):
+    load_config(config_file)
+    # start running the server
+    sys.argv = [sys.argv[0]] + list(args)
+    run()
+
+def load_config(config_file):
     # load config
     import yaml
     runtime_config = yaml.load(open(config_file)) or {}
-
+    update_config(runtime_config)
+    
+def update_config(runtime_config):
     # update config
     for k, v in runtime_config.items():
         setattr(config, k, v)
@@ -561,7 +653,7 @@ def start(config_file, *args):
     plugins = []
     for p in config.get('plugins') or []:
         plugins.append(__import__(p, None, None, ["x"]))
-        print >> web.debug, "loaded plugin", p
+        logger.info("loading plugin %s", p)
         
     web.config.db_parameters = parse_db_parameters(config.db_parameters)    
 
@@ -573,7 +665,3 @@ def start(config_file, *args):
     for p in plugins:
         m = getattr(p, 'init_plugin', None)
         m and m()
-        
-    # start running the server
-    sys.argv = [sys.argv[0]] + list(args)
-    run()

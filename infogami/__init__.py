@@ -46,6 +46,9 @@ def _setup():
     web.config.db_parameters = config.db_parameters
     web.config.db_printing = config.db_printing
 
+    if config.get("debug", None) is not None:
+        web.config.debug = config.debug
+
     from infogami.utils import delegate
     delegate._load()
     
@@ -94,16 +97,37 @@ def install():
         a()
 
 @action
-def shell():
+def shell(*args):
     """Interactive Shell"""
-    from code import InteractiveConsole
-    console = InteractiveConsole()
-    console.push("import infogami")
-    console.push("from infogami.utils import delegate")
-    console.push("from infogami.core import db")
-    console.push("from infogami.utils.context import context as ctx")
-    console.push("delegate.fakeload()")
-    console.interact()
+    if not "--ipython" in args:
+        from code import InteractiveConsole
+        console = InteractiveConsole()
+        console.push("import infogami")
+        console.push("from infogami.utils import delegate")
+        console.push("from infogami.core import db")
+        console.push("from infogami.utils.context import context as ctx")
+        console.push("delegate.fakeload()")
+        console.interact()
+    else:
+        """IPython Interactive Shell - IPython must be installed to use."""
+        # remove an argument that confuses ipython
+        sys.argv.pop(sys.argv.index("--ipython"))
+        from IPython.Shell import IPShellEmbed
+        import infogami
+        from infogami.utils import delegate
+        from infogami.core import db
+        from infogami.utils.context import context as ctx
+        delegate.fakeload()
+        ipshell = IPShellEmbed()
+        ipshell()
+
+@action
+def runscript(filename, *args):
+    """Executes given script after setting up the plugins.
+    """
+    sys.argv = [filename] + list(args)
+    g = {"__name__": "__main__"}
+    execfile(filename, g, g)
 
 def run_action(name, args=[]):
     a = find_action(name)
@@ -123,8 +147,7 @@ def run(args=None):
     else:
         run_action(args[0], args[1:])
 
-def main(config_file, *args):
-    """Start Infogami using config file."""
+def load_config(config_file):
     import yaml
     from infobase import config as infobase_config
     from infobase import server as infobase_server
@@ -165,4 +188,7 @@ def main(config_file, *args):
     if config.get('smtp_server'):
         web.config.smtp_server = config.smtp_server
 
+def main(config_file, *args):
+    """Start Infogami using config file."""
+    load_config(config_file)
     run(args)

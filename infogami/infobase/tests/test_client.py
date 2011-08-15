@@ -1,9 +1,6 @@
-<<<<<<< HEAD
 import unittest
 import web
-=======
 import simplejson
->>>>>>> master
 
 from infogami.infobase import client, server
 
@@ -76,7 +73,7 @@ class TestStore:
     def setup_method(self, method):
         s.clear()
         
-    def test_getitem(self):
+    def test_getitem(self, wildcard):
         try:
             s["x"]
         except KeyError:
@@ -85,10 +82,10 @@ class TestStore:
             assert False, "should raise KeyError"
         
         s["x"] = {"name": "x"}
-        assert s["x"] == {"name": "x"}
+        assert s["x"] == {"name": "x", "_key": "x", "_rev": wildcard}
         
-        s["x"] = {"name": "xx"}
-        assert s["x"] == {"name": "xx"}
+        s["x"] = {"name": "xx", "_rev": None}
+        assert s["x"] == {"name": "xx", "_key": "x", "_rev": wildcard}
         
     def test_contains(self):
         assert "x" not in s
@@ -121,7 +118,7 @@ class TestStore:
         assert s.keys() == srange(100, 200)[::-1]
         assert list(s.keys(limit=-1)) == srange(200)[::-1]
         
-    def test_key_value_items(self):
+    def test_key_value_items(self, wildcard):
         s["x"] = {"type": "foo", "name": "x"}
         s["y"] = {"type": "bar", "name": "y"}
         s["z"] = {"type": "bar", "name": "z"}
@@ -131,35 +128,39 @@ class TestStore:
         assert s.keys(type='bar', name="name", value="y") == ["y"]
 
         assert s.values() == [
-            {"type": "bar", "name": "z"},
-            {"type": "bar", "name": "y"},
-            {"type": "foo", "name": "x"}
+            {"type": "bar", "name": "z", "_key": "z", "_rev": wildcard},
+            {"type": "bar", "name": "y", "_key": "y", "_rev": wildcard},
+            {"type": "foo", "name": "x", "_key": "x", "_rev": wildcard}
         ]
         assert s.values(type='bar') == [
-            {"type": "bar", "name": "z"},
-            {"type": "bar", "name": "y"}
+            {"type": "bar", "name": "z", "_key": "z", "_rev": wildcard},
+            {"type": "bar", "name": "y", "_key": "y", "_rev": wildcard}
         ]
         assert s.values(type='bar', name="name", value="y") == [
-            {"type": "bar", "name": "y"}
+            {"type": "bar", "name": "y", "_key": "y", "_rev": wildcard}
         ]
 
         assert s.items() == [
-            ("z", {"type": "bar", "name": "z"}),
-            ("y", {"type": "bar", "name": "y"}),
-            ("x", {"type": "foo", "name": "x"})
+            ("z", {"type": "bar", "name": "z", "_key": "z", "_rev": wildcard}),
+            ("y", {"type": "bar", "name": "y", "_key": "y", "_rev": wildcard}),
+            ("x", {"type": "foo", "name": "x", "_key": "x", "_rev": wildcard})
         ]
         assert s.items(type='bar') == [
-            ("z", {"type": "bar", "name": "z"}),
-            ("y", {"type": "bar", "name": "y"}),
+            ("z", {"type": "bar", "name": "z", "_key": "z", "_rev": wildcard}),
+            ("y", {"type": "bar", "name": "y", "_key": "y", "_rev": wildcard}),
         ]
         assert s.items(type='bar', name="name", value="y") == [
-            ("y", {"type": "bar", "name": "y"}),
+            ("y", {"type": "bar", "name": "y", "_key": "y", "_rev": wildcard}),
         ]
         
-    def test_bad_data(self):
-        s["x"] = 1
-        assert s["x"] == 1
-        assert "x" in s
+    def test_update(self):
+        docs = {
+            "x": {"type": "foo", "name": "x"},
+            "y": {"type": "bar", "name": "y"},
+            "z": {"type": "bar", "name": "z"},
+        }
+        s.update(docs)
+        assert sorted(s.keys()) == (["x", "y", "z"])
         
 class TestSeq:
     def test_seq(self):
@@ -168,8 +169,6 @@ class TestSeq:
         
         for i in range(10):
             seq.next_value("foo") == i+1
-            
-<<<<<<< HEAD
             
 class MockSite:
     def get(self, key, lazy=False):
@@ -231,3 +230,21 @@ class TestSanity:
     def test_reindex(self):
         keys = ['/type/page']
         site._request("/reindex", method="POST", data={"keys": simplejson.dumps(keys)})
+
+class TestAccount:
+    """Test account creation, forgot password etc."""
+    def test_register(self):
+        email = "joe@example.com"
+        response = site.register(username="joe", displayname="Joe", email=email, password="secret")
+
+        assert site.activate_account(username="joe") == {'ok': 'true'}
+
+        # login should succed
+        site.login("joe", "secret")
+
+        try:
+            site.login("joe", "secret2")
+        except client.ClientException:
+            pass
+        else:
+            assert False, "Login should fail when used with wrong password"

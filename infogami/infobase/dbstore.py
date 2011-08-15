@@ -6,14 +6,17 @@ import web
 import _json as simplejson
 import datetime, time
 from collections import defaultdict
+import logging
 
 from _dbstore import store, sequence
 from _dbstore.schema import Schema, INDEXED_DATATYPES
 from _dbstore.indexer import Indexer
 from _dbstore.save import SaveImpl, PropertyManager
-from _dbstore.read import RecentChanges
+from _dbstore.read import RecentChanges, get_bot_users
 
 default_schema = None
+
+logger = logging.getLogger("infobase")
 
 def process_json(key, json):
     """Hook to process json.
@@ -138,7 +141,10 @@ class DBSiteStore(common.SiteStore):
         return "".join(process(query))
                     
     def save_many(self, docs, timestamp, comment, data, ip, author, action=None):
+        docs = list(docs)
         action = action or "bulk_update"
+        logger.debug("saving %d docs - %s", len(docs), dict(timestamp=timestamp, comment=comment, data=data, ip=ip, author=author, action=action))
+
         s = SaveImpl(self.db, self.schema, self.indexer, self.property_manager)
         
         # Hack to allow processing of json before using. Required for OL legacy.
@@ -155,6 +161,7 @@ class DBSiteStore(common.SiteStore):
         return changeset
         
     def save(self, key, doc, timestamp=None, comment=None, data=None, ip=None, author=None, transaction_id=None, action=None):
+        logger.debug("saving %s", key)
         timestamp = timestamp or datetime.datetime.utcnow
         return self.save_many([doc], timestamp, comment, data, ip, author, action=action or "update")
         
@@ -276,7 +283,11 @@ class DBSiteStore(common.SiteStore):
             d = web.storage(table=None)
             def f(table):
                 d.table = d.table or table
-                return '%s.ordering = %s.ordering' % (table, d.table)
+                if d.table == table:
+                    # avoid a comparsion when both tables are same. it fails when ordering is None
+                    return "1 = 1"
+                else:
+                    return '%s.ordering = %s.ordering' % (table, d.table)
             return f
             
         import readquery
@@ -427,7 +438,7 @@ class DBSiteStore(common.SiteStore):
                 else:
                     # 'bot' column is not enabled
                     if key == 'bot' and not config.use_bot_column:
-                        bots = [r.thing_id for r in self.db.query("SELECT thing_id FROM account WHERE bot='t'")] or [-1]
+                        bots = get_bot_users(self.db)
                         if value == True or str(value).lower() == "true":
                             where += web.reparam(" AND transaction.author_id IN $bots", {"bots": bots})
                         else:
@@ -551,7 +562,7 @@ class DBStore(common.Store):
     def __init__(self, schema):
         self.schema = schema
         self.sitestore = None
-        self.db = create_daatabase(**web.config.db_parameters)
+        self.db = create_database(**web.config.db_parameters)
         
     def has_initialized(self):
         try:
@@ -592,7 +603,7 @@ class MultiDBStore(DBStore):
     def __init__(self, schema):
         self.schema = schema
         self.sitestores = {}
-        self.db = create_daatabase(**web.config.db_parameters)
+        self.db = create_database(**web.config.db_parameters)
         
     def create(self, sitename):
         t = self.db.transaction()
@@ -656,7 +667,7 @@ class MultiDBSiteStore(DBSiteStore):
     def delete(self):
         pass
 
-def create_daatabase(**params):
+def create_database(**params):
     db = web.database(**params)
     
     # monkey-patch query method to collect stats

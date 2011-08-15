@@ -66,6 +66,7 @@ class SaveImpl:
         else:
             dbtx.commit()
         changeset['docs'] = [r.data for r in records]
+        changeset['old_docs'] = [r.prev.data for r in records]
         return changeset
         
     def _add_transaction(self, changeset):
@@ -87,9 +88,15 @@ class SaveImpl:
         
     def _index_transaction_data(self, tx_id, data):
         d = []
+        def index(key, value):
+            if isinstance(value, (basestring, int)):
+                d.append({"tx_id": tx_id, "key": key, "value": value})
+            elif isinstance(value, list):
+                for v in value:
+                    index(key, v)
+
         for k, v in data.iteritems():
-            if isinstance(v, str):
-                d.append({"tx_id": tx_id, "key": k, "value": v})
+            index(k, v)
                 
         if d:
             self.db.multiple_insert("transaction_index", d, seqname=False)
@@ -233,9 +240,12 @@ class SaveImpl:
 
     def get_user_details(self, key):
         """Returns a storage object with user email and encrypted password."""
-        thing_id = self.get_thing_id(key)
-        d = self.db.query("SELECT * FROM account WHERE thing_id=$thing_id", vars=locals())
-        return d and d[0] or None        
+        account_key = "account/" + key.split("/")[-1]
+        rows = self.db.query("SELECT * FROM store WHERE key=$account_key", vars=locals())
+        if rows:
+            return simplejson.loads(rows[0].json)
+        else:
+            return None
 
 class IndexUtil:
     """
