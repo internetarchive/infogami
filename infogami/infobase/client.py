@@ -808,17 +808,6 @@ class Thing:
             return value
         else:
             return parse_datetime(value["value"])
-             
-    def _get_created(self):
-        self.created = self._parse_datetime(self["created"])
-        return self.created
-
-    def _get_last_modified(self):
-        self.last_modified = self._parse_datetime(self["last_modified"])
-        return self.last_modified
-
-    created = property(_get_created)
-    last_modified = property(_get_last_modified)
         
     def _getdata(self):
         if self._data is None:
