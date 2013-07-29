@@ -197,6 +197,13 @@ def make_query(i, required_keys=None):
     {'a': 1}
     >>> make_query(dict(a=1, _b=2, c=3), required_keys=['a'])
     {'a': 1}
+
+    Also looks to nest keys that contain a dot operator and split values with '+OR+' into
+    lists. This is to maintain the same functionality whether one passes a json dict or a
+    series of key=value statements.
+
+    >>> make_query({'table_of_contents.pagenum':5})
+    {'table_of_contents': {'pagenum': 5}}
     """
     query = {}
     for k, v in i.items():
@@ -207,6 +214,18 @@ def make_query(i, required_keys=None):
         if v == '':
             v = None
         query[k] = v
+        
+        if isinstance(k, ( str, unicode )):
+            tmp = k.split('.')
+            if len(tmp) > 1:
+                query[tmp[0]] = {tmp[1]: v}
+                del query[k]
+                k = tmp[1]
+
+        if isinstance(v, ( str, unicode )):
+            tmp = v.split('+OR+')
+            if len(tmp) > 1:
+                query[k] = tmp
     return query
 
 class history(delegate.mode):
@@ -243,13 +262,7 @@ class query(delegate.page):
         i.pop("callback", None)
         query = i.pop('query')
         if not query:
-            query = make_query(i)
-            for k, v in query.items():
-                tmp = v.split('+OR+')
-                if len(tmp) > 1:
-                    query[k] = tmp
-            query = simplejson.dumps(query)
-
+            query = simplejson.dumps(make_query(i))
         return request('/things', data=dict(query=query, details="true"))
 
 class login(delegate.page):
