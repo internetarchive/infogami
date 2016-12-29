@@ -88,6 +88,7 @@ create table account (
     active boolean default 't',
     bot  boolean default 'f',
     verified boolean default 'f',
+    internetarchive_itemname text unique,
     
     $if multisite:
         UNIQUE(site_id, email)
