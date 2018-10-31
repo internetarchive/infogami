@@ -1,17 +1,13 @@
-import os.path
-import re
+import os
+
 import web
+
 from infogami import config
+from infogami.utils import features, i18n, macro, template
+from infogami.utils.app import *
+from infogami.utils.context import context
+from infogami.utils.view import render_site, public
 
-import template
-import macro
-from context import context
-import features
-
-from app import *
-
-from view import render_site, public
-import i18n
 
 def create_site():
     from infogami.infobase import client
@@ -131,7 +127,7 @@ def _make_plugin(name):
             if os.path.isdir(path):
                 break
         else:
-            raise Exception, 'Plugin not found: ' + name
+            raise Exception('Plugin not found: ' + name)
             
     return web.storage(name=name, path=path, module=module)
 

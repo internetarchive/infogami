@@ -8,15 +8,21 @@ There could also be multiple sources of templates. For example, from plugins
 and from the wiki. The `Render` class takes care of providing the correct 
 template from multiple template sources and error handling.
 """
-import web
 import os
 import time
-import storage
+
+import web
+
+from infogami.utils import storage
+
 
 # There are some backward-incompatible changes in web.py 0.34 which makes Infogami fail. 
 # Monkey-patching web.py to fix that issue.
 if web.__version__ == "0.34":
-    from UserDict import DictMixin
+    try:
+        from collections import MutableMapping as DictMixin
+    except ImportError:
+        from UserDict import DictMixin
     web.template.TemplateResult.__bases__ = (DictMixin, web.storage)
     web.template.StatementNode.emit = lambda self, indent, text_indent="": indent + self.stmt
     
@@ -108,16 +114,16 @@ class Render(storage.DictPile):
         if templates:
             return lambda *a, **kw: saferender(templates, *a, **kw)
         else:
-            raise KeyError, key
+            raise KeyError(key)
             
     def __getattr__(self, key):
         if key.startswith('__'):
-            raise AttributeError, key
+            raise AttributeError(key)
     
         try:
             return self[key]
         except KeyError:
-            raise AttributeError, key
+            raise AttributeError(key)
 
 def usermode(f):
     """Returns a function that calls f after switching to user mode of tdb.
@@ -147,7 +153,7 @@ def saferender(templates, *a, **kw):
             content_type = getattr(result, 'ContentType', 'text/html; charset=utf-8').strip()
             web.header('Content-Type', content_type, unique=True)
             return result
-        except Exception, e:
+        except Exception as e:
             # help to debug template errors.
             # when called with debug=true, the debug error is displayed.
             i = web.input(_method='GET', debug="false")

@@ -2,9 +2,15 @@
 Useful datastructures.
 """
 
-import web
 import copy
-from UserDict import DictMixin
+
+import web
+
+try:
+    from collections import MutableMapping as DictMixin
+except ImportError:
+    from UserDict import DictMixin
+
 
 class OrderedDict(dict):
     """
@@ -13,7 +19,7 @@ class OrderedDict(dict):
     _reserved = ['_keys']
 
     def __init__(self, d={}, **kw):
-        self._keys = d.keys() + kw.keys()
+        self._keys = list(d.keys()) + list(kw.keys())
         dict.__init__(self, d, **kw)
 
     def __delitem__(self, key):
@@ -33,7 +39,7 @@ class OrderedDict(dict):
         try:
             return self[key]
         except KeyError:
-            raise AttributeError, key
+            raise AttributeError(key)
 
     def __setattr__(self, key, value):
         # special care special methods
@@ -46,7 +52,7 @@ class OrderedDict(dict):
         try:
             del self[key]
         except KeyError:
-            raise AttributeError, key
+            raise AttributeError(key)
 
     def clear(self):
         dict.clear(self)
@@ -68,7 +74,7 @@ class OrderedDict(dict):
 
     def update(self, d):
         for key in d.keys():
-            if not self.has_key(key):
+            if key not in self:
                 self._keys.append(key)
         dict.update(self, d)
 
@@ -96,7 +102,7 @@ class OrderedDict(dict):
         return self.iterkeys()
 
     def index(self, key):
-        if not self.has_key(key):
+        if key not in self:
             raise KeyError(key)
         return self._keys.index(key)
 
@@ -179,7 +185,7 @@ class ReadOnlyDict:
         try:
             return self._d[key]
         except KeyError:
-            raise AttributeError, key
+            raise AttributeError(key)
 
 class DictPile(DictMixin):
     """Pile of ditionaries. 
@@ -211,7 +217,7 @@ class DictPile(DictMixin):
             if key in d:
                 return d[key]
         else:
-            raise KeyError, key
+            raise KeyError(key)
     
     def keys(self):
         keys = set()

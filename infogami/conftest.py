@@ -1,5 +1,5 @@
 
-pytest_plugins = ["pytest_unittest"]
+# pytest_plugins = ["pytest_unittest"]
 
 collect_ignore = ['failing']
 

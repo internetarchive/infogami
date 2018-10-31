@@ -4,10 +4,14 @@ import web
 import simplejson
 from collections import defaultdict
 
-from indexer import Indexer
-from schema import INDEXED_DATATYPES, Schema
-
 from infogami.infobase import config, common
+from infogami.infobase._dbstore.indexer import Indexer
+from infogami.infobase._dbstore.schema import INDEXED_DATATYPES, Schema
+
+try:
+    basestring
+except NameError:
+    basestring = (str, )
 
 __all__ = ["SaveImpl"]
 

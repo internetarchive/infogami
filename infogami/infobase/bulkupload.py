@@ -3,10 +3,11 @@ bulkupload script to upload multiple objects at once.
 All the inserts are merged to give better performance.
 """
 import web
-from infobase import TYPES, DATATYPE_REFERENCE
 import datetime
 import re
 import tempfile
+
+from infogami.infobase import TYPES, DATATYPE_REFERENCE
 
 def sqlin(name, values):
     """
@@ -254,7 +255,7 @@ class BulkUpload:
         elif isinstance(query, bool):
             return (int(query), TYPES['/type/boolean'])
         else:
-            raise Exception, '%s: invalid value: %s' (path, repr(query))
+            raise Exception('%s: invalid value: %s' (path, repr(query)))
 
 if __name__ == "__main__":
     import sys

@@ -1,8 +1,14 @@
 """Core datastructures for Infogami.
 """
 import web
-import _json as simplejson
+from infogami.infobase import _json as simplejson
 import copy
+
+try:
+    unicode
+except NameError:
+    unicode = str
+
 
 class InfobaseException(Exception):
     status = "500 Internal Server Error"
@@ -90,7 +96,7 @@ class Thing:
         try:
             return self[key]
         except KeyError:
-            raise AttributeError, key
+            raise AttributeError(key)
             
     def __eq__(self, other):
         return getattr(other, 'key', None) == self.key and getattr(other, '_data', None) == self._data

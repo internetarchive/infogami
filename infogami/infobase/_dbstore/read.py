@@ -5,6 +5,12 @@ import simplejson
 import web
 from infogami.infobase import config
 
+try:
+    basestring
+except NameError:
+    basestring = (str, )
+
+
 def get_user_root():
     user_root = config.get("user_root", "/user")
     return user_root.rstrip("/") + "/"

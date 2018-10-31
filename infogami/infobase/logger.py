@@ -10,10 +10,12 @@ Infogami log file is a stream of events where each event is a dictionary represe
 Log files are circulated on daily basis. Default log file format is $logroot/yyyy/mm/dd.log.
 """
 
-import datetime, time
-import _json as simplejson
+import datetime
 import os
 import threading
+import time
+
+from infogami.infobase import _json as simplejson
 
 def synchronize(f):
     """decorator to synchronize a method."""

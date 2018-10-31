@@ -1,6 +1,7 @@
 """
 Support for Internationalization.
 """
+from __future__ import print_function
 
 import web
 
@@ -67,7 +68,7 @@ class i18n:
         if not key.startswith('__'):
             return self[key]
         else:
-            raise AttributeError, key
+            raise AttributeError(key)
             
     def __getitem__(self, key):
         namespace = web.ctx.get('i18n_namespace', '/')
@@ -83,7 +84,7 @@ class i18n_namespace:
         if not key.startswith('__'):
             return self[key]
         else:
-            raise AttributeError, key
+            raise AttributeError(key)
             
     def __getitem__(self, key):
         return self._i18n.get(self._namespace, key)
@@ -107,7 +108,7 @@ class i18n_string:
             a = [x or "" for x in a]
             return str(self) % tuple(web.utf8(x) for x in a)
         except:
-            print >> web.debug, 'failed to substitute (%s/%s) in language %s' % (self._namespace, self._key, web.ctx.lang)
+            print('failed to substitute (%s/%s) in language %s' % (self._namespace, self._key, web.ctx.lang), file=web.debug)
         return str(self)
 
 def i18n_loadhook():
@@ -171,11 +172,12 @@ def load_strings(plugin_path):
         """Find namespace and lang from path."""
         namespace = os.path.dirname(path)
         _, extn = os.path.splitext(p)
-        return '/' + namespace, extn[1:] # strip dot
+        return '/' + namespace, extn[1:]  # strip dot
         
     def read_strings(path):
         env = {}
-        execfile(path, env)
+        with open(path) as in_file:
+            exec(in_file, env)
         # __builtins__ gets added by execfile
         del env['__builtins__']
         return env
@@ -189,7 +191,7 @@ def load_strings(plugin_path):
         except:
             import traceback
             traceback.print_exc()
-            print >> web.debug, "failed to load strings from", p
+            print("failed to load strings from", p, file=web.debug)
 
 # global state
 strings = i18n()

@@ -28,15 +28,17 @@ Any elements added to the infobase cache during a request are cached locally unt
 of that request and then they are added to the global cache.
 """
 
-import web
-import lru
 import logging
+
+import web
+
+from infogami.infobase import lru
 
 logger = logging.getLogger("infobase.cache")
 
 class NoneDict:
     def __getitem__(self, key):
-        raise KeyError, key
+        raise KeyError(key)
         
     def __setitem__(self, key, value):
         pass
@@ -55,7 +57,7 @@ class MemcachedDict:
         key = web.safestr(key)
         value = self.memcache_client.get(key)
         if value is None:
-            raise KeyError, key
+            raise KeyError(key)
         return value
         
     def __setitem__(self, key, value):

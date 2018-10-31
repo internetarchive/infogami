@@ -1,13 +1,14 @@
+import datetime
+import os
+import unittest
+
+import pytest
+import simplejson
+import web
+
 from infogami.infobase import dbstore
 from infogami.infobase._dbstore.save import SaveImpl, IndexUtil, PropertyManager
-
-import utils
-
-import web
-import simplejson
-import os
-import datetime
-import unittest
+from infogami.infobase.tests import utils
 
 def setup_module(mod):
     utils.setup_db(mod)
@@ -57,7 +58,7 @@ class Test_get_records_for_save(DBTest):
     """
     def test_new(self):
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 01, 01, 01, 01, 01)
+        timestamp = datetime.datetime(2010, 1, 1, 1, 1, 1)
 
         a = {"key": "/a", "type": {"key": "/type/object"}, "title": "a"}
         b = {"key": "/b", "type": {"key": "/type/object"}, "title": "b"}
@@ -74,12 +75,12 @@ class Test_get_records_for_save(DBTest):
             id =  db.insert('thing', key=doc['key'], latest_revision=revision, created=created, last_modified=last_modified)
             db.insert('data', seqname=False, thing_id=id, revision=revision, data=simplejson.dumps(doc))
         
-        created = datetime.datetime(2010, 01, 01, 01, 01, 01)            
+        created = datetime.datetime(2010, 1, 1, 1, 1, 1)            
         a = {"key": "/a", "type": {"key": "/type/object"}, "title": "a"}
         insert(a, 1, created, created)
 
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 02, 02, 02, 02, 02)            
+        timestamp = datetime.datetime(2010, 2, 2, 2, 2, 2)            
         records = s._get_records_for_save([a], timestamp)
         
         assert_record(records[0], a, 2, created, timestamp)
@@ -91,7 +92,7 @@ class Test_save(DBTest):
         
     def test_save(self):
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 01, 01, 01, 01, 01)
+        timestamp = datetime.datetime(2010, 1, 1, 1, 1, 1)
         a = {"key": "/a", "type": {"key": "/type/object"}, "title": "a"}
         
         status = s.save([a], 
@@ -105,7 +106,7 @@ class Test_save(DBTest):
         assert self.get_json('/a') == update_doc(a, 1, timestamp, timestamp) 
         
         a['title'] = 'b'
-        timestamp2 = datetime.datetime(2010, 02, 02, 02, 02, 02) 
+        timestamp2 = datetime.datetime(2010, 2, 2, 2, 2, 2) 
         status = s.save([a], 
                     timestamp=timestamp2, 
                     ip="1.2.3.4", 
@@ -117,7 +118,7 @@ class Test_save(DBTest):
         
     def test_type_change(self):
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 01, 01, 01, 01, 01)
+        timestamp = datetime.datetime(2010, 1, 1, 1, 1, 1)
         a = {"key": "/a", "type": {"key": "/type/object"}, "title": "a"}
         status = s.save([a], 
                     timestamp=timestamp, 
@@ -130,7 +131,7 @@ class Test_save(DBTest):
         type_delete_id = db.insert("thing", key='/type/delete')
         a['type']['key'] = '/type/delete'
 
-        timestamp2 = datetime.datetime(2010, 02, 02, 02, 02, 02) 
+        timestamp2 = datetime.datetime(2010, 2, 2, 2, 2, 2) 
         status = s.save([a], 
                     timestamp=timestamp2, 
                     ip="1.2.3.4", 
@@ -172,7 +173,7 @@ class Test_save(DBTest):
         
     def _save(self, docs):
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 01, 01, 01, 01, 01)
+        timestamp = datetime.datetime(2010, 1, 1, 1, 1, 1)
         return s.save(docs, timestamp=timestamp, comment="foo", ip="1.2.3.4", author=None, action="save")
     
     def test_save_with_new_type(self):
@@ -184,7 +185,7 @@ class Test_save(DBTest):
             "type": {"key": "/type/foo"}
         }]
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 01, 01, 01, 01, 01)
+        timestamp = datetime.datetime(2010, 1, 1, 1, 1, 1)
         
         s.save(docs, timestamp=timestamp, comment="foo", ip="1.2.3.4", author=None, action="save")
         
@@ -211,7 +212,7 @@ class Test_save(DBTest):
             "title": "a" * 4000
         }]
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 01, 01, 01, 01, 01)
+        timestamp = datetime.datetime(2010, 1, 1, 1, 1, 1)
         s.save(docs, timestamp=timestamp, comment="foo", ip="1.2.3.4", author=None, action="save")
         
     def test_transaction(self, wildcard):
@@ -220,7 +221,7 @@ class Test_save(DBTest):
             "type": {"key": "/type/object"},
         }]
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 01, 01, 01, 01, 01)
+        timestamp = datetime.datetime(2010, 1, 1, 1, 1, 1)
         changeset = s.save(docs, timestamp=timestamp, comment="foo", ip="1.2.3.4", author=None, action="save")
         changeset.pop("docs")
         changeset.pop("old_docs")
@@ -255,7 +256,8 @@ class MockSchema:
     def find_table(self, type, datatype, name):
         return "datum_" + datatype
         
-def pytest_funcarg__testdata(request):        
+@pytest.fixture
+def testdata(request):        
     return {
         "doc1": {
             "key": "/doc1",
@@ -391,7 +393,7 @@ class TestIndex:
 class TestIndexWithDB(DBTest):
     def _save(self, docs):
         s = SaveImpl(db)
-        timestamp = datetime.datetime(2010, 01, 01, 01, 01, 01)
+        timestamp = datetime.datetime(2010, 1, 1, 1, 1, 1)
         return s.save(docs, timestamp=timestamp, comment="foo", ip="1.2.3.4", author=None, action="save")
     
     def test_reindex(self):

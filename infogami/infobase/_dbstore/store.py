@@ -30,8 +30,6 @@ The following indexer allows querying for books using lowercase titles and books
             
 """
 
-from __future__ import with_statement
-
 import simplejson
 import web
 

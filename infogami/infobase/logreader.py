@@ -1,6 +1,7 @@
 """
 Log file reader.
 """
+from __future__ import print_function
 import os
 import itertools
 import datetime
@@ -9,7 +10,7 @@ import web
 import glob
 
 try:
-    import _json as simplejson
+    from infogami.infobase import _json as simplejson
 except ImportError:
     # make sure this module can be used indepent of infobase.
     import simplejson
@@ -187,8 +188,7 @@ class LogFile:
         
     def find_filelist(self, from_date=None):
         if from_date is None:
-            filelist = glob.glob('%s/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9].log' % self.root)
-            filelist.sort()
+            filelist = sorted(glob.glob('%s/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9].log' % self.root))
         else:
             filelist = [self.date2file(date) for date in daterange(from_date)]
             filelist = [f for f in filelist if os.path.exists(f)]
@@ -282,7 +282,7 @@ class RsyncLogFile(LogFile):
         
     def rsync(self):
         cmd = "rsync -r %s %s" % (self.rsync_root, self.root)
-        print cmd
+        print(cmd)
         os.system(cmd)
 
 class LogPlayback:

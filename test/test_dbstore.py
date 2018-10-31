@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 sys.path.insert(0, '.')
 
@@ -37,13 +38,13 @@ class DBStoreTest(InfobaseTestCase):
         store.save('/x', d)
 
         d = store.get('/x')._get_data()
-        print d
+        print(d)
 
         del d['title']
         d['body'] = 'bar'
         store.save('/x', d)
 
-        print store.get('/x')._get_data()
+        print(store.get('/x')._get_data())
 
 class SaveTest(InfobaseTestCase):
     def testSave(self):
@@ -57,7 +58,7 @@ class SaveTest(InfobaseTestCase):
         try:
             key = d['key']
             self.assertEquals(self.site.save(key, d), {'key': key, 'revision': 1})
-        except common.InfobaseException, e:
+        except common.InfobaseException as e:
             self.assertEquals(str(e), error)
     
     def test_type(self):

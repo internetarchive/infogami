@@ -1,16 +1,33 @@
 """Infobase client."""
+from __future__ import print_function
 
-import common
-import httplib, urllib
-import _json as simplejson
-import web
-import socket
 import datetime
-import time
 import logging
+import socket
+import time
+
+try:
+    from http.client import HTTPConnection
+except ImportError:
+    from httplib import HTTPConnection
+
+try:
+    from urllib.parse import quote, unquote, urlencode
+except ImportError:
+    from urllib import quote, unquote, urlencode
+
+import web
 
 from infogami import config
+from infogami.infobase import common, _json as simplejson
 from infogami.utils import stats
+
+try:
+    basestring
+    unicode
+except NameError:
+    basestring = (str, )
+    unicode = str
 
 logger = logging.getLogger("infobase.client")
 
@@ -100,7 +117,7 @@ class LocalConnection(Connection):
             stats.end()
             if 'infobase_auth_token' in web.ctx:
                 self.set_auth_token(web.ctx.infobase_auth_token)
-        except common.InfobaseException, e:
+        except common.InfobaseException as e:
             stats.end(error=True)
             self.handle_error(e.status, str(e))
         return out
@@ -129,20 +146,20 @@ class RemoteConnection(Connection):
         if data:
             if isinstance(data, dict):
                 data = dict((web.safestr(k), web.safestr(v)) for k, v in data.items())
-                data = urllib.urlencode(data)
+                data = urlencode(data)
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
             if method == 'GET':
                 path += '?' + data
                 data = None
         
         stats.begin("infobase", path=path, method=method, data=data)                
-        conn = httplib.HTTPConnection(self.base_url)
+        conn = HTTPConnection(self.base_url)
         env = web.ctx.get('env') or {}
         
         if self.auth_token:
             import Cookie
             c = Cookie.SimpleCookie()
-            c['infobase_auth_token'] = urllib.quote(self.auth_token)
+            c['infobase_auth_token'] = quote(self.auth_token)
             cookie = c.output(header='').strip()
             headers['Cookie'] = cookie
             
@@ -167,12 +184,12 @@ class RemoteConnection(Connection):
                 auth_token = c['infobase_auth_token'].value
                 # The auth token will be in urlquoted form, unquote it before use.
                 # Otherwise, it will be quoted twice this value is set as cookie.
-                auth_token = auth_token and urllib.unquote(auth_token)
+                auth_token = auth_token and unquote(auth_token)
                 self.set_auth_token(auth_token)
                 
         if web.config.debug:
             b = time.time()
-            print >> web.debug, "%.02f (%s):" % (round(b-a, 2), web.ctx.infobase_req_count), response.status, method, _path, _data
+            print("%.02f (%s):" % (round(b-a, 2), web.ctx.infobase_req_count), response.status, method, _path, _data, file=web.debug)
                 
         if response.status == 200:
             return response.read()
@@ -228,9 +245,9 @@ class Site:
             data = dict(key=key, revision=revision)
             try:
                 result = self._request('/get', data=data)
-            except ClientException, e:
+            except ClientException as e:
                 if e.status.startswith('404'):
-                    raise NotFound, key
+                    raise NotFound(key)
                 else:
                     raise
             self._cache[key, revision] = web.storage(common.parse_query(result))
@@ -291,7 +308,7 @@ class Site:
         try:
             self._request(path="", method="GET")
             return True
-        except ClientException, e:
+        except ClientException as e:
             if e.status.startswith("404"):
                 return False
             else:
@@ -557,9 +574,9 @@ class Store:
     def __getitem__(self, key):
         try:
             return self._request(key)
-        except ClientException, e:
+        except ClientException as e:
             if e.status.startswith("404"):
-                raise KeyError, key
+                raise KeyError(key)
             else:
                 raise
     
@@ -641,7 +658,7 @@ class Nothing:
     """
     def __getattr__(self, name):
         if name.startswith('__') or name == 'next':
-            raise AttributeError, name
+            raise AttributeError(name)
         else:
             return self
 
@@ -699,9 +716,9 @@ def create_thing(site, key, data, revision=None):
             # just to be safe
             if not isinstance(type, basestring):
                 type = None
-    except Exception, e:
+    except Exception as e:
         # just for extra safety
-        print >> web.debug, 'ERROR:', str(e)
+        print('ERROR:', str(e), file=web.debug)
         type = None
         
     klass = _thing_class_registry.get(type) or _thing_class_registry.get(None)
@@ -815,7 +832,7 @@ class Thing:
 
     def __getattr__(self, key):
         if key.startswith('__'):
-            raise AttributeError, key
+            raise AttributeError(key)
         
         # Hack: __class__ of this object can change in _getdata method.
         #

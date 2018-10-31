@@ -1,21 +1,29 @@
+from __future__ import print_function
+
+import os
+import re
+
+try:
+    from url.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 
 import web
-import os
-import urllib
-import re
 
 import infogami
 from infogami.core.diff import simple_diff, better_diff
-from infogami.utils import i18n
+from infogami.utils import i18n, macro, stats, storage
+from infogami.utils.context import context
+from infogami.utils.flash import get_flash_messages, add_flash_message
 from infogami.utils.markdown import markdown, mdx_footnotes
+from infogami.utils.template import render, render_template, get_template
 
-from context import context
-from template import render, render_template, get_template
-
-import macro
-import storage
-from flash import get_flash_messages, add_flash_message
-import stats
+try:
+    basestring
+    unicode
+except NameError:
+    basestring = (str, )
+    unicode = str
 
 wiki_processors = []
 def register_wiki_processor(p):
@@ -69,7 +77,7 @@ web.template.Template.globals.update(dict(
   utf8=web.utf8,
   Dropdown = web.form.Dropdown,
   slice = slice,
-  urlencode = urllib.urlencode,
+  urlencode = urlencode,
   debug = web.debug,
   get_flash_messages=get_flash_messages,
   render_template=render_template,
@@ -190,7 +198,7 @@ def thinginput(value, property=None, **kw):
                 from infogami.core import db        
                 kw['expected_type'] = db.get_version(kw['expected_type'])
         else:
-            raise ValueError, "missing expected_type"
+            raise ValueError("missing expected_type")
         property = web.storage(kw)
     return unicode(render.input(thingify(property.expected_type, value), property))
 
@@ -267,7 +275,7 @@ def movefiles():
                 to = os.path.join(dest, f)
                 cp_r(frm, to)
         else:
-            print 'copying %s to %s' % (src, dest)
+            print('copying %s to %s' % (src, dest))
             shutil.copy(src, dest)
     
     static_dir = os.path.join(os.getcwd(), "static")
@@ -315,7 +323,7 @@ def movetypes():
             files = [os.path.join(path, f) for f in sorted(os.listdir(path)) if f.endswith(extension)]
             for f in files:
                 d = readfile(f)
-                print >> web.debug, 'moving types from', f
+                print('moving types from', f, file=web.debug)
                 if isinstance(d, list):
                     pages.extend(d)
                 else:
@@ -347,12 +355,12 @@ def move(dir, extension, recursive=False, readfunc=None):
     delegate.admin_login()
     result = web.ctx.site.save_many(pages, "install")
     for r in result:
-        print r
+        print(r)
 
 @infogami.action
 def write(filename):
     q = open(filename).read()
-    print web.ctx.site.write(q)
+    print(web.ctx.site.write(q))
     
 # this is not really the right place to move this, but couldn't find a better place than this.     
 def require_login(f):
@@ -367,7 +375,7 @@ def login_redirect(path=None):
     if path is None:
         path = web.ctx.fullpath
 
-    query = urllib.urlencode({"redirect":path})
+    query = urlencode({"redirect":path})
     raise web.seeother("/account/login?" + query)
 
 def permission_denied(error):

@@ -1,7 +1,7 @@
 import web
 
-import utils
-from .. import common, writequery
+from infogami.infobase import common, writequery
+from infogami.infobase.tests import utils
 
 def setup_module(mod):
     utils.setup_site(mod)
@@ -69,7 +69,7 @@ class TestSaveProcessor(DBTest):
         def save_many(query):
             try:
                 site.save_many(query)
-            except common.InfobaseException, e:
+            except common.InfobaseException as e:
                 return e.dict()
 
         q = {

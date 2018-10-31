@@ -4,17 +4,17 @@ Infobase: structured database.
 Infobase is a structured database which contains multiple sites.
 Each site is an independent collection of objects. 
 """
-import web
-import datetime
-import simplejson
+from __future__ import print_function
 
-import common
-import config
-import readquery
-import writequery
+import datetime
+
+import simplejson
+import web
+
+from infogami.infobase import common, config, readquery, writequery
 
 # important: this is required here to setup _loadhooks and unloadhooks
-import cache
+from infogami.infobase import cache
 
 class Infobase:
     """Infobase contains multiple sites."""
@@ -242,7 +242,7 @@ class Site:
                 try:
                     t(self, old, new)
                 except:
-                    print >> web.debug, 'Failed to execute trigger', t
+                    print('Failed to execute trigger', t, file=web.debug)
                     import traceback
                     traceback.print_exc()
         

@@ -1,22 +1,18 @@
 """Infobase server to expose the API.
 """
-__version__ = "0.5dev"
+from __future__ import print_function
 
-import sys
-import web
-import infobase
-import _json as simplejson
-import time
-import time
-import os
 import logging
+import os
+import sys
+import time
 
-from infobase import config
-import common
-import cache
-import logreader
+import web
 
-from account import get_user_root
+from infogami.infobase import cache, common, logreader, _json as simplejson
+from infogami.infobase.account import get_user_root
+
+__version__ = "0.5dev"
 
 logger = logging.getLogger("infobase")
 
@@ -79,12 +75,12 @@ def jsonify(f):
                         
         try:
             d = f(self, *a, **kw)
-        except common.InfobaseException, e:
+        except common.InfobaseException as e:
             if web.ctx.get('infobase_localmode'):
                 raise
             
             process_exception(e)
-        except Exception, e:
+        except Exception as e:
             logger.error("Error in processing request %s %s", web.ctx.get("method", "-"), web.ctx.get("path","-"), exc_info=True)
 
             common.record_exception()
@@ -148,7 +144,7 @@ def to_int(value, key):
 def from_json(s):
     try:
         return simplejson.loads(s)
-    except ValueError, e:
+    except ValueError as e:
         raise common.BadData(message="Bad JSON: " + str(e))
         
 _infobase = None
@@ -197,7 +193,7 @@ class db:
 class echo:
     @jsonify
     def POST(self):
-        print >> web.debug, web.data()
+        print(web.data(), file=web.debug)
         return {'ok': True}
 
 class write:
@@ -523,7 +519,7 @@ class readlog:
             try:
                 timestamp = common.parse_datetime(i.timestamp)
                 logreader.LogReader(log).skip_till(timestamp)
-            except Exception, e:
+            except Exception as e:
                 raise web.internalerror(str(e))
         
         return log
@@ -562,13 +558,13 @@ class readlog:
                             yield sep + line.strip()
                             sep = ",\n"
                         else:
-                            print >> sys.stderr, "ERROR: found invalid json before %s" % log.tell()
+                            print("ERROR: found invalid json before %s" % log.tell(), file=sys.stderr)
                     else:
                         break
                 yield '], \n'
                 yield '"offset": ' + simplejson.dumps(log.tell()) + "\n}\n"
-            except Exception, e:
-                print 'ERROR:', str(e)
+            except Exception as e:
+                print('ERROR:', str(e))
                 
 def request(path, method, data):
     """Fakes the web request.
