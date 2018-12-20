@@ -2,6 +2,8 @@
 
 from setuptools import setup, find_packages
 
+print("setuptools.find_packages():\n{}".format(find_packages()))
+
 setup(name='infogami',
       version="0.5dev",
       description='Infogami: A new kind of wiki',
