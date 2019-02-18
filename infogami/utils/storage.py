@@ -206,25 +206,39 @@ class DictPile(DictMixin):
     """
     def __init__(self, dicts=[]):
         self.dicts = dicts[:]
-        
+
+    def __len__(self):
+        return len(self.dicts)
+
+    def __iter__(self):
+        for i in self.dicts:
+            yield i
+
     def add_dict(self, d):
         """Adds d to the pile of dicts at the top.
         """
         self.dicts.append(d)
-        
+
+    def __setitem__(self, key, value):
+        self.dicts.__setitem__(key, value)
+
+    def __delitem__(self, key):
+        self.dicts.__delitem__(key)
+
     def __getitem__(self, key):
         for d in self.dicts[::-1]:
             if key in d:
                 return d[key]
         else:
             raise KeyError(key)
-    
+
     def keys(self):
         keys = set()
         for d in self.dicts:
             keys.update(d.keys())
         return list(keys)
-            
+
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()
