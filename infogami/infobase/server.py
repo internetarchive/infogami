@@ -9,6 +9,7 @@ import time
 
 import web
 
+from infogami import config
 from infogami.infobase import cache, common, infobase, logreader, _json as simplejson
 from infogami.infobase.account import get_user_root
 
