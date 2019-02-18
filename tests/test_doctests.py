@@ -4,7 +4,8 @@ import doctest, unittest
 def add_doctests(suite):
     """create one test_xx function in globals for each doctest in the given module.
     """
-    suite = web.test.make_doctest_suite()
+    #suite = web.test.make_doctest_suite()
+    suite = doctest.DocTestSuite()
 
     add_test(make_suite(module))
 
@@ -35,5 +36,6 @@ modules = [
     "infogami.infobase.utils",
     "infogami.infobase.writequery",
 ]
-suite = web.test.doctest_suite(modules)
+#suite = web.test.doctest_suite(modules)
+suite = doctest.DocTestSuite()
 add_test(suite)
