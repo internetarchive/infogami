@@ -10,7 +10,10 @@ install:
   - pip install --upgrade pip
   - pip install flake8 pytest
   - pip install -r requirements.txt
+services:
+  - postgresql
 before_script:
+  - psql -c 'create database infobase_test;' -U postgres
   # stop the build if there are Python syntax errors or undefined names
   - flake8 . --count --select=E901,F822,F823 --show-source --statistics
   # TODO: add this E999,F821 test to the line above once they have been fixed
