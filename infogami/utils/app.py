@@ -7,7 +7,7 @@ import simplejson
 
 import web
 
-from infogami.utils import flash, delegate as infogami_delegate
+from infogami.utils import flash
 
 urls = ("/.*", "item")
 app = web.application(urls, globals(), autoreload=False)
