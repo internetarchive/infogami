@@ -16,6 +16,12 @@ import web
 from infogami.infobase import server
 
 
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
+
+
 def browser():
     if web.config.get('test_url'):
         b = web.browser.Browser()
@@ -32,7 +38,7 @@ def request(path, method="GET", data=None, headers={}):
         data = None
     if isinstance(data, dict):
         data = simplejson.dumps(data)
-    url = urllib.basejoin(b.url, path)
+    url = urljoin(b.url, path)
     req = url_request(url, data, headers)
     req.get_method = lambda: method
     b.do_request(req)
