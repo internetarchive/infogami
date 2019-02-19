@@ -31,6 +31,13 @@ License: GPL 2 (http://www.gnu.org/copyleft/gpl.html) or BSD
 
 import re, sys, os, random, codecs
 
+try:
+    basestring
+    unicode
+except NameError:
+    basestring = (str, )
+    unicode = str
+
 # Set debug level: 3 none, 2 critical, 1 informative, 0 all
 (VERBOSE, INFO, CRITICAL, NONE) = range(4)
 
@@ -62,11 +69,11 @@ RTL_BIDI_RANGES = ( (u'\u0590', u'\u07FF'),
 # 0780-07BF - Thaana
 # 07C0-07FF - Nko
 
-BOMS = { 'utf-8' : (unicode(codecs.BOM_UTF8, "utf-8"), ),
-         'utf-16' : (unicode(codecs.BOM_UTF16_LE, "utf-16"),
-                     unicode(codecs.BOM_UTF16_BE, "utf-16")),
-         #'utf-32' : (unicode(codecs.BOM_UTF32_LE, "utf-32"),
-         #            unicode(codecs.BOM_UTF32_BE, "utf-32")),
+BOMS = { 'utf-8' : (codecs.BOM_UTF8.decode("utf-8"), ),
+         'utf-16' : (codecs.BOM_UTF16_LE.decode("utf-16"),
+                     codecs.BOM_UTF16_BE.decode("utf-16")),
+         #'utf-32' : (codecs.BOM_UTF32_LE.decode("utf-32"),
+         #            codecs.BOM_UTF32_BE.decode("utf-32")),
          }
 
 def removeBOM(text, encoding):
@@ -1497,7 +1504,7 @@ class Markdown:
                 
                 x = parts[i]
 
-                if isinstance(x, (str, unicode)) :
+                if isinstance(x, basestring) :
                     result = self._applyPattern(x, pattern)
 
                     if result :
@@ -1510,7 +1517,7 @@ class Markdown:
 
         for i in range(len(parts)) :
             x = parts[i]
-            if isinstance(x, (str, unicode)) :
+            if isinstance(x, basestring) :
                 parts[i] = self.doc.createTextNode(x)
 
         return parts
@@ -1585,7 +1592,7 @@ class Markdown:
 
                             for item in result:
 
-                                if isinstance(item, (str, unicode)):
+                                if isinstance(item, basestring):
                                     if len(item) > 0:
                                         node.insertChild(position,
                                              self.doc.createTextNode(item))
