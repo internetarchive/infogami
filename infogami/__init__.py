@@ -1,10 +1,12 @@
 """Infogami: Structured Wiki (http://infogami.org)"""
 
-__version__ = "0.5dev"
+from __future__ import print_function
 
 import web
 import config
 import sys
+
+__version__ = "0.5dev"
 
 usage = """
 Infogami
@@ -69,15 +71,15 @@ def help(name=None):
     
     a = name and find_action(name)
 
-    print "Infogami Help"
-    print ""
+    print("Infogami Help")
+    print("")
 
     if a:
-        print "    %s\t%s" %  (a.__name__, a.__doc__)
+        print("    %s\t%s" %  (a.__name__, a.__doc__))
     else:
-        print "Available actions"
+        print("Available actions")
         for a in _actions:
-            print "    %s\t%s" %  (a.__name__, a.__doc__)
+            print("    %s\t%s" %  (a.__name__, a.__doc__))
 
 @action
 def install():
@@ -93,7 +95,7 @@ def install():
 
     delegate.admin_login()
     for a in _install_hooks:
-        print >> web.debug, a.__name__
+        print(a.__name__, file=web.debug)
         a()
 
 @action
@@ -134,7 +136,7 @@ def run_action(name, args=[]):
     if a:
         a(*args)
     else:
-        print >> sys.stderr, 'unknown command', name
+        print('unknown command', name, file=sys.stderr)
         help()
 
 def run(args=None):
