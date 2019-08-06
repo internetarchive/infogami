@@ -53,7 +53,7 @@ class TestAccount:
     def test_register_failures2(self):
         # test registeration without activation + registration with same username/email
         self.test_register_failures(_activate=False)
-        
+
     def encrypt(self, password):
         """Generates encrypted password from raw password."""
         a = site.account_manager
@@ -93,3 +93,4 @@ class TestAccount:
 
         # and no one should be allowed to register with new email
         assert pytest.raises(common.BadData, a.register, username="bar", email="foo2@example.com", password="secret", data={})
+
