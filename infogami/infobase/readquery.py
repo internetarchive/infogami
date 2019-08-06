@@ -1,8 +1,11 @@
-import common
-from common import all, any
-import web
+
 import re
-import _json as simplejson
+
+import web
+
+from infogami.infobase import common, _json as simplejson
+from infogami.infobase.common import all, any
+
 
 def get_thing(store, key, revision=None):
     json = key and store.get(key, revision)
@@ -250,7 +253,7 @@ def make_versions_query(store, query):
 
     for k, v in query.items():
         if k not in columns:
-            raise ValueError, k
+            raise ValueError(k)
         q.add_condition(k, '=', None, v)
 
     return q

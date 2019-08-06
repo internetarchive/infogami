@@ -3,12 +3,15 @@ Macro extension to markdown.
 
 Macros take argument string as input and returns result as markdown text.
 """
-from markdown import markdown
-import web
+from __future__ import print_function
+
 import os
 
-import template
-import storage
+import web
+
+from infogami.utils import storage
+from infogami.utils import template
+from infogami.utils.markdown import markdown
 
 # macros loaded from disk
 diskmacros = template.DiskTemplateSource()
@@ -49,7 +52,7 @@ def call_macro(name, args):
             macro = macrostore[name]
             args, kwargs = safeeval_args(args)
             result = macro(*args, **kwargs)
-        except Exception, e:
+        except Exception as e:
             i = web.input(_method="GET", debug="false")
             if i.debug.lower() == "true":
                 raise
@@ -122,4 +125,4 @@ if __name__ == "__main__":
     md = markdown.Markdown(source=text, safe_mode=False)
     MacroExtension().extendMarkdown(md, {})
     html = md.convert()
-    print replace_macros(html, md.macros)
+    print(replace_macros(html, md.macros))

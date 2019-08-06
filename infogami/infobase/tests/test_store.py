@@ -1,7 +1,6 @@
-from infogami.infobase._dbstore.store import Store, TypewiseIndexer
 from infogami.infobase import common
-
-import utils
+from infogami.infobase._dbstore.store import Store, TypewiseIndexer
+from infogami.infobase.tests import utils
 
 import simplejson
 import py.test

@@ -4,6 +4,11 @@ import pickle
 import infogami
 from infogami.utils.view import public
 
+try:
+    basestring
+except NameError:
+    basestring = (str, )
+
 def get_version(path, revision=None):
     return web.ctx.site.get(path, revision)
 
@@ -41,9 +46,9 @@ def new_version(path, type):
 def get_i18n_page(page):
     key = page.key
     if key == '/':
-	key = '/index'
+        key = '/index'
     def get(lang):
-       return lang and get_version(key + '.' + lang)
+        return lang and get_version(key + '.' + lang)
     return get(web.ctx.lang) or get('en') or None
 
 class ValidationException(Exception): pass
@@ -98,12 +103,11 @@ def _list_pages(path, limit, offset):
     return [web.ctx.site.get(key, lazy=True) for key in web.ctx.site.things(q)]
 
 def get_things(typename, prefix, limit):
-    """Lists all things whose names start with typename"""	
+    """Lists all things whose names start with typename"""
     q = {
         'key~': prefix + '*',
         'type': typename,
         'sort': 'key',
         'limit': limit
     }
-    return [web.ctx.site.get(key, lazy=True) for key in web.ctx.site.things(q)]    
-
+    return [web.ctx.site.get(key, lazy=True) for key in web.ctx.site.things(q)]

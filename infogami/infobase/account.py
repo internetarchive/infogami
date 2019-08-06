@@ -6,8 +6,7 @@ import web
 import logging
 import simplejson
 
-import common
-import config
+from infogami.infobase import common, config
 
 logger = logging.getLogger("infobase.account")
 

@@ -1,13 +1,14 @@
+from __future__ import print_function
+
 import os
+
 import simplejson
-import urllib
-
 import py.test
-
 import web
-from infogami.infobase import config, dbstore, infobase, server
 
-import utils
+from infogami.infobase import config, dbstore, infobase, server
+from infogami.infobase.tests import utils
+
 
 def setup_module(mod):
     utils.setup_site(mod)
@@ -84,9 +85,9 @@ class TestInfobase(DBTest):
             {'key': '/bar', 'revision': 1, 'comment': 'test 2'},
             {'key': '/foo', 'revision': 1, 'comment': 'test 1'},
         ]
+        print(self.create_user('test', 'testt@example.com', 'test123', data={'displayname': 'Test'}))
+        print(site._get_thing('/user/test'))
 
-        print self.create_user('test', 'testt@example.com', 'test123', data={'displayname': 'Test'})
-        print site._get_thing('/user/test')
         site.save('/foo', {'key': '/foo', 'type': '/type/object', 'x': 2}, comment='test 4', ip='1.2.3.4', author=site._get_thing('/user/test'))
 
         assert versions({'author': '/user/test'})[:-3] == [
@@ -133,10 +134,10 @@ class TestInfobase(DBTest):
         site.save_many(q)
 
     def test_things(self):
-        print >> web.debug, "save /a"
+        print("save /a", file=web.debug)
         site.save('/a', {'key': '/a', 'type': '/type/object', 'x': 1, 'name': 'a'})
 
-        print >> web.debug, "save /b"
+        print("save /b", file=web.debug)
         site.save('/b', {'key': '/b', 'type': '/type/object', 'x': 2, 'name': 'b'})
 
         assert site.things({'type': '/type/object'}) == [{'key': '/a'}, {'key': '/b'}]

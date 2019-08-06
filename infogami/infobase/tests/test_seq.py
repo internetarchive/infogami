@@ -1,5 +1,5 @@
 from infogami.infobase._dbstore.sequence import SequenceImpl
-import utils
+from infogami.infobase.tests import utils
 
 import unittest
 import simplejson

@@ -1,5 +1,6 @@
+from __future__ import print_function
 import web
-from web.form import *
+from web.form import Button, Form, Textbox
 from infogami.utils import i18n
 
 class BetterButton(Button):
@@ -17,4 +18,4 @@ template_preferences = Form(
 )
 
 if __name__ == "__main__":
-    print template_preferences().render()
+    print(template_preferences().render())

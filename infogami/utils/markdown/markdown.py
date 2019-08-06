@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 version = "1.6b"
 version_info = (1,6,2,"rc-2")
 __revision__ = "$Rev$"
@@ -28,8 +29,12 @@ License: GPL 2 (http://www.gnu.org/copyleft/gpl.html) or BSD
 
 """
 
-
 import re, sys, os, random, codecs
+
+try:
+    basestring
+except NameError:
+    basestring = (str, )
 
 # Set debug level: 3 none, 2 critical, 1 informative, 0 all
 (VERBOSE, INFO, CRITICAL, NONE) = range(4)
@@ -38,7 +43,7 @@ MESSAGE_THRESHOLD = CRITICAL
 
 def message(level, text) :
     if level >= MESSAGE_THRESHOLD :
-        print text
+        print(text)
 
 
 # --------------- CONSTANTS YOU MIGHT WANT TO MODIFY -----------------
@@ -312,7 +317,7 @@ class Element :
         if self.nodeName in ['p', 'li', 'ul', 'ol',
                              'h1', 'h2', 'h3', 'h4', 'h5', 'h6'] :
 
-            if not self.attribute_values.has_key("dir"):
+            if "dir" not in self.attribute_values:
                 if self.bidi :
                     bidi = self.bidi
                 else :
@@ -796,7 +801,7 @@ class ReferencePattern (Pattern):
             # we'll use "google" as the id
             id = m.group(2).lower()
 
-        if not self.references.has_key(id) : # ignore undefined refs
+        if id not in self.references : # ignore undefined refs
             return None
         href, title = self.references[id]
         text = m.group(2)
@@ -1135,7 +1140,7 @@ class Markdown:
                         % (ext, extension_module_name) )
             else :
 
-                if configs.has_key(ext) :
+                if ext in configs :
                     configs_for_ext = configs[ext]
                 else :
                     configs_for_ext = []
@@ -1497,7 +1502,7 @@ class Markdown:
 
                 x = parts[i]
 
-                if isinstance(x, (str, unicode)) :
+                if isinstance(x, basestring) :
                     result = self._applyPattern(x, pattern)
 
                     if result :
@@ -1510,7 +1515,7 @@ class Markdown:
 
         for i in range(len(parts)) :
             x = parts[i]
-            if isinstance(x, (str, unicode)) :
+            if isinstance(x, basestring) :
                 parts[i] = self.doc.createTextNode(x)
 
         return parts
@@ -1585,7 +1590,7 @@ class Markdown:
 
                             for item in result:
 
-                                if isinstance(item, (str, unicode)):
+                                if isinstance(item, basestring):
                                     if len(item) > 0:
                                         node.insertChild(position,
                                              self.doc.createTextNode(item))
@@ -1731,7 +1736,7 @@ class Extension :
         self.config = configs
 
     def getConfig(self, key) :
-        if self.config.has_key(key) :
+        if key in self.config :
             return self.config[key][0]
         else :
             return ""
@@ -1765,7 +1770,7 @@ def parse_options() :
                     'encoding' : None }
 
         else :
-            print OPTPARSE_WARNING
+            print(OPTPARSE_WARNING)
             return None
 
     parser = optparse.OptionParser(usage="%prog INPUTFILE [options]")

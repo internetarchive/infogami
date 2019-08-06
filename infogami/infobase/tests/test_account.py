@@ -1,9 +1,10 @@
-import utils
+import pytest
+
 import web
 
 from infogami.infobase import server, account, bootstrap, common
+from infogami.infobase.tests import utils
 
-import pytest
 
 def setup_module(mod):
     utils.setup_site(mod)
@@ -40,13 +41,13 @@ class TestAccount:
         try:
             a.register(username="joe", email="joe2@example.com", password="secret", data={})
             assert False
-        except common.BadData, e:
+        except common.BadData as e:
             assert e.d['message'] == "User already exists: joe"
 
         try:
             a.register(username="joe2", email="joe@example.com", password="secret", data={})
             assert False
-        except common.BadData, e:
+        except common.BadData as e:
             assert e.d['message'] == "Email is already used: joe@example.com"
 
     def test_register_failures2(self):
@@ -92,5 +93,4 @@ class TestAccount:
 
         # and no one should be allowed to register with new email
         assert pytest.raises(common.BadData, a.register, username="bar", email="foo2@example.com", password="secret", data={})
-
 

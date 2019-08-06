@@ -1,6 +1,12 @@
 from infogami.infobase import common
 import web
 
+try:
+    basestring
+except NameError:
+    basestring = (str, )
+
+
 class Indexer:
     """Indexer computes the values to be indexed.
 
