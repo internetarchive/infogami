@@ -12,7 +12,7 @@ install:
   - pip install -r requirements.txt
 before_script:
   # stop the build if there are Python syntax errors or undefined names
-  - flake8 . --count --select=E901,F822,F823 --show-source --statistics
+  - flake8 . --count --select=E9,F63,F7,F822 --show-source --statistics
   # TODO: add this E999,F821 test to the line above once they have been fixed
   - flake8 . --count --exit-zero --select=E999,F821 --show-source --statistics
   # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
