@@ -546,24 +546,23 @@ class readlog:
             log = self.get_log(offset, i)
             limit = min(1000, common.safeint(i.limit, 1000))
 
-            try:                
-                web.header('Content-Type', 'application/json')
-                yield '{"data": [\n'
+            web.header('Content-Type', 'application/json')
+            yield '{"data": [\n'
 
-                sep = ""
-                for i in range(limit):
-                    line = log.readline().strip()
-                    if line:
-                        if self.valid_json(line):
-                            yield sep + line.strip()
-                            sep = ",\n"
-                        else:
-                            print("ERROR: found invalid json before %s" % log.tell(), file=sys.stderr)
+            sep = ""
+            for i in range(limit):
+                line = log.readline().strip()
+                if line:
+                    if self.valid_json(line):
+                        yield sep + line.strip()
+                        sep = ",\n"
                     else:
-                        break
-                yield '], \n'
-                yield '"offset": ' + simplejson.dumps(log.tell()) + "\n}\n"
-                print('ERROR:', str(e))
+                        print("ERROR: found invalid json before %s" % log.tell(), file=sys.stderr)
+                else:
+                    break
+            yield '], \n'
+            yield '"offset": ' + simplejson.dumps(log.tell()) + "\n}\n"
+            print('ERROR:', str(e))
 
 def request(path, method, data):
     """Fakes the web request.
