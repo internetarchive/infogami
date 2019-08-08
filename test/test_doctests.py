@@ -1,6 +1,6 @@
 """Run all doctests in infogami.
 """
-from . import webtest
+import webtest
 
 def suite():
     modules = [
