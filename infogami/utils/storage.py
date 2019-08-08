@@ -208,7 +208,7 @@ class DictPile(DictMixin):
         self.dicts = dicts[:]
 
     def __len__(self):
-        return len(self.dicts)
+        return len(self.keys())
 
     def __iter__(self):
         for i in self.dicts:
