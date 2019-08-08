@@ -563,6 +563,7 @@ class readlog:
                         break
                 yield '], \n'
                 yield '"offset": ' + simplejson.dumps(log.tell()) + "\n}\n"
+            except Exception as e:
                 print('ERROR:', str(e))
 
 def request(path, method, data):
