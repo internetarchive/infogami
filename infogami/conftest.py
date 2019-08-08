@@ -1,6 +1,3 @@
-
-# pytest_plugins = ["pytest_unittest"]
-
 collect_ignore = ['failing']
 
 def pytest_addoption(parser):
@@ -9,4 +6,3 @@ def pytest_addoption(parser):
 def pytest_configure(config):
     if config.getvalue("runall"):
         collect_ignore[:] = []
-
