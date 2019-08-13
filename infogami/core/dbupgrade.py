@@ -1,6 +1,7 @@
 """
 module for doing database upgrades when code changes. 
 """
+from __future__ import print_function
 import infogami
 from infogami import tdb
 
@@ -13,7 +14,7 @@ def get_db_version():
     return tdb.root.d.get('__version__', 0)
 
 upgrades = []
-    
+
 def upgrade(f):
     upgrades.append(f)
     return f
@@ -24,22 +25,22 @@ def apply_upgrades():
     try:
         v = get_db_version()
         for u in upgrades[v:]:
-            print >> web.debug, 'applying upgrade:', u.__name__
+            print('applying upgrade:', u.__name__, file=web.debug)
             u()
-        
+
         mark_upgrades()
         tdb.commit()
-        print >> web.debug, 'upgrade successful.'
+        print('upgrade successful.', file=web.debug)
     except:
-        print >> web.debug, 'upgrade failed'
+        print('upgrade failed', file=web.debug)
         import traceback
         traceback.print_exc()
         tdb.rollback()
-        
+
 @infogami.action        
 def dbupgrade():
     apply_upgrades()
-    
+
 def mark_upgrades():
     tdb.root.__version__ = len(upgrades)
     tdb.root.save()
@@ -47,10 +48,10 @@ def mark_upgrades():
 @upgrade    
 def hash_passwords():
     from infogami.core import auth
-    
+
     tuser = db.get_type(ctx.site, 'type/user')
     users = tdb.Things(parent=ctx.site, type=tuser).list()
-    
+
     for u in users:
         try:
             preferences = u._c('preferences')
@@ -58,14 +59,14 @@ def hash_passwords():
             # setup preferences for broken accounts, so that they can use forgot password.
             preferences = db.new_version(u, 'preferences', db.get_type(ctx.site,'type/thing'), dict(password=''))
             preferences.save()
-        
+
         if preferences.password:
             auth.set_password(u, preferences.password)
-    
+
 @upgrade
 def upgrade_types():
     from infogami.core.db import _create_type, tdbsetup
-    
+
     tdbsetup()
     type = db.get_type(ctx.site, "type/type")
     types = tdb.Things(parent=ctx.site, type=type)
@@ -76,7 +77,7 @@ def upgrade_types():
     for t in types:
         properties = []
         backreferences = []
-        print >> web.debug, t, t.d
+        print(t, t.d, file=web.debug)
         if t.name == 'type/site':
             continue
         for name, value in t.d.items():
@@ -89,7 +90,7 @@ def upgrade_types():
                 p.property_name = property_name
                 backreferences.append(p)
                 continue
-                
+
             if typename.endswith('*'):
                 typename = typename[:-1]
                 p.unique = False

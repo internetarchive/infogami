@@ -1,9 +1,20 @@
-from infogami.infobase import server
+import unittest
+
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
+
+try:
+    from urllib.request import Request as url_request
+except ImportError:
+    from urllib2 import Request as url_request
+
+import simplejson
 import web
 
-import unittest
-import urllib, urllib2
-import simplejson
+from infogami.infobase import server
+
 
 def browser():
     if web.config.get('test_url'):
@@ -17,12 +28,12 @@ b = browser()
 
 def request(path, method="GET", data=None, headers={}):
     if method == 'GET' and data is not None:
-        path = path + '?' + urllib.urlencode(data)
+        path = path + '?' + urlencode(data)
         data = None
     if isinstance(data, dict):
         data = simplejson.dumps(data)
     url = urllib.basejoin(b.url, path)
-    req = urllib2.Request(url, data, headers)
+    req = url_request(url, data, headers)
     req.get_method = lambda: method
     b.do_request(req)
     if b.status == 200:
@@ -41,7 +52,7 @@ def save(query):
     return request('/test/save' + query['key'], method='POST', data=query)
 
 def save_many(query, comment=''):
-    return request('/test/save_many', method='POST', data=urllib.urlencode({'query': simplejson.dumps(query), 'comment': comment}))
+    return request('/test/save_many', method='POST', data=urlencode({'query': simplejson.dumps(query), 'comment': comment}))
         
 class DatabaseTest(unittest.TestCase):
     pass
@@ -154,14 +165,14 @@ class DocumentTest(InfobaseTestCase):
             {'key': '/one', 'type': {'key': '/type/object'}, 'n': 1},
             {'key': '/two', 'type': {'key': '/type/object'}, 'n': 2}
         ]
-        d = request('/test/save_many', method='POST', data=urllib.urlencode({'query': simplejson.dumps(q)}))
+        d = request('/test/save_many', method='POST', data=urlencode({'query': simplejson.dumps(q)}))
         self.assertEquals(d, [{'key': '/one', 'revision': 1}, {'key': '/two', 'revision': 1}])
 
         self.assertEquals2(get('/one'), {'key': '/one', 'type': {'key': '/type/object'}, 'n': 1, 'revision': 1,'*': True})
         self.assertEquals2(get('/two'), {'key': '/two', 'type': {'key': '/type/object'}, 'n': 2, 'revision': 1, '*': True})
 
         # saving with same data should not create new revisions
-        d = request('/test/save_many', method='POST', data=urllib.urlencode({'query': simplejson.dumps(q)}))
+        d = request('/test/save_many', method='POST', data=urlencode({'query': simplejson.dumps(q)}))
         self.assertEquals(d, [])
 
         # try bad query
@@ -170,7 +181,7 @@ class DocumentTest(InfobaseTestCase):
             {'key': '/one', 'type': {'key': '/type/object'}, 'n': 11},
             {'key': '/two', 'type': {'key': '/type/no-such-type'}, 'n': 2}
         ]
-        d = request('/test/save_many', method='POST', data=urllib.urlencode({'query': simplejson.dumps(q)}))
+        d = request('/test/save_many', method='POST', data=urlencode({'query': simplejson.dumps(q)}))
         self.assertNotEquals(b.status, 200)
 
         d = get('/zero')

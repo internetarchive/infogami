@@ -36,7 +36,7 @@ class FootnoteExtension (markdown.Extension):
 
         for key, value in configs :
             self.config[key][0] = value
-            
+
         self.reset()
 
     def extendMarkdown(self, md, md_globals) :
@@ -62,7 +62,7 @@ class FootnoteExtension (markdown.Extension):
         postprocessor.extension = self
 
         md.postprocessors.append(postprocessor)
-        
+
         textPostprocessor = FootnoteTextPostprocessor(self)
 
         md.textPostprocessors.append(textPostprocessor)
@@ -111,11 +111,9 @@ class FootnoteExtension (markdown.Extension):
         ol = doc.createElement("ol")
         div.appendChild(ol)
 
-        footnotes = [(self.used_footnotes[id], id)
-                     for id in self.footnotes.keys()]
-        footnotes.sort()
+        footnotes = sorted((self.used_footnotes[id], id) for id in self.footnotes)
 
-        for i, id in footnotes :
+        for i, id in footnotes:
             li = doc.createElement('li')
             li.setAttribute('id', self.makeFootnoteId(i))
 

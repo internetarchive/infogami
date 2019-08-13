@@ -1,10 +1,13 @@
 """Infogami: Structured Wiki (http://infogami.org)"""
+from __future__ import print_function
 
 __version__ = "0.5dev"
 
-import web
-import config
 import sys
+
+import web
+
+from infogami import config
 
 usage = """
 Infogami
@@ -32,7 +35,7 @@ def find_action(name):
     for a in _actions:
         if a.__name__ == name:
             return a
-        
+
 def _setup():
     #if config.db_parameters is None:
     #    raise Exception('infogami.config.db_parameters is not specified')
@@ -51,7 +54,7 @@ def _setup():
 
     from infogami.utils import delegate
     delegate._load()
-    
+
     # setup context etc. 
     delegate.fakeload()
 
@@ -66,26 +69,26 @@ def startserver(*args):
 @action
 def help(name=None):
     """Show this help."""
-    
+
     a = name and find_action(name)
 
-    print "Infogami Help"
-    print ""
+    print("Infogami Help")
+    print("")
 
     if a:
-        print "    %s\t%s" %  (a.__name__, a.__doc__)
+        print("    %s\t%s" %  (a.__name__, a.__doc__))
     else:
-        print "Available actions"
+        print("Available actions")
         for a in _actions:
-            print "    %s\t%s" %  (a.__name__, a.__doc__)
+            print("    %s\t%s" %  (a.__name__, a.__doc__))
 
 @action
 def install():
     """Setup everything."""
-    
+
     # set debug=False to avoid reload magic.
     web.config.debug = False
-    
+
     from infogami.utils import delegate
     delegate.fakeload()
     if not web.ctx.site.exists():
@@ -93,7 +96,7 @@ def install():
 
     delegate.admin_login()
     for a in _install_hooks:
-        print >> web.debug, a.__name__
+        print(a.__name__, file=web.debug)
         a()
 
 @action
@@ -127,20 +130,21 @@ def runscript(filename, *args):
     """
     sys.argv = [filename] + list(args)
     g = {"__name__": "__main__"}
-    execfile(filename, g, g)
+    with open(filename) as in_file:
+        exec(in_file, g, g)
 
 def run_action(name, args=[]):
     a = find_action(name)
     if a:
         a(*args)
     else:
-        print >> sys.stderr, 'unknown command', name
+        print('unknown command', name, file=sys.stderr)
         help()
 
 def run(args=None):
     if args is None:
         args = sys.argv[1:]
-        
+
     _setup()
     if len(args) == 0:
         run_action("startserver")
@@ -152,7 +156,7 @@ def load_config(config_file):
     from infobase import config as infobase_config
     from infobase import server as infobase_server
     from infobase import lru
-    
+
     def storify(d):
         if isinstance(d, dict):
             return web.storage((k, storify(v)) for k, v in d.items())
@@ -160,14 +164,14 @@ def load_config(config_file):
             return [storify(x) for x in d]
         else:
             return d
-    
+
     # load config
     runtime_config = yaml.load(open(config_file))
-    
+
     # update config
     for k, v in runtime_config.items():
         setattr(config, k, storify(v))
-        
+
     for k, v in runtime_config.get('infobase', {}).items():
         setattr(infobase_config, k, storify(v))
 
@@ -176,7 +180,7 @@ def load_config(config_file):
 
     config.db_parameters = infobase_server.parse_db_parameters(config.db_parameters)
     web.config.db_parameters = config.db_parameters
-    
+
     # setup infobase
     if config.get('cache_size'):
         cache.global_cache = lru.LRU(config.cache_size)

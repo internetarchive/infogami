@@ -1,2 +1,2 @@
 
-from pytest_wildcard import *
+from infogami.infobase.tests.pytest_wildcard import *

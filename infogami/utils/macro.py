@@ -3,18 +3,21 @@ Macro extension to markdown.
 
 Macros take argument string as input and returns result as markdown text.
 """
-from markdown import markdown
-import web
+from __future__ import print_function
+
 import os
 
-import template
-import storage
+import web
+
+from infogami.utils import storage
+from infogami.utils import template
+from infogami.utils.markdown import markdown
 
 # macros loaded from disk
 diskmacros = template.DiskTemplateSource()
 # macros specified in the code
 codemacros = web.storage()  
-      
+
 macrostore = storage.DictPile()
 macrostore.add_dict(diskmacros)
 macrostore.add_dict(codemacros)
@@ -42,14 +45,14 @@ def safeeval_args(args):
     code = "$def with (f)\n$f(%s)" % args
     web.template.Template(web.utf8(code))(f)
     return result[0]
-    
+
 def call_macro(name, args):
     if name in macrostore:
         try:
             macro = macrostore[name]
             args, kwargs = safeeval_args(args)
             result = macro(*args, **kwargs)
-        except Exception, e:
+        except Exception as e:
             i = web.input(_method="GET", debug="false")
             if i.debug.lower() == "true":
                 raise
@@ -76,19 +79,19 @@ class MacroPattern(markdown.BasePattern):
         # markdown.HtmlStash stores the html blocks to be replaced
         placeholder = self.store(self.markdown, (name, args))
         return doc.createTextNode(placeholder)
-        
+
     def store(self, md, macro_info):
         placeholder = MACRO_PLACEHOLDER % md.macro_count
         md.macro_count += 1
         md.macros[placeholder] = macro_info
         return placeholder
-        
+
 def replace_macros(html, macros):
     """Replaces the macro place holders with real macro output."""    
     for placeholder, macro_info in macros.items():
         name, args = macro_info
         html = html.replace("<p>%s\n</p>" % placeholder, web.utf8(call_macro(name, args)))
-        
+
     return html
 
 class MacroExtension(markdown.Extension):
@@ -122,4 +125,4 @@ if __name__ == "__main__":
     md = markdown.Markdown(source=text, safe_mode=False)
     MacroExtension().extendMarkdown(md, {})
     html = md.convert()
-    print replace_macros(html, md.macros)
+    print(replace_macros(html, md.macros))
