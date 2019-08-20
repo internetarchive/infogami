@@ -8,7 +8,8 @@ import macro
 from context import context
 import features
 
-from app import app, *
+from app import app  # placate flake8
+from app import *  # TODO: Not recommended by PEP8
 
 from view import render_site, public
 import i18n
