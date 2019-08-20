@@ -8,7 +8,7 @@ import macro
 from context import context
 import features
 
-from app import *
+from app import app, *
 
 from view import render_site, public
 import i18n
