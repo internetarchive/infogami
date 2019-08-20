@@ -9,7 +9,6 @@ from context import context
 import features
 
 from app import *  # TODO: Not recommended by PEP8
-global app  # workaround to placate flake8 for circular import
 
 from view import render_site, public
 import i18n
@@ -32,6 +31,7 @@ def create_site():
     return client.Site(web.ctx.conn, site)
 
 def fakeload():
+    global app  # workaround to placate flake8 for circular import
     from infogami.core import db
     #web.load()
     app.load(dict(REQUEST_METHOD="GET", PATH_INFO="/install"))
