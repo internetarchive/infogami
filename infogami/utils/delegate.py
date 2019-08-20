@@ -8,8 +8,8 @@ import macro
 from context import context
 import features
 
-import app  # placate flake8
 from app import *  # TODO: Not recommended by PEP8
+global app  # workaround to placate flake8 for circular import
 
 from view import render_site, public
 import i18n
