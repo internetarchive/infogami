@@ -8,7 +8,8 @@ import macro
 from context import context
 import features
 
-import app
+from app import app
+from app import *
 
 from view import render_site, public
 import i18n
@@ -33,7 +34,7 @@ def create_site():
 def fakeload():
     from infogami.core import db
     #web.load()
-    app.app.load(dict(REQUEST_METHOD="GET", PATH_INFO="/install"))
+    app.load(dict(REQUEST_METHOD="GET", PATH_INFO="/install"))
     web.ctx.ip = None
     context.load()
     context.error = None
@@ -99,10 +100,10 @@ def notfound(path = None, create = True):
     html = template.render_template("notfound", path, create = create)
     return web.notfound(render_site(config.site, html))
 
-app.app.add_processor(web.loadhook(initialize_context))
-app.app.add_processor(layout_processor)
-app.app.add_processor(web.loadhook(features.loadhook))
-app.app.notfound = notfound
+app.add_processor(web.loadhook(initialize_context))
+app.add_processor(layout_processor)
+app.add_processor(web.loadhook(features.loadhook))
+app.notfound = notfound
 
 class RawText(web.storage):
     def __init__(self, text, **kw):
