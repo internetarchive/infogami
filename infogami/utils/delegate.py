@@ -8,7 +8,7 @@ import macro
 from context import context
 import features
 
-from app import *  # TODO: Not recommended by PEP8
+import app
 
 from view import render_site, public
 import i18n
@@ -31,10 +31,9 @@ def create_site():
     return client.Site(web.ctx.conn, site)
 
 def fakeload():
-    global app  # workaround to placate flake8 for circular import
     from infogami.core import db
     #web.load()
-    app.load(dict(REQUEST_METHOD="GET", PATH_INFO="/install"))
+    app.app.load(dict(REQUEST_METHOD="GET", PATH_INFO="/install"))
     web.ctx.ip = None
     context.load()
     context.error = None
@@ -100,10 +99,10 @@ def notfound(path = None, create = True):
     html = template.render_template("notfound", path, create = create)
     return web.notfound(render_site(config.site, html))
 
-app.add_processor(web.loadhook(initialize_context))
-app.add_processor(layout_processor)
-app.add_processor(web.loadhook(features.loadhook))
-app.notfound = notfound
+app.app.add_processor(web.loadhook(initialize_context))
+app.app.add_processor(layout_processor)
+app.app.add_processor(web.loadhook(features.loadhook))
+app.app.notfound = notfound
 
 class RawText(web.storage):
     def __init__(self, text, **kw):
