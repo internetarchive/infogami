@@ -7,11 +7,14 @@ import utils
 
 import datetime
 
+
 def setup_module(mod):
     utils.setup_db(mod)
 
+
 def teardown_module(mod):
     utils.teardown_db(mod)
+
 
 class DBTest:
     def setup_method(self, method):
@@ -21,14 +24,15 @@ class DBTest:
     def teardown_method(self, method):
         self.tx.rollback()
 
+
 class TestRecentChanges(DBTest):
     def _save(self, docs, author=None, ip="1.2.3.4", comment="testing", kind="test_save", timestamp=None, data=None):
-        timestamp = timestamp=timestamp or datetime.datetime(2010, 0o1, 0o2, 0o3, 0o4, 0o5)
+        timestamp = timestamp=timestamp or datetime.datetime(2010, 1, 2, 3, 4, 5)
         s = SaveImpl(db)
-        s.save(docs, 
+        s.save(docs,
             timestamp=timestamp,
-            comment=comment, 
-            ip=ip, 
+            comment=comment,
+            ip=ip,
             author=author,
             action=kind,
             data=data
@@ -54,7 +58,7 @@ class TestRecentChanges(DBTest):
             {"key": "/foo", "type": {"key": "/type/object"}, "title": "foo"},
             {"key": "/bar", "type": {"key": "/type/object"}, "title": "bar"}
         ]
-        timestamp = datetime.datetime(2010, 0o1, 0o2, 0o3, 0o4, 0o5)
+        timestamp = datetime.datetime(2010, 1, 2, 3, 4, 5)
         self._save(docs, comment="testing recentchanges", timestamp=timestamp)
 
         engine = RecentChanges(db)
@@ -63,7 +67,7 @@ class TestRecentChanges(DBTest):
         assert changes == [{
             "id": wildcard,
             "kind": "test_save",
-            "timestamp": timestamp.isoformat(), 
+            "timestamp": timestamp.isoformat(),
             "comment": "testing recentchanges",
             "ip": "1.2.3.4",
             "author": None,
@@ -77,7 +81,7 @@ class TestRecentChanges(DBTest):
         engine.get_change(changes[0]['id']) == {
             "id": wildcard,
             "kind": "test_save",
-            "timestamp": timestamp.isoformat(), 
+            "timestamp": timestamp.isoformat(),
             "comment": "testing recentchanges",
             "ip": "1.2.3.4",
             "author": None,
@@ -86,7 +90,7 @@ class TestRecentChanges(DBTest):
                 {"key": "/bar", "revision": 1},
             ],
             "data": {}
-        }     
+        }
 
     def test_author(self):
         db.insert("thing", key='/user/one')
@@ -107,7 +111,7 @@ class TestRecentChanges(DBTest):
         self.save_doc("/two", ip="2.2.2.2")
 
         assert len(self.recentchanges(ip="1.1.1.1")) == 1
-        assert len(self.recentchanges(ip="2.2.2.2")) == 1        
+        assert len(self.recentchanges(ip="2.2.2.2")) == 1
 
         self.save_doc("/three", author="/user/foo", ip="1.1.1.1")
 
@@ -132,7 +136,7 @@ class TestRecentChanges(DBTest):
             status="active"
         ))
 
-    def test_bot(self):        
+    def test_bot(self):
         self.new_account("one", bot=False)
         self.new_account("two", bot=True)
 
@@ -161,7 +165,7 @@ class TestRecentChanges(DBTest):
         self.save_doc("/two", data={"x": "two"})
 
         assert self.recentchanges(limit=1, data={"x": "one"})[0]['changes'] == [{"key": "/one", "revision": 1}]
-        assert self.recentchanges(limit=1, data={"x": "two"})[0]['changes'] == [{"key": "/two", "revision": 1}]        
+        assert self.recentchanges(limit=1, data={"x": "two"})[0]['changes'] == [{"key": "/two", "revision": 1}]
 
     def test_kind(self):
         self.save_doc("/zero", kind="foo")
@@ -183,6 +187,7 @@ class TestRecentChanges(DBTest):
         self.save_doc("/b", kind="bar", timestamp=date("2010-01-03"), comment="b")
 
         def changes(**kw):
+            global db
             return [c['comment'] for c in RecentChanges(db).recentchanges(**kw)]
 
         # begin_date is included in the interval, but end_date is not included.
