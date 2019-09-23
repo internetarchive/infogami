@@ -1,12 +1,6 @@
-import web
-import doctest, unittest
+import unittest
+from web.test import doctest_suite
 
-def add_doctests(suite):
-    """create one test_xx function in globals for each doctest in the given module.
-    """
-    suite = web.test.make_doctest_suite()
-
-    add_test(make_suite(module))
 
 def add_test(test):
     if isinstance(test, unittest.TestSuite):
@@ -14,12 +8,12 @@ def add_test(test):
             add_test(t)
     elif isinstance(test, unittest.TestCase):
         test_method = getattr(test, test._testMethodName)
+
         def do_test(test_method=test_method):
             test_method()
         name = "test_" + test.id().replace(".", "_")
         globals()[name] = do_test
-    else:
-        doom
+
 
 modules = [
     "infogami.core.code",
@@ -35,5 +29,7 @@ modules = [
     "infogami.infobase.utils",
     "infogami.infobase.writequery",
 ]
-suite = web.test.doctest_suite(modules)
+
+suite = doctest_suite(modules)
+
 add_test(suite)

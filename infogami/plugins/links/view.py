@@ -3,21 +3,20 @@ from infogami.utils import view
 import re
 import web
 
-def keyencode(value):
+def keyencode(key):
     return key.replace(' ', '_')
 
 def get_links(text):
     """Returns all distinct links in the text."""
     doc = view.get_doc(text)
     def is_link(e):
-        return e.type == 'element'      \
-            and e.nodeName == 'a'       \
-            and e.attribute_values.get('class', '') == 'internal'
+        return (e.type == 'element' and e.nodeName == 'a' and
+                e.attribute_values.get('class', '') == 'internal')
 
     links = set()
     for a in doc.find(is_link):
         links.add(keyencode(a.attribute_values['href']))
-    
+
     return links
 
 link_re = web.re_compile(r'(?<!\\)\[\[(.*?)(?:\|(.*?))?\]\]')

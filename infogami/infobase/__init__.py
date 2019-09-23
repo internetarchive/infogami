@@ -1,22 +1,23 @@
 """
 Infobase.
 """
+from __future__ import print_function
 import sys
 import web
 
-import config, infobase, logger, logreader
+from infogami.infobase import config, infobase, logger, logreader
 
 commands = {}
 def command(f):
     commands[f.__name__] = f
     return f
-    
+
 @command
 def help():
     """Prints this help."""
-    print "Infobase help\n\nCommands:\n"
+    print("Infobase help\n\nCommands:\n")
     for name, c in commands.items():
-        print "%-20s %s" % (name, c.__doc__)
+        print("%-20s %s" % (name, c.__doc__))
 
 @command
 def createsite(sitename, admin_password):
@@ -31,15 +32,15 @@ def startserver(*args):
     sys.argv = [sys.argv[0]] + list(args)
     import server
     server.run()
-    
+
 def run():
     if len(sys.argv) > 1:
         action = sys.argv[1]
     else:
         action = 'startserver'
-        
+
     return commands[action](*sys.argv[2:])
-    
+
 if __name__ == "__main__":
     import os
     dbname = os.environ.get('INFOBASE_DB', 'infobase')
