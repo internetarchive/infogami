@@ -1,10 +1,10 @@
 """
 """
-from . import account, common
-from .common import pprint
 import web
 import simplejson
 from six import string_types, text_type
+
+from infogami.infobase import account, common
 
 
 def get_thing(store, key, revision=None):
