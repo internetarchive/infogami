@@ -1,10 +1,8 @@
 """Infobase client."""
 from __future__ import print_function
 
-import common
 import httplib, urllib
 import _json as simplejson
-import web
 import socket
 import datetime
 import time
@@ -12,7 +10,9 @@ import logging
 from six import string_types, text_type
 
 from infogami import config
+from infogami.infobase import common
 from infogami.utils import stats
+
 
 logger = logging.getLogger("infobase.client")
 
