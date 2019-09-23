@@ -1,7 +1,8 @@
-from . import common
 import web
 import re
 import _json as simplejson
+
+from infogami.infobase import common
 
 def get_thing(store, key, revision=None):
     json = key and store.get(key, revision)
