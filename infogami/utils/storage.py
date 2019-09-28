@@ -90,10 +90,20 @@ class DictPile(Mapping):
             raise KeyError(key)
 
     def keys(self):
+        # TODO: Can be reduced to following 1-liner?
+        # return set([d.keys() for d in self.dicts])
         keys = set()
         for d in self.dicts:
             keys.update(d.keys())
         return list(keys)
+
+    def __iter__(self):
+        for k in self.keys():
+            yield self[k]
+
+    def __len__(self):
+        return len(self.keys())
+
 
 if __name__ == "__main__":
     import doctest
