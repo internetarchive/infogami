@@ -1,7 +1,7 @@
 r"""
 Wrapper to simplejson to fix unicode/utf-8 issues in python 2.4.
 
-See Bug#231831 for details.
+See Bug#231831 for details. https://bugs.launchpad.net/infogami/+bug/231831
 
 
     >>> loads(dumps(u'\u1234'))
@@ -17,7 +17,7 @@ import datetime
 def unicodify(d):
     """Converts all utf-8 encoded strings to unicode recursively."""
     if isinstance(d, dict):
-        return dict((k, unicodify(v)) for k, v in d.iteritems())
+        return dict((k, unicodify(v)) for k, v in d.items())
     elif isinstance(d, list):
         return [unicodify(x) for x in d]
     elif isinstance(d, str):
