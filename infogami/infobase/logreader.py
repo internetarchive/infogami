@@ -9,11 +9,7 @@ import time
 import web
 import glob
 
-try:
-    import _json as simplejson
-except ImportError:
-    # make sure this module can be used indepent of infobase.
-    import simplejson
+import simplejson
 
 def nextday(date):
     return date + datetime.timedelta(1)

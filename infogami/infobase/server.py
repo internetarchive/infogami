@@ -5,13 +5,13 @@ __version__ = "0.5dev"
 
 import logging
 import os
+import simplejson
 import sys
 import time
 
 import web
 
 from infogami.infobase import cache, common, config, infobase, logreader
-from infogami.infobase import _json as simplejson
 from infogami.infobase.account import get_user_root
 
 logger = logging.getLogger("infobase")

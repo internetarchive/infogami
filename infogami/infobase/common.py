@@ -130,7 +130,7 @@ def create_test_store():
     >>> t.properties[0].expected_type.key
     u'/type/string'
     """
-    import _json as simplejson
+    import simplejson
     class Store(web.storage):
         def get(self, key, revision=None):
             return simplejson.dumps(self[key].format_data())

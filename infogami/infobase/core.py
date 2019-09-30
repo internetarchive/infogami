@@ -1,10 +1,10 @@
 """Core datastructures for Infogami.
 """
+import simplejson
+
 import web
 import copy
 from six import text_type
-
-from infogami.infobase import _json as simplejson
 
 
 class InfobaseException(Exception):

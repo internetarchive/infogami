@@ -11,8 +11,8 @@ Log files are circulated on daily basis. Default log file format is $logroot/yyy
 """
 
 import datetime, time
-import _json as simplejson
 import os
+import simplejson
 import threading
 
 def synchronize(f):

@@ -3,6 +3,7 @@ from __future__ import print_function
 
 import datetime
 import logging
+import simplejson
 import socket
 import time
 
@@ -13,7 +14,7 @@ from six.moves.urllib_parse import urlencode, quote, unquote
 import web
 
 from infogami import config
-from infogami.infobase import common, _json as simplejson
+from infogami.infobase import common
 from infogami.utils import stats
 
 
