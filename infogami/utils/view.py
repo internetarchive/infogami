@@ -1,4 +1,6 @@
+
 from __future__ import print_function
+
 
 import web
 import os
@@ -12,13 +14,13 @@ from infogami.core.diff import simple_diff, better_diff
 from infogami.utils import i18n
 from infogami.utils.markdown import markdown, mdx_footnotes
 
-from context import context
-from template import render, render_template, get_template
+from .context import context
+from .template import render, render_template, get_template
 
-import macro
-import storage
-from flash import get_flash_messages, add_flash_message
-import stats
+from . import macro
+from . import storage
+from .flash import get_flash_messages, add_flash_message
+from . import stats
 
 wiki_processors = []
 def register_wiki_processor(p):
@@ -54,8 +56,8 @@ web.template.Template.globals.update(dict(
   # common utilities
   int = int,
   str = str,
-  basestring = six.string_types,
-  unicode = six.text_type,
+  #basestring = six.string_types,
+  #unicode = six.text_type,
   bool = bool,
   list = list,
   set = set,
@@ -253,7 +255,7 @@ def thingedit(page):
 @infogami.action
 def movefiles():
     """Move files from every plugin into static directory."""
-    import delegate
+    from . import delegate
     import shutil
     def cp_r(src, dest):
         if not os.path.exists(src):
@@ -306,7 +308,7 @@ def movetypes():
             'false': False
         })
 
-    import delegate
+    from . import delegate
     extension = ".type"
     pages = []
     for plugin in delegate.plugins:
@@ -322,14 +324,14 @@ def movetypes():
                     pages.append(d)
 
     pagedict = dict((p['key'], p) for p in pages)
-    web.ctx.site.save_many(pagedict.values(), 'install')
+    web.ctx.site.save_many(list(pagedict.values()), 'install')
 
 @infogami.install_hook
 def movepages():
     move('pages', '.page', recursive=False)
 
 def move(dir, extension, recursive=False, readfunc=None):
-    import delegate
+    from . import delegate
 
     readfunc = readfunc or eval
     pages = []

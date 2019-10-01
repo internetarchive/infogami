@@ -2,7 +2,7 @@ import unittest
 import web
 from infogami.infobase import server
 
-import utils
+from . import utils
 
 
 def setup_module(mod):

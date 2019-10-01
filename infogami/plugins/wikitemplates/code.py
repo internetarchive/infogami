@@ -1,6 +1,7 @@
 """
 wikitemplates: allow keeping templates and macros in wiki
 """
+
 from __future__ import print_function
 
 import os
@@ -28,6 +29,12 @@ class WikiSource(Mapping):
     def __init__(self, templates):
         self.templates = templates
 
+    def __iter__(self):
+        return iter(self.templates)
+
+    def __len__(self):
+        return len(self.templates)
+
     def getroot(self):
         return config.get("default_template_root", "/")
 
@@ -45,7 +52,7 @@ class WikiSource(Mapping):
         return value
 
     def keys(self):
-        return [self.unprocess_key(k) for k in self.templates.keys()]
+        return [self.unprocess_key(k) for k in list(self.templates.keys())]
 
     def process_key(self, key):
         return '/templates/%s.tmpl' % key
@@ -54,6 +61,13 @@ class WikiSource(Mapping):
         key = web.lstrips(key, '/templates/')
         key = web.rstrips(key, '.tmpl')
         return key
+
+    def __iter__(self):
+        return iter(self.templates)
+
+    def __len__(self):
+        return len(self.templates)
+
 
 class MacroSource(WikiSource):
     def process_key(self, key):
@@ -191,7 +205,7 @@ def movetemplates(prefix_pattern=None):
 
     templates = []
 
-    for name, t in template.disktemplates.items():
+    for name, t in list(template.disktemplates.items()):
         if isinstance(t, LazyTemplate):
             try:
                 t.func()
@@ -199,7 +213,7 @@ def movetemplates(prefix_pattern=None):
                 print('unable to load template', t.name, file=web.debug)
                 raise
 
-    for name, t in template.disktemplates.items():
+    for name, t in list(template.disktemplates.items()):
         prefix = '/templates/'
         wikipath = _wikiname(name, prefix, '.tmpl')
         if prefix_pattern is None or wikipath.startswith(prefix_pattern):
@@ -221,11 +235,11 @@ def movemacros():
     """Move macros to wiki."""
     macros = []
 
-    for name, t in macro.diskmacros.items():
+    for name, t in list(macro.diskmacros.items()):
         if isinstance(t, LazyTemplate):
             t.func()
 
-    for name, m in macro.diskmacros.items():
+    for name, m in list(macro.diskmacros.items()):
         key = _wikiname(name, '/macros/', '')
         body = open(m.filepath).read()
         d = web.storage(create='unless_exists', key=key, type={'key': '/type/macro'}, description='', macro=body)
@@ -253,7 +267,7 @@ class template_preferences(delegate.page):
 
     @require_login
     def GET(self):
-        import forms
+        from . import forms
         prefs = web.ctx.site.get(context.user.key + "/preferences")
         path = (prefs and prefs.get('template_root')) or "/"
         f = forms.template_preferences()
@@ -282,12 +296,12 @@ def monkey_patch_debugerror():
             page = web.ctx.site.get(filename)
             if page is None:
                 raise IOError("not found: " + filename)
-            from StringIO import StringIO
+            from io import StringIO
             return StringIO(page.body + "\n" * 100)
         else:
             return open(filename)
 
-    web.debugerror.func_globals['open'] = xopen
+    web.debugerror.__globals__['open'] = xopen
 
 from infogami.core.code import register_preferences
 register_preferences(template_preferences)

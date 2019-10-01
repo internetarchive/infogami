@@ -1,6 +1,6 @@
 """Generic utilities.
 """
-from __future__ import print_function
+
 import datetime
 import re
 import web
@@ -17,7 +17,7 @@ def parse_datetime(value):
         return value
     else:
         tokens = re.split(r'-|T|:|\.| ', value)
-        return datetime.datetime(*map(int, tokens))
+        return datetime.datetime(*list(map(int, tokens)))
 
 def parse_boolean(value):
     return web.safeunicode(value).lower() in ["1", "true"]
@@ -114,7 +114,7 @@ def flatten_dict(d):
     """
     def f(key, value):
         if isinstance(value, dict):
-            for k, v in value.items():
+            for k, v in list(value.items()):
                 f(key + "." + k, v)
         elif isinstance(value, list):
             for v in value:

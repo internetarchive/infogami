@@ -14,7 +14,7 @@ import web
 storage = defaultdict(OrderedDict)
 
 
-class SiteLocalDict:
+class SiteLocalDict(Mapping):
     """
     Takes a dictionary that maps sites to objects.
     When somebody tries to get or set an attribute or item
@@ -29,6 +29,9 @@ class SiteLocalDict:
     def __getattr__(self, name):
         return getattr(self._getd(), name)
 
+    def __getitem__(self, name):
+        return self.__getattr__(self, name)
+
     def __setattr__(self, name, value):
         setattr(self._getd(), name, value)
 
@@ -36,14 +39,21 @@ class SiteLocalDict:
         delattr(self._getd(), name)
 
     def _getd(self):
-        from context import context
+        from .context import context
         site = web.ctx.get('site')
         key = site and site.name
         if key not in self.__d:
             self.__d[key] = web.storage()
         return self.__d[key]
 
-class ReadOnlyDict:
+    def __iter__(self):
+        return iter(self.__d)
+
+    def __len__(self):
+        return len(self.__d)
+
+
+class ReadOnlyDict(Mapping):
     """Dictionary wrapper to provide read-only access to a dictionary."""
     def __init__(self, d):
         self._d = d
@@ -56,6 +66,13 @@ class ReadOnlyDict:
             return self._d[key]
         except KeyError:
             raise AttributeError(key)
+
+    def __iter__(self):
+        return iter(self._d)
+
+    def __len__(self):
+        return len(self._d)
+
 
 class DictPile(Mapping):
     """Pile of ditionaries.
@@ -94,15 +111,15 @@ class DictPile(Mapping):
         # return set([d.keys() for d in self.dicts])
         keys = set()
         for d in self.dicts:
-            keys.update(d.keys())
+            keys.update(list(d.keys()))
         return list(keys)
 
     def __iter__(self):
-        for k in self.keys():
+        for k in list(self.keys()):
             yield self[k]
 
     def __len__(self):
-        return len(self.keys())
+        return len(list(self.keys()))
 
 
 if __name__ == "__main__":

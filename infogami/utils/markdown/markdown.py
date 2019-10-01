@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
+
 import six
 version = "1.6b"
 version_info = (1,6,2,"rc-2")
@@ -34,7 +34,7 @@ License: GPL 2 (http://www.gnu.org/copyleft/gpl.html) or BSD
 import re, sys, os, random, codecs
 
 # Set debug level: 3 none, 2 critical, 1 informative, 0 all
-(VERBOSE, INFO, CRITICAL, NONE) = range(4)
+(VERBOSE, INFO, CRITICAL, NONE) = list(range(4))
 
 MESSAGE_THRESHOLD = CRITICAL
 
@@ -50,9 +50,9 @@ ENABLE_ATTRIBUTES = True  # @id = xyz -> <... id="xyz">
 SMART_EMPHASIS = 1        # this_or_that does not become this<i>or</i>that
 HTML_REMOVED_TEXT = "[HTML_REMOVED]" # text used instead of HTML in safe mode
 
-RTL_BIDI_RANGES = ( (u'\u0590', u'\u07FF'),
+RTL_BIDI_RANGES = ( ('\u0590', '\u07FF'),
                     # from Hebrew to Nko (includes Arabic, Syriac and Thaana)
-                    (u'\u2D30', u'\u2D7F'),
+                    ('\u2D30', '\u2D7F'),
                     # Tifinagh
                     )
 
@@ -1041,7 +1041,7 @@ class CorePatterns :
     def __init__ (self) :
 
         self.regExp = {}
-        for key in self.patterns.keys() :
+        for key in list(self.patterns.keys()) :
             self.regExp[key] = re.compile("^%s$" % self.patterns[key],
                                           re.DOTALL)
 
@@ -1739,7 +1739,7 @@ class Extension :
             return ""
 
     def getConfigInfo(self) :
-        return [(key, self.config[key][1]) for key in self.config.keys()]
+        return [(key, self.config[key][1]) for key in list(self.config.keys())]
 
     def setConfig(self, key, value) :
         self.config[key][0] = value

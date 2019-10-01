@@ -1,6 +1,8 @@
 """Infobase server to expose the API.
 """
+
 from __future__ import print_function
+
 __version__ = "0.5dev"
 
 import logging
@@ -149,10 +151,10 @@ def from_json(s):
 
 _infobase = None
 def get_site(sitename):
-    import config
+    from . import config
     global _infobase
     if not _infobase:
-        import dbstore
+        from . import dbstore
         schema = dbstore.default_schema or dbstore.Schema()
         store = dbstore.DBStore(schema)
         _infobase = infobase.Infobase(store, config.secret_key)
@@ -200,7 +202,7 @@ class write:
     @jsonify
     def POST(self, sitename):
         site = get_site(sitename)
-        i = input('query', comment=None, action=None)
+        i = eval(input('query', comment=None, action=None))
         query = from_json(i.query)
         result = site.write(query, comment=i.comment, action=i.action)
         return result
@@ -208,7 +210,7 @@ class write:
 class withkey:
     @jsonify
     def GET(self, sitename):
-        i = input("key", revision=None, expand=False)
+        i = eval(input("key", revision=None, expand=False))
         site = get_site(sitename)
         revision = i.revision and to_int(i.revision, "revision")
         json = site.get(i.key, revision=revision)
@@ -219,7 +221,7 @@ class withkey:
 class get_many:
     @jsonify
     def GET(self, sitename):
-        i = input("keys")
+        i = eval(input("keys"))
         keys = from_json(i['keys'])
         site = get_site(sitename)
         return JSON(site.get_many(keys))
@@ -241,7 +243,7 @@ class save:
 class save_many:
     @jsonify
     def POST(self, sitename):
-        i = input('query', comment=None, data=None, action=None)
+        i = eval(input('query', comment=None, data=None, action=None))
         docs = from_json(i.query)
         data = i.data and from_json(i.data)
         site = get_site(sitename)
@@ -250,7 +252,7 @@ class save_many:
 class reindex:
     @jsonify
     def POST(self, sitename):
-        i = input("keys")
+        i = eval(input("keys"))
         keys = simplejson.loads(i['keys'])
         site = get_site(sitename)
         site.store.reindex(keys)
@@ -259,7 +261,7 @@ class reindex:
 class new_key:
     @jsonify
     def GET(self, sitename):
-        i = input('type')
+        i = eval(input('type'))
         site = get_site(sitename)
         return site.new_key(i.type)
 
@@ -267,7 +269,7 @@ class things:
     @jsonify
     def GET(self, sitename):
         site = get_site(sitename)
-        i = input('query', details="false")
+        i = eval(input('query', details="false"))
         q = from_json(i.query)
         result = site.things(q)
 
@@ -280,7 +282,7 @@ class versions:
     @jsonify
     def GET(self, sitename):
         site = get_site(sitename)
-        i = input('query')
+        i = eval(input('query'))
         q = from_json(i.query)
         return site.versions(q)
 
@@ -288,7 +290,7 @@ class recentchanges:
     @jsonify
     def GET(self, sitename):
         site = get_site(sitename)
-        i = input('query')
+        i = eval(input('query'))
         q = from_json(i.query)
         return site.recentchanges(q)
 
@@ -302,7 +304,7 @@ class permission:
     @jsonify
     def GET(self, sitename):
         site = get_site(sitename)
-        i = input('key')
+        i = eval(input('key'))
         return site.get_permissions(i.key)
 
 class store_special:
@@ -327,7 +329,7 @@ class store_special:
 
     @jsonify
     def GET_query(self, sitename):
-        i = input(type=None, name=None, value=None, limit=100, offset=0, include_docs="false")
+        i = eval(input(type=None, name=None, value=None, limit=100, offset=0, include_docs="false"))
 
         i.limit = common.safeint(i.limit, 100)
         i.offset = common.safeint(i.offset, 0)
@@ -397,7 +399,7 @@ class account:
     GET = POST = delegate
 
     def POST_login(self, site):
-        i = input('username', 'password')
+        i = eval(input('username', 'password'))
         a = site.get_account_manager()
         status = a.login(i.username, i.password)
 
@@ -408,7 +410,7 @@ class account:
             raise common.BadData(code=status, message="Login failed")
 
     def POST_register(self, site):
-        i = input('username', 'password', 'email')
+        i = eval(input('username', 'password', 'email'))
         a = site.get_account_manager()
         username = i.pop('username')
         password = i.pop('password')
@@ -418,7 +420,7 @@ class account:
         return {"activation_code": activation_code, "email": email}
 
     def POST_activate(self, site):
-        i = input('username')
+        i = eval(input('username'))
 
         a = site.get_account_manager()
         status = a.activate(i.username)
@@ -428,7 +430,7 @@ class account:
             raise common.BadData(error_code=status, message="Account activation failed.")
 
     def POST_update(self, site):
-        i = input('username')
+        i = eval(input('username'))
         username = i.pop("username")
 
         a = site.get_account_manager()
@@ -440,7 +442,7 @@ class account:
             raise common.BadData(error_code=status, message="Account activation failed.")
 
     def GET_find(self, site):
-        i = input(email=None, username=None)
+        i = eval(input(email=None, username=None))
         a = site.get_account_manager()
         return a.find_account(email=i.email, username=i.username)
 
@@ -455,37 +457,37 @@ class account:
 
     def GET_get_reset_code(self, site):
         # TODO: remove this
-        i = input('email')
+        i = eval(input('email'))
         a = site.get_account_manager()
         username, code = a.get_user_code(i.email)
         return dict(username=username, code=code)
 
     def GET_check_reset_code(self, site):
         # TODO: remove this
-        i = input('username', 'code')
+        i = eval(input('username', 'code'))
         a = site.get_account_manager()
         a.check_reset_code(i.username, i.code)
         return {'ok': True}
 
     def GET_get_user_email(self, site):
-        i = input('username')
+        i = eval(input('username'))
         a = site.get_account_manager()
         return a.find_account(username=i.username)
 
     def GET_find_user_by_email(self, site):
-        i = input("email")
+        i = eval(input("email"))
         a = site.get_account_manager()
         account = a.find_account(email=i.email)
         return account and account['key'].split("/")[-1]
 
     def POST_reset_password(self, site):
         # TODO: remove this
-        i = input('username', 'code', 'password')
+        i = eval(input('username', 'code', 'password'))
         a = site.get_account_manager()
         return a.reset_password(i.username, i.code, i.password)
 
     def POST_update_user(self, site):
-        i = input('old_password', new_password=None, email=None)
+        i = eval(input('old_password', new_password=None, email=None))
         a = site.get_account_manager()
 
         user = a.get_user()
@@ -503,7 +505,7 @@ class account:
             raise common.BadData(code=status, message="Invalid password")
 
     def POST_update_user_details(self, site):
-        i = input('username')
+        i = eval(input('username'))
         username = i.pop('username')
 
         a = site.get_account_manager()
@@ -642,7 +644,7 @@ def load_config(config_file):
 
 def update_config(runtime_config):
     # update config
-    for k, v in runtime_config.items():
+    for k, v in list(runtime_config.items()):
         setattr(config, k, v)
 
     # import plugins

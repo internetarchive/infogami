@@ -1,7 +1,7 @@
 """
 Log file reader.
 """
-from __future__ import print_function
+
 import os
 import itertools
 import datetime
@@ -48,7 +48,7 @@ def to_timestamp(iso_date_string):
     y, m, d = date.split('-')
     H, M, S = time.split(':')
     S, ms = S.split('.')
-    return datetime.datetime(*map(int, [y, m, d, H, M, S, ms]))
+    return datetime.datetime(*list(map(int, [y, m, d, H, M, S, ms])))
 
 class LogReader:
     """

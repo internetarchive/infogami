@@ -10,7 +10,7 @@ from infogami.utils.template import render
 from infogami import core
 from infogami.core.auth import require_login
 
-import db
+from . import db
 import web
 
 class changes (delegate.page):
@@ -31,7 +31,7 @@ class review (delegate.mode):
     @require_login
     def GET(self, site, path):
         user = core.auth.get_user()
-        i = input()
+        i = eval(input())
 
         if i.a == 0:
             alines = []
@@ -52,7 +52,7 @@ class review (delegate.mode):
 class approve (delegate.mode):
     @require_login
     def POST(self, site, path):
-        i = input()
+        i = eval(input())
 
         if i.c != core.db.get_version(site, path).revision:
             return render.parallel_modification()
@@ -71,7 +71,7 @@ class approve (delegate.mode):
 class revert (delegate.mode):
     @require_login
     def POST(self, site, path):
-        i = input()
+        i = eval(input())
 
         if i.c != core.db.get_version(site, path).revision:
             return render.parallel_modification()

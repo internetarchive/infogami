@@ -1,4 +1,5 @@
 """Infobase client."""
+
 from __future__ import print_function
 
 import datetime
@@ -24,7 +25,7 @@ DEBUG = False
 
 def storify(d):
     if isinstance(d, dict):
-        for k, v in d.items():
+        for k, v in list(d.items()):
             d[k] = storify(v)
         return web.storage(d)
     elif isinstance(d, list):
@@ -34,7 +35,7 @@ def storify(d):
 
 def unstorify(d):
     if isinstance(d, dict):
-        return dict((k, unstorify(v)) for k, v in d.iteritems())
+        return dict((k, unstorify(v)) for k, v in d.items())
     elif isinstance(d, list):
         return [unstorify(x) for x in d]
     else:
@@ -97,7 +98,7 @@ class LocalConnection(Connection):
         pass
 
     def request(self, sitename, path, method='GET', data=None):
-        import server
+        from . import server
         path = "/" + sitename + path
         web.ctx.infobase_auth_token = self.get_auth_token()
         try:
@@ -121,7 +122,7 @@ class RemoteConnection(Connection):
         url = self.base_url + '/' + sitename + path
         path = '/' + sitename + path
         if isinstance(data, dict):
-            for k in data.keys():
+            for k in list(data.keys()):
                 if data[k] is None: del data[k]
 
         if web.config.debug:
@@ -134,7 +135,7 @@ class RemoteConnection(Connection):
 
         if data:
             if isinstance(data, dict):
-                data = dict((web.safestr(k), web.safestr(v)) for k, v in data.items())
+                data = dict((web.safestr(k), web.safestr(v)) for k, v in list(data.items()))
                 data = urlencode(data)
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
             if method == 'GET':
@@ -146,8 +147,8 @@ class RemoteConnection(Connection):
         env = web.ctx.get('env') or {}
 
         if self.auth_token:
-            import Cookie
-            c = Cookie.SimpleCookie()
+            import http.cookies
+            c = http.cookies.SimpleCookie()
             c['infobase_auth_token'] = quote(self.auth_token)
             cookie = c.output(header='').strip()
             headers['Cookie'] = cookie
@@ -166,8 +167,8 @@ class RemoteConnection(Connection):
 
         cookie = response.getheader('Set-Cookie')
         if cookie:
-            import Cookie
-            c = Cookie.SimpleCookie()
+            import http.cookies
+            c = http.cookies.SimpleCookie()
             c.load(cookie)
             if 'infobase_auth_token' in c:
                 auth_token = c['infobase_auth_token'].value
@@ -248,7 +249,7 @@ class Site:
             return [self._process(v) for v in value]
         elif isinstance(value, dict):
             d = {}
-            for k, v in value.items():
+            for k, v in list(value.items()):
                 d[k] = self._process(v)
             return create_thing(self, None, d)
         elif isinstance(value, common.Reference):
@@ -258,7 +259,7 @@ class Site:
 
     def _process_dict(self, data):
         d = {}
-        for k, v in data.items():
+        for k, v in list(data.items()):
             d[k] = self._process(v)
         return d
 
@@ -530,7 +531,7 @@ class Store:
 
     def update(self, d={}, **kw):
         d2 = dict(d, **kw)
-        docs = [dict(doc, _key=key) for key, doc in d2.items()]
+        docs = [dict(doc, _key=key) for key, doc in list(d2.items())]
         self._request("_save_many", method="POST", data=simplejson.dumps(docs))
 
     def clear(self):
@@ -547,7 +548,7 @@ class Store:
             return self.unlimited_query(type, name, value, offset=offset, include_docs=include_docs)
 
         params = dict(type=type, name=name, value=value, limit=limit, offset=offset, include_docs=str(include_docs))
-        params = dict((k, v) for k, v in params.items() if v is not None)
+        params = dict((k, v) for k, v in list(params.items()) if v is not None)
         return self._request("_query", method="GET", data=params)
 
     def unlimited_query(self, type, name, value, offset=0, include_docs=False):
@@ -634,7 +635,7 @@ def parse_datetime(datestring):
     """
     import re, datetime
     tokens = re.split(r'-|T|:|\.| ', datestring)
-    return datetime.datetime(*map(int, tokens))
+    return datetime.datetime(*list(map(int, tokens)))
 
 class Nothing:
     """For representing missing values.
@@ -793,7 +794,7 @@ class Thing:
 
     def _format(self, d):
         if isinstance(d, dict):
-            return dict((k, self._format(v)) for k, v in d.iteritems())
+            return dict((k, self._format(v)) for k, v in d.items())
         elif isinstance(d, list):
             return [self._format(v) for v in d]
         elif isinstance(d, common.Text):
@@ -930,13 +931,15 @@ register_thing_class('/type/type', Type)
 hooks = []
 class metahook(type):
     def __init__(self, name, bases, attrs):
+        #global hooks
         hooks.append(self())
         type.__init__(self, name, bases, attrs)
 
-class hook:
+class hook(object):
     __metaclass__ = metahook
 
 #remove hook from hooks
+# FIXME: not sure what broke the following, but it seems to be related to Python 3 changes
 hooks.pop()
 
 def _run_hooks(name, thing):

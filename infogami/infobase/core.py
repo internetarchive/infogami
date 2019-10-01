@@ -82,7 +82,7 @@ class Thing:
         if isinstance(value, list):
             return [self._process(v) for v in value]
         elif isinstance(value, dict):
-            return web.storage((k, self._process(v)) for k, v in value.iteritems())
+            return web.storage((k, self._process(v)) for k, v in value.items())
         elif isinstance(value, Reference):
             json = self._store.get(value)
             return Thing.from_json(self._store, text_type(value), json)
@@ -123,7 +123,7 @@ class Thing:
         return copy.deepcopy(self._data)
 
     def format_data(self):
-        import common
+        from . import common
         return common.format_data(self._get_data())
 
     def get_property(self, name):
@@ -137,7 +137,7 @@ class Thing:
 
     @staticmethod
     def from_dict(store, key, data):
-        import common
+        from . import common
         data = common.parse_query(data)
         return Thing(store, key, data)
 

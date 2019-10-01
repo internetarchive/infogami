@@ -3,7 +3,7 @@ bulkupload script to upload multiple objects at once.
 All the inserts are merged to give better performance.
 """
 import web
-from infobase import TYPES, DATATYPE_REFERENCE
+from .infobase import TYPES, DATATYPE_REFERENCE
 import datetime
 import re
 import tempfile
@@ -93,7 +93,7 @@ def multiple_insert(table, values, seqname=None):
     if seqname:
         n = len(values)
         start = increment_sequence(seqname, n)
-        ids = range(start, start+n)
+        ids = list(range(start, start+n))
         for v, id in zip(values, ids):
             v['id'] = id
     else:
@@ -183,7 +183,7 @@ class BulkUpload:
         elif isinstance(query, dict) and 'key' in query:
             assert re.match('^/[^ \t\n]*$', query['key']), 'Bad key: ' + repr(query['key'])
             result.append(query['key'])
-            for k, v in query.items():
+            for k, v in list(query.items()):
                 self.find_keys(v, result)
         return result
 
@@ -199,7 +199,7 @@ class BulkUpload:
         elif isinstance(query, dict):
             if 'create' in query:
                 result.append(query['key'])
-                self.find_creates(query.values(), result)
+                self.find_creates(list(query.values()), result)
                 #@@ side-effect
                 self.comment[query['key']] = query.pop('comment', None)
                 self.machine_comment[query['key']] = query.pop('machine_comment', None)
@@ -233,7 +233,7 @@ class BulkUpload:
                 thing_id = key2id[query['key']]
                 if query['key'] in self.created:
                     self.created.remove(query['key'])
-                    for key, value in query.items():
+                    for key, value in list(query.items()):
                         if key == 'create':
                             continue
                         if isinstance(value, list):
@@ -263,6 +263,6 @@ if __name__ == "__main__":
     web.config.db_parameters = dict(dbn='postgres', host='pharosdb', db='infobase_data2', user='anand', pw='')
     web.config.db_printing = True
     web.load()
-    from infobase import Infobase
+    from .infobase import Infobase
     site = Infobase().get_site('infogami.org')
     BulkUpload(site)

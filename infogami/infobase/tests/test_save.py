@@ -312,7 +312,7 @@ class TestIndex:
 
     def process_index(self, index):
         """Process index to remove order in the values, so that it is easier to compare."""
-        return dict((k, set(v)) for k, v in index.iteritems())
+        return dict((k, set(v)) for k, v in index.items())
 
     def test_compute_index(self, testdata):
         index = self.indexer.compute_index(testdata['doc1'])
@@ -400,7 +400,7 @@ class TestIndex:
     def test_too_long(self):
         assert self.indexer._is_too_long("a" * 10000) is True
         assert self.indexer._is_too_long("a" * 2047) is False
-        c = u'\u20AC'  # 3 bytes in utf-8
+        c = '\u20AC'  # 3 bytes in utf-8
         assert self.indexer._is_too_long(c * 1000) is True
 
 

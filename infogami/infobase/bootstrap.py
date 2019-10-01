@@ -127,7 +127,7 @@ def make_query():
 def bootstrap(site, admin_password):
     """Creates system types and objects for a newly created site.
     """
-    import cache
+    from . import cache
     cache.loadhook()
 
     import web
@@ -158,7 +158,7 @@ def bootstrap(site, admin_password):
         a.update_user_details(username, verified=True)
 
     # add admin user to admin usergroup
-    import account
+    from . import account
     q = [usergroup('/usergroup/admin', 'Group of admin users.', [{"key": account.get_user_root() + "admin"}])]
     site.save_many(q)
 

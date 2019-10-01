@@ -4,7 +4,9 @@ Infobase: structured database.
 Infobase is a structured database which contains multiple sites.
 Each site is an independent collection of objects. 
 """
+
 from __future__ import print_function
+
 import web
 import datetime
 import simplejson
@@ -77,7 +79,7 @@ class Site:
         self.store = store
         self.cache = cache.Cache()
         self.store.set_cache(self.cache)
-        import account
+        from . import account
         self.account_manager = account.AccountManager(self, secret_key)
 
         self._triggers = {}
@@ -112,7 +114,7 @@ class Site:
     def _get_many_things(self, keys):
         json = self.get_many(keys)
         d = simplejson.loads(json)
-        return dict((k, common.Thing.from_dict(self.store, k, doc)) for k, doc in d.items())
+        return dict((k, common.Thing.from_dict(self.store, k, doc)) for k, doc in list(d.items()))
 
     def get_many(self, keys):
         return self.store.get_many(keys)
@@ -219,10 +221,10 @@ class Site:
         return web.storage(write=perm, admin=perm)
 
     def bootstrap(self, admin_password='admin123'):
-        import bootstrap
+        from . import bootstrap
         web.ctx.ip = '127.0.0.1'
 
-        import cache
+        from . import cache
         cache.loadhook()
 
         bootstrap.bootstrap(self, admin_password)

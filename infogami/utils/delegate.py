@@ -65,7 +65,7 @@ def layout_processor(handler):
     if out is None:
         out = RawText("")
 
-    if isinstance(out, basestring):
+    if isinstance(out, str):
         out = web.template.TemplateResult(__body__=out)
 
     if 'title' not in out:

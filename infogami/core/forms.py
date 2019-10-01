@@ -1,5 +1,5 @@
 from web.form import *
-import db
+from . import db
 from infogami.utils import i18n
 from infogami.utils.context import context
 

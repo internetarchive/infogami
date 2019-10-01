@@ -7,6 +7,7 @@ push moves pages from disk to wiki and pull moves pages from wiki to disk.
 TODOs:
 * As of now pages are stored as python dict. Replace it with a human-readable format.
 """
+
 from __future__ import print_function
 
 import web
@@ -30,7 +31,7 @@ def listfiles(root, filter=None):
         for f in filenames:
             path = os.path.join(dirname, f)
             path = path[len(root):]
-            if filter is None or filter(path):
+            if filter is None or list(filter(path)):
                 yield path
 
 def storify(d):
@@ -43,7 +44,7 @@ def storify(d):
         2
     """
     if isinstance(d, dict):
-        return web.storage([(k, storify(v)) for k, v in d.items()])
+        return web.storage([(k, storify(v)) for k, v in list(d.items())])
     elif isinstance(d, list):
         return [storify(x) for x in d]
     else:
@@ -90,7 +91,7 @@ def _savepage(page, create_dependents=True, comment=None):
         elif isinstance(data, dict):
             name = data.name
             if data.get('child'):
-                d = dict([(k, thingify(v, getparent)) for k, v in data.d.items()])
+                d = dict([(k, thingify(v, getparent)) for k, v in list(data.d.items())])
                 type = thingify(data.type, getparent)
                 thing = db.new_version(getparent(), name, type, d)
                 thing.save()
@@ -105,7 +106,7 @@ def _savepage(page, create_dependents=True, comment=None):
     d = {}
 
     getself = lambda: getthing(name, create=True)
-    for k, v in page.d.items():
+    for k, v in list(page.d.items()):
         d[k] = thingify(v, getself)
 
     _page = db.new_version(context.site, name, type, d)
@@ -131,7 +132,7 @@ def thing2dict(page):
 
     data = dict(name=page.name, type={'name': page.type.name})
     d = data['d'] = {}
-    for k, v in page.d.iteritems():
+    for k, v in page.d.items():
         d[k] = simplify(v, page)
     return data
 
@@ -174,7 +175,7 @@ def push(root):
 def _pushpages(pages):
     tdb.transact()
     try:
-        for p in pages.values(): 
+        for p in list(pages.values()): 
             print('saving', p.name)
             _savepage(p)    
     except:
@@ -256,7 +257,7 @@ def datadump(filename):
 @infogami.action
 def dataload(filename):
     """"Loads data dumped using datadump action into the database."""
-    lines = open(filename).xreadlines()
+    lines = open(filename)
     tdb.transact()
     try:
         for line in lines:

@@ -22,7 +22,7 @@ def flatten(d):
     {'a': 1, 'b#0': 2, 'b#1': 3, 'c.x': 4, 'c.y': 5}
     """
     def traverse(d, prefix, delim, visit):
-        for k, v in d.iteritems():
+        for k, v in d.items():
             k = str(k)
             if isinstance(v, dict):
                 traverse(v, prefix + delim + k, '.', visit)
@@ -61,7 +61,7 @@ def unflatten(d):
             return d.setdefault(k, v)
 
     d2 = {}
-    for k, v in d.iteritems():
+    for k, v in d.items():
         setdefault(d2, k, v)
     return d2
 
@@ -82,7 +82,7 @@ class betterlist(list):
         return enumerate(self)
 
     def items(self):
-        return list(self.iteritems())
+        return list(self.items())
 
 def trim(x):
     """Remove empty elements from a list or dictionary.
@@ -108,7 +108,7 @@ def trim(x):
 
     def trimdict(x):
         y = {}
-        for k, v in x.iteritems():
+        for k, v in x.items():
             if isinstance(v, list): v = trimlist(v)
             elif isinstance(v, dict): v = trimdict(v)
             if v: y[k] = v

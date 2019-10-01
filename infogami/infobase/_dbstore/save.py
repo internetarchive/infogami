@@ -97,14 +97,14 @@ class SaveImpl:
                 for v in value:
                     index(key, v)
 
-        for k, v in data.iteritems():
+        for k, v in data.items():
             index(k, v)
 
         if d:
             self.db.multiple_insert("transaction_index", d, seqname=False)
 
     def reindex(self, keys):
-        records = self._load_records(keys).values()
+        records = list(self._load_records(keys).values())
 
         for r in records:
             # Force reindex
@@ -178,7 +178,7 @@ class SaveImpl:
             raise common.Conflict(keys=keys, reason="Edit conflict detected.")
 
         records = dict((r.key, r) for r in rows)
-        for r in records.values():
+        for r in list(records.values()):
             r.revision = r.latest_revision
             json = r.data and self.process_json(r.key, r.data)
             r.data = simplejson.loads(json)
@@ -332,7 +332,7 @@ class IndexUtil:
         """Returns set equivalant of d1.difference(d2) for dictionaries.
         """
         eq = eq or (lambda a, b: a == b)
-        return dict((k, v) for k, v in d1.iteritems() if not eq(v, d2.get(k)))
+        return dict((k, v) for k, v in d1.items() if not eq(v, d2.get(k)))
 
     def diff_records(self, records):
         """Takes a list of records and returns the index to be deleted and index to be inserted.
@@ -366,7 +366,7 @@ class IndexUtil:
         """Compiles doc-index into db-index.
         """
         keys = set(key for type, key, datatype, name in index)
-        for (type, key, datatype, name), values in index.iteritems():
+        for (type, key, datatype, name), values in index.items():
             if datatype == 'ref':
                 keys.update(values)
 
@@ -386,7 +386,7 @@ class IndexUtil:
 
         dbindex = {}
 
-        for (type, key, datatype, name), values in index.iteritems():
+        for (type, key, datatype, name), values in index.items():
             table = self.find_table(type, datatype, name)
             thing_id = thing_ids[key]
             pid = get_pid(type, name)
@@ -399,7 +399,7 @@ class IndexUtil:
         """Groups the index based on table.
         """
         groups = defaultdict(dict)
-        for (table, thing_id, property_id), values in index.iteritems():
+        for (table, thing_id, property_id), values in index.items():
             groups[table][thing_id, property_id] = values
         return groups
 
@@ -407,7 +407,7 @@ class IndexUtil:
         """The DB schema has a limit of 2048 chars on string values. This function ignores values which are longer than that.
         """
         is_too_long = self._is_too_long
-        return dict((k, [v for v in values if not is_too_long(v)]) for k, values in index.iteritems())
+        return dict((k, [v for v in values if not is_too_long(v)]) for k, values in index.items())
 
     def _is_too_long(self, v, limit=2048):
         return (
@@ -420,17 +420,17 @@ class IndexUtil:
 
     def insert_index(self, index):
         """Inserts the given index into database."""
-        for table, group in self.group_index(index).iteritems():
+        for table, group in self.group_index(index).items():
             # ignore values longer than 2048, the limit specified by the db schema.
             group = self.ignore_long_values(group)
             data = [dict(thing_id=thing_id, key_id=property_id, value=v)
-                for (thing_id, property_id), values in group.iteritems()
+                for (thing_id, property_id), values in group.items()
                 for v in values]
             self.db.multiple_insert(table, data, seqname=False)
 
     def delete_index(self, index):
         """Deletes the given index from database."""
-        for table, group in self.group_index(index).iteritems():
+        for table, group in self.group_index(index).items():
 
             thing_ids = [] # thing_ids to delete all
 
@@ -445,7 +445,7 @@ class IndexUtil:
             if thing_ids:
                 self.db.delete(table, where='thing_id IN $thing_ids', vars=locals())
 
-            for thing_id, pids in d.iteritems():
+            for thing_id, pids in d.items():
                 self.db.delete(table, where="thing_id=$thing_id AND key_id IN $pids", vars=locals())
 
     def get_thing_ids(self, keys):

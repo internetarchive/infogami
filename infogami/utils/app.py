@@ -13,7 +13,7 @@ from infogami.utils import flash
 urls = ("/.*", "item")
 app = web.application(urls, globals(), autoreload=False)
 
-import delegate as infogami_delegate  # create app before importing delegate
+from . import delegate as infogami_delegate  # create app before importing delegate
 
 # magical metaclasses for registering special paths and modes.
 # Whenever any class extends from page/mode, an entry is added to pages/modes.
@@ -60,7 +60,7 @@ class metaview(type):
                     views[suffix][t] = self
 
 
-class mode:
+class mode(object):
     __metaclass__ = metamode
 
     def HEAD(self, *a):
@@ -69,7 +69,7 @@ class mode:
     def GET(self, *a):
         return web.nomethod(web.ctx.method)
 
-class page:
+class page(object):
     __metaclass__ = metapage
 
     def HEAD(self, *a):
@@ -78,8 +78,9 @@ class page:
     def GET(self, *a):
         return web.nomethod(web.ctx.method)
 
-class view:
+class view(object):
     __metaclass__ = metaview
+
     suffix = None
     types = None
 
@@ -258,12 +259,12 @@ web.unloadhooks = {}
 web.load = lambda: None
 
 def hook_processor(handler):
-    for h in web._loadhooks.values():
+    for h in list(web._loadhooks.values()):
         h()
     try:
         return handler()
     finally:
-        for h in web.unloadhooks.values():
+        for h in list(web.unloadhooks.values()):
             h()
 
 def parse_accept(header):
