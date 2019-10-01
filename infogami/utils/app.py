@@ -13,7 +13,7 @@ from infogami.utils import flash
 urls = ("/.*", "item")
 app = web.application(urls, globals(), autoreload=False)
 
-from . import delegate as infogami_delegate  # create app before importing delegate
+from infogami.utils import delegate as infogami_delegate  # create app before importing delegate
 
 # magical metaclasses for registering special paths and modes.
 # Whenever any class extends from page/mode, an entry is added to pages/modes.
