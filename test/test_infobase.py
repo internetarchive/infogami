@@ -6,9 +6,14 @@ import unittest
 try:
     from urllib.parse import urlencode, urljoin
 except:
-    from urlparse import urlencode, urljoin
+    from urllib import urlencode
+    from urlparse import urljoin
 
-from urllib.request import Request
+try:
+    from urllib.request import Request
+except:
+    from urllib2 import Request
+
 import simplejson
 
 def browser():
