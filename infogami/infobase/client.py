@@ -1,5 +1,4 @@
 """Infobase client."""
-
 from __future__ import print_function
 
 import datetime
@@ -135,7 +134,7 @@ class RemoteConnection(Connection):
 
         if data:
             if isinstance(data, dict):
-                data = dict((web.safestr(k), web.safestr(v)) for k, v in list(data.items()))
+                data = dict((web.safestr(k), web.safestr(v)) for k, v in data.items())
                 data = urlencode(data)
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
             if method == 'GET':
@@ -249,7 +248,7 @@ class Site:
             return [self._process(v) for v in value]
         elif isinstance(value, dict):
             d = {}
-            for k, v in list(value.items()):
+            for k, v in value.items():
                 d[k] = self._process(v)
             return create_thing(self, None, d)
         elif isinstance(value, common.Reference):
@@ -259,7 +258,7 @@ class Site:
 
     def _process_dict(self, data):
         d = {}
-        for k, v in list(data.items()):
+        for k, v in data.items():
             d[k] = self._process(v)
         return d
 
@@ -531,7 +530,7 @@ class Store:
 
     def update(self, d={}, **kw):
         d2 = dict(d, **kw)
-        docs = [dict(doc, _key=key) for key, doc in list(d2.items())]
+        docs = [dict(doc, _key=key) for key, doc in d2.items()]
         self._request("_save_many", method="POST", data=simplejson.dumps(docs))
 
     def clear(self):

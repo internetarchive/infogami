@@ -13,7 +13,8 @@ from infogami.utils import flash
 urls = ("/.*", "item")
 app = web.application(urls, globals(), autoreload=False)
 
-from infogami.utils import delegate as infogami_delegate  # create app before importing delegate
+from infogami.utils import delegate as infogami_delegate # import delegate after app is created due to circular dependencies
+
 
 # magical metaclasses for registering special paths and modes.
 # Whenever any class extends from page/mode, an entry is added to pages/modes.
@@ -259,12 +260,12 @@ web.unloadhooks = {}
 web.load = lambda: None
 
 def hook_processor(handler):
-    for h in list(web._loadhooks.values()):
+    for h in web._loadhooks.values():
         h()
     try:
         return handler()
     finally:
-        for h in list(web.unloadhooks.values()):
+        for h in web.unloadhooks.values():
             h()
 
 def parse_accept(header):

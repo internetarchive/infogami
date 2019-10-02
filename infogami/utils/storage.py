@@ -111,15 +111,15 @@ class DictPile(Mapping):
         # return set([d.keys() for d in self.dicts])
         keys = set()
         for d in self.dicts:
-            keys.update(list(d.keys()))
+            keys.update(d.keys())
         return list(keys)
 
     def __iter__(self):
-        for k in list(self.keys()):
+        for k in self.keys():
             yield self[k]
 
     def __len__(self):
-        return len(list(self.keys()))
+        return len(self.keys())
 
 
 if __name__ == "__main__":

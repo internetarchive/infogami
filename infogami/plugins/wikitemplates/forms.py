@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 import web
 from web.form import *
 from infogami.utils import i18n

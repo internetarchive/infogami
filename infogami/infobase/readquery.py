@@ -34,17 +34,17 @@ def run_things_query(store, query):
             return value
 
     def get_data(thingdata, query):
-        fields = dict((web.lstrips(k, query.prefix), v) for k, v in list(query.requested.items()))
+        fields = dict((web.lstrips(k, query.prefix), v) for k, v in query.requested.items())
 
         # special care for '*'
         if '*' in fields:
-            f = dict((k, None) for k in list(thingdata.keys()))
+            f = dict((k, None) for k in thingdata.keys())
             fields.pop('*')
             f.update(fields)
             fields = f
 
         d = {}
-        for k, v in list(fields.items()):
+        for k, v in fields.items():
             value = thingdata.get(k)
             if isinstance(v, Query):
                 d[k] = get_nested_data(value, v)
@@ -133,7 +133,7 @@ def make_query(store, query, prefix=""):
 
     nested = (prefix != "")
 
-    for k, v in list(query.items()):
+    for k, v in query.items():
         # key foo can also be written as label:foo
         k = k.split(':')[-1]
         if v is None:
@@ -248,7 +248,7 @@ def make_versions_query(store, query):
 
     columns = ['key', 'type', 'revision', 'author', 'comment', 'machine_comment', 'ip', 'created', 'bot']
 
-    for k, v in list(query.items()):
+    for k, v in query.items():
         if k not in columns:
             raise ValueError(k)
         q.add_condition(k, '=', None, v)

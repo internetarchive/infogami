@@ -52,7 +52,7 @@ class WikiSource(Mapping):
         return value
 
     def keys(self):
-        return [self.unprocess_key(k) for k in list(self.templates.keys())]
+        return [self.unprocess_key(k) for k in self.templates.keys()]
 
     def process_key(self, key):
         return '/templates/%s.tmpl' % key

@@ -1,6 +1,7 @@
 import simplejson
 
-from infogami.infobase import client, server
+import infogami.infobase.client
+import infogami.infobase.server
 
 from . import utils
 
@@ -9,7 +10,7 @@ def setup_module(mod):
     utils.setup_conn(mod)
     utils.setup_server(mod)
 
-    mod.site = client.Site(mod.conn, "test")
+    mod.site = infogami.infobase.client.Site(mod.conn, "test")
     mod.s = mod.site.store
     mod.seq = mod.site.seq
 
@@ -195,7 +196,7 @@ class TestAccount:
 
         try:
             site.login("joe", "secret2")
-        except client.ClientException:
+        except infobase.infogami.client.ClientException:
             pass
         else:
             assert False, "Login should fail when used with wrong password"

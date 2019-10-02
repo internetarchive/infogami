@@ -3,7 +3,7 @@ Macro extension to markdown.
 
 Macros take argument string as input and returns result as markdown text.
 """
-
+from __future__ import print_function
 
 import os
 
@@ -89,7 +89,7 @@ class MacroPattern(markdown.BasePattern):
 
 def replace_macros(html, macros):
     """Replaces the macro place holders with real macro output."""
-    for placeholder, macro_info in list(macros.items()):
+    for placeholder, macro_info in macros.items():
         name, args = macro_info
         html = html.replace("<p>%s\n</p>" % placeholder, web.safestr(call_macro(name, args)))
 
@@ -116,7 +116,7 @@ def ListOfMacros():
     """Lists all available macros."""
     out = ""
     out += "<ul>"
-    for name, macro in list(macrostore.items()):
+    for name, macro in macrostore.items():
         out += '  <li><b>%s</b>: %s</li>\n' % (name, macro.__doc__ or "")
     out += "</ul>"
     return out

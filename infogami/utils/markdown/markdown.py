@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 
 import six
 version = "1.6b"
@@ -50,9 +51,9 @@ ENABLE_ATTRIBUTES = True  # @id = xyz -> <... id="xyz">
 SMART_EMPHASIS = 1        # this_or_that does not become this<i>or</i>that
 HTML_REMOVED_TEXT = "[HTML_REMOVED]" # text used instead of HTML in safe mode
 
-RTL_BIDI_RANGES = ( ('\u0590', '\u07FF'),
+RTL_BIDI_RANGES = ( (u'\u0590', u'\u07FF'),
                     # from Hebrew to Nko (includes Arabic, Syriac and Thaana)
-                    ('\u2D30', '\u2D7F'),
+                    (u'\u2D30', u'\u2D7F'),
                     # Tifinagh
                     )
 
@@ -1041,7 +1042,7 @@ class CorePatterns :
     def __init__ (self) :
 
         self.regExp = {}
-        for key in list(self.patterns.keys()) :
+        for key in self.patterns.keys():
             self.regExp[key] = re.compile("^%s$" % self.patterns[key],
                                           re.DOTALL)
 
@@ -1739,7 +1740,7 @@ class Extension :
             return ""
 
     def getConfigInfo(self) :
-        return [(key, self.config[key][1]) for key in list(self.config.keys())]
+        return [(key, self.config[key][1]) for key in self.config.keys()]
 
     def setConfig(self, key, value) :
         self.config[key][0] = value

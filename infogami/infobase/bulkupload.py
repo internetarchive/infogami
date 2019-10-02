@@ -93,7 +93,7 @@ def multiple_insert(table, values, seqname=None):
     if seqname:
         n = len(values)
         start = increment_sequence(seqname, n)
-        ids = list(range(start, start+n))
+        ids = range(start, start+n)
         for v, id in zip(values, ids):
             v['id'] = id
     else:
@@ -183,7 +183,7 @@ class BulkUpload:
         elif isinstance(query, dict) and 'key' in query:
             assert re.match('^/[^ \t\n]*$', query['key']), 'Bad key: ' + repr(query['key'])
             result.append(query['key'])
-            for k, v in list(query.items()):
+            for k, v in query.items():
                 self.find_keys(v, result)
         return result
 
@@ -233,7 +233,7 @@ class BulkUpload:
                 thing_id = key2id[query['key']]
                 if query['key'] in self.created:
                     self.created.remove(query['key'])
-                    for key, value in list(query.items()):
+                    for key, value in query.items():
                         if key == 'create':
                             continue
                         if isinstance(value, list):

@@ -7,7 +7,6 @@ push moves pages from disk to wiki and pull moves pages from wiki to disk.
 TODOs:
 * As of now pages are stored as python dict. Replace it with a human-readable format.
 """
-
 from __future__ import print_function
 
 import web
@@ -44,7 +43,7 @@ def storify(d):
         2
     """
     if isinstance(d, dict):
-        return web.storage([(k, storify(v)) for k, v in list(d.items())])
+        return web.storage([(k, storify(v)) for k, v in d.items()])
     elif isinstance(d, list):
         return [storify(x) for x in d]
     else:
@@ -175,7 +174,7 @@ def push(root):
 def _pushpages(pages):
     tdb.transact()
     try:
-        for p in list(pages.values()): 
+        for p in pages.values(): 
             print('saving', p.name)
             _savepage(p)    
     except:

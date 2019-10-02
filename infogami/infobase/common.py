@@ -101,9 +101,9 @@ def format_data(d):
     elif isinstance(d, list):
         return [format_data(v) for v in d]
     elif isinstance(d, Text):
-        return {'type': '/type/text', 'value': str(d)}
+        return {'type': '/type/text', 'value': unicode(d)}
     elif isinstance(d, Reference):
-        return {'key': str(d)}
+        return {'key': unicode(d)}
     elif isinstance(d, datetime.datetime):
         return {'type': '/type/datetime', 'value': d.isoformat()}
     else:

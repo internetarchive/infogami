@@ -27,6 +27,7 @@ def create_site():
 
 def fakeload():
     from infogami.core import db
+
     #web.load()
     app.load(dict(REQUEST_METHOD="GET", PATH_INFO="/install"))
     web.ctx.ip = None
@@ -65,7 +66,7 @@ def layout_processor(handler):
     if out is None:
         out = RawText("")
 
-    if isinstance(out, str):
+    if isinstance(out, basestring):
         out = web.template.TemplateResult(__body__=out)
 
     if 'title' not in out:

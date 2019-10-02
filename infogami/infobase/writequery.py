@@ -111,10 +111,10 @@ class SaveProcessor:
 
         if keys:
             d = self.store.get_metadata_list(keys)
-            type_ids = list(set(row.type for row in list(d.values())))
+            type_ids = list(set(row.type for row in d.values()))
             typedict = self.store.get_metadata_list_from_ids(type_ids)
 
-            for k, row in list(d.items()):
+            for k, row in d.items():
                 types[k] = typedict[row.type].key
         return types
 
@@ -151,7 +151,7 @@ class SaveProcessor:
 
     def get_many(self, keys):
         d = self.store.get_many_as_dict(keys)
-        return dict((k, simplejson.loads(json)) for k, json in list(d.items()))
+        return dict((k, simplejson.loads(json)) for k, json in d.items())
 
     def process(self, key, data):
         prev_data = self.get_many([key])
@@ -467,10 +467,10 @@ def serialize(query):
                     data = {'key': q['key']}
                 else:
                     # take keys (connect, key, type, value) from q
-                    data = dict((k, v) for k, v in list(q.items()) if k in ("connect", "key", "type", "value"))
+                    data = dict((k, v) for k, v in q.items() if k in ("connect", "key", "type", "value"))
             else:
                 # take keys (connect, key, type, value) from q
-                data = dict((k, v) for k, v in list(q.items()) if k in ("connect", "key", "type", "value"))
+                data = dict((k, v) for k, v in q.items() if k in ("connect", "key", "type", "value"))
             return data
         else:
             return query

@@ -1,5 +1,4 @@
 """Infogami: Structured Wiki (http://infogami.org)"""
-
 from __future__ import print_function
 
 __version__ = "0.5dev"
@@ -159,7 +158,7 @@ def load_config(config_file):
 
     def storify(d):
         if isinstance(d, dict):
-            return web.storage((k, storify(v)) for k, v in list(d.items()))
+            return web.storage((k, storify(v)) for k, v in d.items())
         elif isinstance(d, list):
             return [storify(x) for x in d]
         else:
@@ -169,10 +168,10 @@ def load_config(config_file):
     runtime_config = yaml.load(open(config_file))
 
     # update config
-    for k, v in list(runtime_config.items()):
+    for k, v in runtime_config.items():
         setattr(config, k, storify(v))
 
-    for k, v in list(runtime_config.get('infobase', {}).items()):
+    for k, v in runtime_config.get('infobase', {}).items():
         setattr(infobase_config, k, storify(v))
 
     # setup python path
