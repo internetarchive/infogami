@@ -3,7 +3,7 @@ import re
 import web
 
 from infogami import config
-from infogami.utils import features, i18n, macro, template
+from infogami.utils import features, i18n, template
 from infogami.utils.app import *
 from infogami.utils.context import context
 from infogami.utils.view import render_site, public
@@ -151,6 +151,7 @@ def infogami_root():
 
 def _load():
     """Imports the files from the plugins directories and loads templates."""
+    from infogami.utils import macro
     global plugins
 
     plugins = [_make_plugin('core')]
