@@ -10,7 +10,6 @@ from six.moves.urllib.parse import urlencode
 import web
 
 import infogami
-from infogami.core import db
 from infogami.core.diff import simple_diff, better_diff
 from infogami.infobase import client
 from infogami.utils import delegate, i18n, macro, stats, storage
@@ -188,6 +187,7 @@ def thinginput(value, property=None, **kw):
     if property is None:
         if 'expected_type' in kw:
             if isinstance(kw['expected_type'], six.string_types):
+                from infogami.core import db
                 kw['expected_type'] = db.get_version(kw['expected_type'])
         else:
             raise ValueError("missing expected_type")
@@ -200,6 +200,7 @@ def thingify(type, value):
         type = '/type/string'
 
     if isinstance(type, six.string_types):
+        from infogami.core import db
         type = db.get_version(type)
 
     PRIMITIVE_TYPES = "/type/key", "/type/string", "/type/text", "/type/int", "/type/float", "/type/boolean", "/type/uri"
