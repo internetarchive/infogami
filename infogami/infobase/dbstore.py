@@ -6,11 +6,11 @@ import logging
 import time
 from collections import defaultdict
 
-import simplejson
 from six import text_type
+
 import web
 
-from infogami.infobase import common, config, readquery
+from infogami.infobase import common, config, _json as simplejson
 from infogami.infobase._dbstore import store, sequence
 from infogami.infobase._dbstore.schema import Schema, INDEXED_DATATYPES
 from infogami.infobase._dbstore.indexer import Indexer
@@ -293,6 +293,7 @@ class DBSiteStore(common.SiteStore):
                     return '%s.ordering = %s.ordering' % (table, d.table)
             return f
 
+        import readquery
         def process_query(q, ordering_func=None):
             for c in q.conditions:
                 if isinstance(c, readquery.Query):
