@@ -7,8 +7,6 @@ import web
 
 from six import text_type
 
-from infogami.infobase import common
-
 
 class InfobaseException(Exception):
     status = "500 Internal Server Error"
@@ -126,6 +124,7 @@ class Thing:
         return copy.deepcopy(self._data)
 
     def format_data(self):
+        from infogami.infobase import common
         return common.format_data(self._get_data())
 
     def get_property(self, name):
@@ -139,6 +138,7 @@ class Thing:
 
     @staticmethod
     def from_dict(store, key, data):
+        from infogami.infobase import common
         data = common.parse_query(data)
         return Thing(store, key, data)
 
