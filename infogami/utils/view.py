@@ -12,7 +12,7 @@ import web
 import infogami
 from infogami.core.diff import simple_diff, better_diff
 from infogami.infobase import client
-from infogami.utils import delegate, i18n, macro, stats, storage
+from infogami.utils import i18n, macro, stats, storage
 from infogami.utils.context import context
 from infogami.utils.flash import get_flash_messages, add_flash_message
 from infogami.utils.markdown import markdown, mdx_footnotes
@@ -265,6 +265,7 @@ def movefiles():
             shutil.copy(src, dest)
 
     static_dir = os.path.join(os.getcwd(), "static")
+    from infogami.utils import delegate
     for plugin in delegate.plugins:
         src = os.path.join(plugin.path, "files")
         cp_r(src, static_dir)
@@ -302,6 +303,7 @@ def movetypes():
 
     extension = ".type"
     pages = []
+    from infogami.utils import delegate
     for plugin in delegate.plugins:
         path = os.path.join(plugin.path, 'types')
         if os.path.exists(path) and os.path.isdir(path):
@@ -324,6 +326,7 @@ def movepages():
 def move(dir, extension, recursive=False, readfunc=None):
     readfunc = readfunc or eval
     pages = []
+    from infogami.utils import delegate
     for p in delegate.plugins:
         path = os.path.join(p.path, dir)
         if os.path.exists(path) and os.path.isdir(path):
