@@ -13,7 +13,7 @@ import time
 import simplejson
 import web
 
-from infogami.infobase import cache, common, config, infobase, logreader
+from infogami.infobase import cache, common, config, dbstore, infobase, logreader
 from infogami.infobase.account import get_user_root
 
 logger = logging.getLogger("infobase")
