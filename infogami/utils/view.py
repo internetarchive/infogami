@@ -1,24 +1,23 @@
 from __future__ import print_function
 
-import web
 import os
 import re
+import shutil
+import string
 
 import six
 from six.moves.urllib.parse import urlencode
+import web
 
 import infogami
+from infogami.core import db
 from infogami.core.diff import simple_diff, better_diff
-from infogami.utils import i18n
+from infogami.infobase import client
+from infogami.utils import delegate, i18n, macro, stats, storage
+from infogami.utils.context import context
+from infogami.utils.flash import get_flash_messages, add_flash_message
 from infogami.utils.markdown import markdown, mdx_footnotes
-
-from context import context
-from template import render, render_template, get_template
-
-import macro
-import storage
-from flash import get_flash_messages, add_flash_message
-import stats
+from infogami.utils.template import get_template, render, render_template
 
 wiki_processors = []
 def register_wiki_processor(p):
@@ -171,7 +170,6 @@ def thingrepr(value, type=None):
     if isinstance(value, list):
         return ', '.join(thingrepr(t, type).strip() for t in value)
 
-    from infogami.infobase import client
     if type is None and value is client.nothing:
         return ""
 
@@ -190,7 +188,6 @@ def thinginput(value, property=None, **kw):
     if property is None:
         if 'expected_type' in kw:
             if isinstance(kw['expected_type'], six.string_types):
-                from infogami.core import db
                 kw['expected_type'] = db.get_version(kw['expected_type'])
         else:
             raise ValueError("missing expected_type")
@@ -203,11 +200,9 @@ def thingify(type, value):
         type = '/type/string'
 
     if isinstance(type, six.string_types):
-        from infogami.core import db
         type = db.get_version(type)
 
     PRIMITIVE_TYPES = "/type/key", "/type/string", "/type/text", "/type/int", "/type/float", "/type/boolean", "/type/uri"
-    from infogami.infobase import client
 
     if type.key not in PRIMITIVE_TYPES and isinstance(value, six.string_types) and not value.strip():
         value = web.ctx.site.new('', {'type': type})
@@ -253,8 +248,6 @@ def thingedit(page):
 @infogami.action
 def movefiles():
     """Move files from every plugin into static directory."""
-    import delegate
-    import shutil
     def cp_r(src, dest):
         if not os.path.exists(src):
             return
@@ -306,7 +299,6 @@ def movetypes():
             'false': False
         })
 
-    import delegate
     extension = ".type"
     pages = []
     for plugin in delegate.plugins:
@@ -329,8 +321,6 @@ def movepages():
     move('pages', '.page', recursive=False)
 
 def move(dir, extension, recursive=False, readfunc=None):
-    import delegate
-
     readfunc = readfunc or eval
     pages = []
     for p in delegate.plugins:
@@ -390,9 +380,7 @@ def datestr(then, now=None):
 
     result = web.datestr(then, now)
     _ = i18n.strings.get_namespace('/utils/date')
-
-    import string
-    if result[0] in string.digits: # eg: 2 milliseconds ago
+    if result[0] in string.digits:  # eg: 2 milliseconds ago
         t, unit, ago = result.split(' ', 2)
         return "%s %s %s" % (t, _[unit], _[ago.replace(' ', '_')])
     else:
