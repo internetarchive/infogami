@@ -24,7 +24,7 @@ FN_BACKLINK_TEXT = "zz1337820767766393qq"
 import re, random
 
 
-from infogami.utils import markdown
+from infogami.utils.markdown import markdown
 
 
 class FootnoteExtension (markdown.Extension):
