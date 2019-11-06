@@ -21,17 +21,11 @@ method.
 FN_BACKLINK_TEXT = "zz1337820767766393qq"
 
 
-import re, markdown, random
+import re, random
 
-try:
-    from markdown import Pattern
-except ImportError:
-    from markdown.inlinepatterns import Pattern
 
-try:
-    from markdown import Postprocessor
-except ImportError:
-    from markdown.postprocessors import Postprocessor
+from infogami.utils import markdown
+
 
 class FootnoteExtension (markdown.Extension):
 
@@ -220,11 +214,11 @@ class FootnotePreprocessor :
         return counter, None, None
 
 
-class FootnotePattern (Pattern) :
+class FootnotePattern (markdown.Pattern) :
 
     def __init__ (self, pattern, footnotes) :
 
-        Pattern.__init__(self, pattern)
+        markdown.Pattern.__init__(self, pattern)
         self.footnotes = footnotes
 
     def handleMatch(self, m, doc) :
@@ -239,7 +233,7 @@ class FootnotePattern (Pattern) :
         return sup
 
 
-class FootnotePostprocessor (Postprocessor):
+class FootnotePostprocessor (markdown.Postprocessor):
 
     def __init__ (self, footnotes) :
         self.footnotes = footnotes
@@ -254,7 +248,7 @@ class FootnotePostprocessor (Postprocessor):
                 doc.documentElement.appendChild(footnotesDiv)
 
 
-class FootnoteTextPostprocessor (Postprocessor):
+class FootnoteTextPostprocessor (markdown.Postprocessor):
 
     def __init__ (self, footnotes) :
         self.footnotes = footnotes
