@@ -10,11 +10,10 @@ template from multiple template sources and error handling.
 """
 import os
 import time
-import traceback
 
 import web
 
-from infogami.utils import delegate, storage, view
+from infogami.utils import storage
 
 # There are some backward-incompatible changes in web.py 0.34 which makes Infogami fail.
 assert web.__version__ != "0.34",  "Please pip install --upgrade web.py"
@@ -151,8 +150,14 @@ def saferender(templates, *a, **kw):
             i = web.input(_method='GET', debug="false")
             if i.debug.lower() == "true":
                 raise
+
+            import delegate
             delegate.register_exception()
+
+            import traceback
             traceback.print_exc()
+
+            import view
             message = str(t.filename) + ': error in processing template: ' + e.__class__.__name__ + ': ' + str(e) + ' (falling back to default template)'
             view.add_flash_message('error', message)
 
