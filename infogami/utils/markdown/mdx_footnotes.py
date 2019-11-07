@@ -24,7 +24,6 @@ FN_BACKLINK_TEXT = "zz1337820767766393qq"
 import random
 import re
 
-
 from infogami.utils.markdown import markdown
 
 
