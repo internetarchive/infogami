@@ -126,7 +126,7 @@ class SaveProcessor:
             if len(d) == 1 and d.keys() == ["key"]:
                 result.add(d['key'])
             else:
-                for k, v in d.iteritems():
+                for k, v in d.items():
                     if k != "type":
                         self.find_references(v, result)
         elif isinstance(d, list):

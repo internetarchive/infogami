@@ -313,7 +313,7 @@ class TestIndex:
 
     def process_index(self, index):
         """Process index to remove order in the values, so that it is easier to compare."""
-        return dict((k, set(v)) for k, v in index.iteritems())
+        return {k: set(v) for k, v in index.items()}
 
     def test_compute_index(self, testdata):
         index = self.indexer.compute_index(testdata['doc1'])

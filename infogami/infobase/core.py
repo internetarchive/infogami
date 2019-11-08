@@ -83,7 +83,7 @@ class Thing:
         if isinstance(value, list):
             return [self._process(v) for v in value]
         elif isinstance(value, dict):
-            return web.storage((k, self._process(v)) for k, v in value.iteritems())
+            return web.storage((k, self._process(v)) for k, v in value.items())
         elif isinstance(value, Reference):
             json = self._store.get(value)
             return Thing.from_json(self._store, text_type(value), json)
