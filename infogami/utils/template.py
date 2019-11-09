@@ -1,25 +1,22 @@
 """
 Template Management.
 
-In Infogami, templates are provided by multiple plugins. This module takes 
+In Infogami, templates are provided by multiple plugins. This module takes
 templates from each module and makes them available under single namespace.
 
-There could also be multiple sources of templates. For example, from plugins 
-and from the wiki. The `Render` class takes care of providing the correct 
+There could also be multiple sources of templates. For example, from plugins
+and from the wiki. The `Render` class takes care of providing the correct
 template from multiple template sources and error handling.
 """
-import web
 import os
 import time
-import storage
 
-# There are some backward-incompatible changes in web.py 0.34 which makes Infogami fail. 
-# Monkey-patching web.py to fix that issue.
-if web.__version__ == "0.34":
-    from UserDict import DictMixin
-    web.template.TemplateResult.__bases__ = (DictMixin, web.storage)
-    web.template.StatementNode.emit = lambda self, indent, text_indent="": indent + self.stmt
+import web
 
+from infogami.utils import storage
+
+# There are some backward-incompatible changes in web.py 0.34 which makes Infogami fail.
+assert web.__version__ != "0.34",  "Please pip install --upgrade web.py"
 web_render = web.template.render
 
 class TemplateRender(web_render):
@@ -100,7 +97,7 @@ def find(path):
 
 #@@ Find a better name
 class Render(storage.DictPile):
-    add_source = storage.DictPile.add_dict        
+    add_source = storage.DictPile.add_dict
 
     def __getitem__(self, key):
         # take templates from all sources
@@ -121,7 +118,7 @@ class Render(storage.DictPile):
 
 def usermode(f):
     """Returns a function that calls f after switching to user mode of tdb.
-    In user mode, saving of things will be disabled to protect user written 
+    In user mode, saving of things will be disabled to protect user written
     templates from modifying things.
     """
     def g(*a, **kw):
@@ -160,7 +157,7 @@ def saferender(templates, *a, **kw):
             import traceback
             traceback.print_exc()
 
-            import view            
+            import view
             message = str(t.filename) + ': error in processing template: ' + e.__class__.__name__ + ': ' + str(e) + ' (falling back to default template)'
             view.add_flash_message('error', message)
 
@@ -171,7 +168,7 @@ def typetemplate(name):
     def template(page, *a, **kw):
         default_template = getattr(render, 'default_' + name, None)
         key = page.type.key[1:] + '/' + name
-        t = getattr(render, web.utf8(key), default_template)
+        t = getattr(render, web.safestr(key), default_template)
         return t(page, *a, **kw)
     return template
 

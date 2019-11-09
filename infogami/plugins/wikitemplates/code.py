@@ -3,25 +3,27 @@ wikitemplates: allow keeping templates and macros in wiki
 """
 from __future__ import print_function
 
-import web
 import os
-from UserDict import DictMixin
+try:
+    from collections.abc import Mapping
+except ImportError:
+    from collections import Mapping
+
+import web
 
 import infogami
 from infogami import core, config
 from infogami.core.db import ValidationException
+from infogami.infobase import client
+from infogami.plugins.wikitemplates import db, forms
 from infogami.utils import delegate, macro, template, storage, view
 from infogami.utils.context import context
 from infogami.utils.template import render
 from infogami.utils.view import require_login
 
-from infogami.infobase import client
-
-import db
-
 LazyTemplate = template.LazyTemplate
 
-class WikiSource(DictMixin):
+class WikiSource(Mapping):
     """Template source for templates in the wiki"""
     def __init__(self, templates):
         self.templates = templates
@@ -36,7 +38,7 @@ class WikiSource(DictMixin):
             raise KeyError(key)
 
         root = web.rstrips(root or "", "/")
-        value = self.templates[root + key]    
+        value = self.templates[root + key]
         if isinstance(value, LazyTemplate):
             value = value.func()
 
@@ -96,7 +98,7 @@ class hooks(client.hook):
     def on_new_version(self, page):
         """Updates the template/macro cache, when a new version is saved or deleted."""
         if page.type.key == '/type/template':
-            _load_template(page)            
+            _load_template(page)
         elif page.type.key == '/type/macro':
             _load_macro(page)
         elif page.type.key == '/type/delete':
@@ -148,7 +150,7 @@ def _load_macro(page, lazy=False):
         wikimacros[page.key] = t
 
 def load_all():
-    def load_macros(site): 
+    def load_macros(site):
         for m in db.get_all_macros(site):
             _load_macro(m, lazy=True)
 
@@ -251,7 +253,6 @@ class template_preferences(delegate.page):
 
     @require_login
     def GET(self):
-        import forms
         prefs = web.ctx.site.get(context.user.key + "/preferences")
         path = (prefs and prefs.get('template_root')) or "/"
         f = forms.template_preferences()
@@ -280,7 +281,7 @@ def monkey_patch_debugerror():
             page = web.ctx.site.get(filename)
             if page is None:
                 raise IOError("not found: " + filename)
-            from StringIO import StringIO
+            from six import StringIO
             return StringIO(page.body + "\n" * 100)
         else:
             return open(filename)

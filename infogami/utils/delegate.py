@@ -1,17 +1,14 @@
 import os.path
 import re
+
+from six import string_types
 import web
+
 from infogami import config
-
-import template
-import macro
-from context import context
-import features
-
-from app import *
-
-from view import render_site, public
-import i18n
+from infogami.utils import features, i18n
+from infogami.utils.app import *
+from infogami.utils.context import context
+from infogami.utils.view import render_site, public
 
 def create_site():
     from infogami.infobase import client
@@ -70,7 +67,7 @@ def layout_processor(handler):
     if out is None:
         out = RawText("")
 
-    if isinstance(out, basestring):
+    if isinstance(out, string_types):
         out = web.template.TemplateResult(__body__=out)
 
     if 'title' not in out:
@@ -95,6 +92,7 @@ def layout_processor(handler):
     return html
 
 def notfound(path = None, create = True):
+    from infogami.utils import template
     path = path or web.ctx.path
     html = template.render_template("notfound", path, create = create)
     return web.notfound(render_site(config.site, html))
@@ -115,7 +113,7 @@ def get_plugins():
     return [p.name for p in plugins]
 
 def _make_plugin(name):
-    # plugin can be present in infogami/plugins directory or <pwd>/plugins directory.    
+    # plugin can be present in infogami/plugins directory or <pwd>/plugins directory.
     if name == 'core':
         path = infogami_root() + '/core'
         module = 'infogami.core'
@@ -156,13 +154,14 @@ def infogami_root():
 
 def _load():
     """Imports the files from the plugins directories and loads templates."""
+    from infogami.utils import macro, template
     global plugins
 
     plugins = [_make_plugin('core')]
 
     if config.plugins is not None:
         plugins += [_make_plugin(p) for p in config.plugins]
-    else:        
+    else:
         for p in config.plugin_path:
             m = __import__(p)
             root = os.path.dirname(m)

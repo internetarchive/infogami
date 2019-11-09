@@ -1,11 +1,11 @@
+import datetime
+
 from infogami.infobase import dbstore
 from infogami.infobase._dbstore.save import SaveImpl
 from infogami.infobase._dbstore.store import Store
 from infogami.infobase._dbstore.read import RecentChanges
-
-import utils
-
-import datetime
+from infogami.infobase.tests import utils
+from infogami.infobase.tests.pytest_wildcard import wildcard
 
 
 def setup_module(mod):
