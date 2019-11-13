@@ -9,8 +9,10 @@ TODOs:
 """
 from __future__ import print_function
 
-import web
 import os
+
+from six import iteritems
+import web
 
 import infogami
 from infogami import tdb
@@ -131,7 +133,7 @@ def thing2dict(page):
 
     data = dict(name=page.name, type={'name': page.type.name})
     d = data['d'] = {}
-    for k, v in page.d.items():
+    for k, v in iteritems(page.d):
         d[k] = simplify(v, page)
     return data
 
