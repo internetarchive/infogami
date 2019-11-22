@@ -24,6 +24,8 @@ before_script:
 script:
   - pytest tests
   - pytest infogami
+  - pytest infogami/infobase/tests/test_account.py
+  - pytest infogami/infobase/tests/test_client.py
   - pytest tests infogami test
 notifications:
   on_success: change
