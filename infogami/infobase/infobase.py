@@ -12,8 +12,8 @@ import datetime
 import simplejson
 import web
 
-from infogami.infobase import (account, bootstrap, cache, common, config, readquery,
-                               writequery)
+from infogami.infobase import (account, bootstrap, cache, common, config, core,
+                               readquery, writequery)
 
 
 class Infobase:
@@ -190,7 +190,7 @@ class Site:
         return result
 
     def _fire_event(self, name, timestamp, ip, username, data):
-        event = common.Event(self.sitename, name, timestamp, ip, username, data)
+        event = core.Event(self.sitename, name, timestamp, ip, username, data)
         self._infobase.fire_event(event)
 
     def things(self, query):
