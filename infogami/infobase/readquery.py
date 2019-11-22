@@ -4,6 +4,7 @@ import simplejson
 import web
 
 from infogami.infobase import common
+from infogami.infogami.utils import safeint
 
 def get_thing(store, key, revision=None):
     json = key and store.get(key, revision)
@@ -126,8 +127,8 @@ def make_query(store, query, prefix=""):
     query = common.parse_query(query)
     q = Query()
     q.prefix = prefix
-    q.offset = common.safeint(query.pop('offset', None), 0)
-    q.limit = common.safeint(query.pop('limit', 20), 20)
+    q.offset = safeint(query.pop('offset', None), 0)
+    q.limit = safeint(query.pop('limit', 20), 20)
     if q.limit > 1000:
         q.limit = 1000
     sort = query.pop('sort', None)
@@ -241,8 +242,8 @@ def make_versions_query(store, query):
     """
     q = Query()
 
-    q.offset = common.safeint(query.pop('offset', None), 0)
-    q.limit = common.safeint(query.pop('limit', 20), 20)
+    q.offset = safeint(query.pop('offset', None), 0)
+    q.limit = safeint(query.pop('limit', 20), 20)
     if q.limit > 1000:
         q.limit = 1000
     q.sort = query.pop('sort', '-created')
