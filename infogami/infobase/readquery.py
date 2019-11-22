@@ -4,7 +4,7 @@ import simplejson
 import web
 
 from infogami.infobase import common
-from infogami.infogami.utils import safeint
+from infogami.infobase.utils import safeint
 
 def get_thing(store, key, revision=None):
     json = key and store.get(key, revision)
