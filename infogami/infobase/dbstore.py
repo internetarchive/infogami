@@ -558,7 +558,7 @@ class DBSiteStore(core.SiteStore):
         t.commit()
         self.cache.clear()
 
-class DBStore(common.Store):
+class DBStore(core.Store):
     """StoreFactory that works with single site.
     It always returns a the same site irrespective of the sitename.
     """
