@@ -6,7 +6,7 @@ import web
 
 from infogami import config
 from infogami.utils import features, i18n
-from infogami.utils.app import *
+from infogami.utils.app import app
 from infogami.utils.context import context
 from infogami.utils.view import render_site, public
 

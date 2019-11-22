@@ -4,8 +4,8 @@ from six import iteritems, text_type
 import web
 
 from infogami.infobase import config
-from infogami.infobase.core import *
-from infogami.infobase.utils import *
+from infogami.infobase.core import Reference, Text, Thing
+from infogami.infobase.utils import datetime, parse_boolean, parse_datetime
 
 # Primitive types and corresponding python types
 primitive_types = {
