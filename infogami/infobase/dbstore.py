@@ -10,7 +10,7 @@ from six import text_type
 
 import web
 
-from infogami.infobase import code, common, config, _json as simplejson
+from infogami.infobase import core, common, config, _json as simplejson
 from infogami.infobase._dbstore import store, sequence
 from infogami.infobase._dbstore.schema import Schema, INDEXED_DATATYPES
 from infogami.infobase._dbstore.indexer import Indexer
@@ -26,7 +26,7 @@ def process_json(key, json):
     """
     return json
 
-class DBSiteStore(code.SiteStore):
+class DBSiteStore(core.SiteStore):
     """
     """
     def __init__(self, db, schema):
@@ -91,7 +91,7 @@ class DBSiteStore(code.SiteStore):
                 if self.get_metadata(key) is None:
                     return key
         else:
-            return code.SiteStore.new_key(self, type, kw)
+            return core.SiteStore.new_key(self, type, kw)
 
     def get(self, key, revision=None):
         if self.cache is None or revision is not None:
