@@ -24,7 +24,7 @@ READ_ONLY_PROPERTIES = ["id", "created", "last_modified", "revision", "latest_re
 
 def find_type(value):
     if isinstance(value, Thing):
-        return thing.type.key
+        return value.type.key
     elif isinstance(value, Reference):
         return '/type/object'
     elif isinstance(value, Text):
