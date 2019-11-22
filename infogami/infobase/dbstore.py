@@ -10,13 +10,12 @@ from six import text_type
 
 import web
 
-from infogami.infobase import common, config, _json as simplejson
+from infogami.infobase import code, common, config, _json as simplejson
 from infogami.infobase._dbstore import store, sequence
 from infogami.infobase._dbstore.schema import Schema, INDEXED_DATATYPES
 from infogami.infobase._dbstore.indexer import Indexer
 from infogami.infobase._dbstore.save import SaveImpl, PropertyManager
 from infogami.infobase._dbstore.read import RecentChanges, get_bot_users
-from infogami.infobase.code import SiteStore
 
 default_schema = None
 
@@ -27,7 +26,7 @@ def process_json(key, json):
     """
     return json
 
-class DBSiteStore(SiteStore):
+class DBSiteStore(code.SiteStore):
     """
     """
     def __init__(self, db, schema):
@@ -92,7 +91,7 @@ class DBSiteStore(SiteStore):
                 if self.get_metadata(key) is None:
                     return key
         else:
-            return SiteStore.new_key(self, type, kw)
+            return code.SiteStore.new_key(self, type, kw)
 
     def get(self, key, revision=None):
         if self.cache is None or revision is not None:
