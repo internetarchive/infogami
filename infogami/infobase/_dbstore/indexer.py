@@ -1,4 +1,4 @@
-from infogami.infobase import common
+from infogami.infobase.utils import flatten_dict
 import web
 from six import string_types
 
@@ -13,7 +13,7 @@ class Indexer:
     def compute_index(self, doc):
         """Returns an iterator with (datatype, key, value) for each value be indexed.
         """
-        index = common.flatten_dict(doc)
+        index = flatten_dict(doc)
 
         # skip special values and /type/text
         skip = ["id", "key", "type.key", "revision", "latest_revison", "last_modified", "created"]
