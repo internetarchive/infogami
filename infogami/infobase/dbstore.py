@@ -16,6 +16,7 @@ from infogami.infobase._dbstore.schema import Schema, INDEXED_DATATYPES
 from infogami.infobase._dbstore.indexer import Indexer
 from infogami.infobase._dbstore.save import SaveImpl, PropertyManager
 from infogami.infobase._dbstore.read import RecentChanges, get_bot_users
+from infogami.infobase.code import SiteStore
 
 default_schema = None
 
@@ -26,7 +27,7 @@ def process_json(key, json):
     """
     return json
 
-class DBSiteStore(common.SiteStore):
+class DBSiteStore(SiteStore):
     """
     """
     def __init__(self, db, schema):
@@ -91,7 +92,7 @@ class DBSiteStore(common.SiteStore):
                 if self.get_metadata(key) is None:
                     return key
         else:
-            return common.SiteStore.new_key(self, type, kw)
+            return SiteStore.new_key(self, type, kw)
 
     def get(self, key, revision=None):
         if self.cache is None or revision is not None:
