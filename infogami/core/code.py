@@ -6,7 +6,7 @@ import infogami
 from infogami import utils, config
 from infogami.core import db, forms, helpers
 from infogami.infobase.client import ClientException
-from infogami.utils import delegate, types
+from infogami.utils import app, delegate, types
 from infogami.utils.context import context
 from infogami.utils.template import render
 from infogami.utils.view import login_redirect, require_login, safeint, add_flash_message
@@ -16,7 +16,7 @@ def notfound(path):
     web.ctx.status = '404 Not Found'
     return render.notfound(path)
 
-class view (delegate.mode):
+class view (app.mode):
     def GET(self, path):
         i = web.input(v=None)
 
@@ -36,7 +36,7 @@ class view (delegate.mode):
         else:
             return render.viewpage(p)
 
-class edit (delegate.mode):
+class edit (app.mode):
     def GET(self, path):
         i = web.input(v=None, t=None)
 
@@ -139,7 +139,7 @@ class edit (delegate.mode):
         elif '_delete' in i: return 'delete'
         else: return None
 
-class permission(delegate.mode):
+class permission(app.mode):
     def GET(self, path):
         p = db.get_version(path)
         if not p:
@@ -174,7 +174,7 @@ class permission(delegate.mode):
 
         raise web.seeother(web.changequery({}, m='permission'))
 
-class history (delegate.mode):
+class history (app.mode):
     def GET(self, path):
         page = web.ctx.site.get(path)
         if not page:
@@ -185,11 +185,11 @@ class history (delegate.mode):
         history = db.get_recent_changes(key=path, limit=limit, offset=offset)
         return render.history(page, history)
 
-class recentchanges(delegate.page):
+class recentchanges(app.page):
     def GET(self):
         return render.recentchanges()
 
-class diff (delegate.mode):
+class diff (app.mode):
     def GET(self, path):
         i = web.input(b=None, a=None)
         # default value of b is latest revision and default value of a is b-1
@@ -217,7 +217,7 @@ class diff (delegate.mode):
         a = get(path, max(1, safeint(i.a, b.revision-1)))
         return render.diff(a, b)
 
-class login(delegate.page):
+class login(app.page):
     path = "/account/login"
 
     def GET(self):
@@ -244,7 +244,7 @@ class login(delegate.page):
         web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token(), expires=expires)
         raise web.seeother(i.redirect)
 
-class register(delegate.page):
+class register(app.page):
     path = "/account/register"
 
     def GET(self):
@@ -265,7 +265,7 @@ class register(delegate.page):
             web.setcookie(config.login_cookie_name, web.ctx.conn.get_auth_token())
             raise web.seeother(i.redirect)
 
-class logout(delegate.page):
+class logout(app.page):
     path = "/account/logout"
 
     def POST(self):
@@ -273,7 +273,7 @@ class logout(delegate.page):
         referer = web.ctx.env.get('HTTP_REFERER', '/')
         raise web.seeother(referer)
 
-class forgot_password(delegate.page):
+class forgot_password(app.page):
     path = "/account/forgot_password"
 
     def GET(self):
@@ -303,7 +303,7 @@ class forgot_password(delegate.page):
             web.sendmail(config.from_address, i.email, msg.subject.strip(), str(msg))
             return render.passwordsent(i.email)
 
-class reset_password(delegate.page):
+class reset_password(app.page):
     path = "/account/reset_password"
     def GET(self):
         f = forms.reset_password()
@@ -326,14 +326,14 @@ _preferences = []
 def register_preferences(cls):
     _preferences.append((cls.title, cls.path))
 
-class preferences(delegate.page):
+class preferences(app.page):
     path = "/account/preferences"
 
     @require_login
     def GET(self):
         return render.preferences(_preferences)
 
-class change_password(delegate.page):
+class change_password(app.page):
     path = "/account/preferences/change_password"
     title = "Change Password"
 
@@ -359,7 +359,7 @@ class change_password(delegate.page):
 
 register_preferences(change_password)
 
-class getthings(delegate.page):
+class getthings(app.page):
     """Lists all pages with name path/*"""
     def GET(self):
         i = web.input("type", property="key")
@@ -372,12 +372,12 @@ class getthings(delegate.page):
         data = "\n".join("%s|%s" % (t[i.property], t.key) for t in things)
         raise web.HTTPError('200 OK', {}, data)
 
-class favicon(delegate.page):
+class favicon(app.page):
     path = "/favicon.ico"
     def GET(self):
         return web.redirect('/static/favicon.ico')
 
-class feed(delegate.page):
+class feed(app.page):
     def _format_date(self, dt):
         """convert a datetime into an RFC 822 formatted date
         Input date must be in GMT.
