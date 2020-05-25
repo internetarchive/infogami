@@ -4,7 +4,6 @@ env:
   - UPGRADE_WEBPY=false
   - UPGRADE_WEBPY=true
 python:
-  - 2.7
   - 3.8
 matrix:
   allow_failures:
