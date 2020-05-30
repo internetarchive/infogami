@@ -3,6 +3,7 @@ from infogami.infobase import dbstore, client, server
 import os
 import web
 
+
 db_parameters = dict(dbn='postgres', db='infobase_test', user=os.getenv('USER'), pw='', pooling=False)
 
 @web.memoize
