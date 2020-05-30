@@ -14,6 +14,7 @@ See Bug#231831 for details.
 import datetime
 
 import simplejson
+import six
 from six import iteritems
 
 def unicodify(d):
@@ -23,7 +24,7 @@ def unicodify(d):
     elif isinstance(d, list):
         return [unicodify(x) for x in d]
     elif isinstance(d, str):
-        return d.decode('utf-8')
+        return six.ensure_str(d)
     elif isinstance(d, datetime.datetime):
         return d.isoformat()
     else:

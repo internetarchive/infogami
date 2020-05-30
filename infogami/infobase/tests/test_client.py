@@ -8,6 +8,7 @@ def setup_module(mod):
     utils.setup_conn(mod)
     utils.setup_server(mod)
 
+
     mod.site = client.Site(mod.conn, "test")
     mod.s = mod.site.store
     mod.seq = mod.site.seq
