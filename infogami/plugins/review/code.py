@@ -6,7 +6,6 @@ Creates '/changes' page for displaying modifications since last review.
 """
 
 import web
-import six
 
 from infogami import core
 from infogami.plugins.review import db
