@@ -4,6 +4,7 @@ import datetime
 import time
 import web
 import logging
+import six
 
 from infogami.infobase import common, config
 
@@ -45,7 +46,7 @@ class AccountManager:
 
     def register(self, username, email, password, data, _activate=False):
         logger.info("new account registration username=%s", username)
-        enc_password = self._generate_salted_hash(self.secret_key, password)
+        enc_password = self._generate_salted_hash(six.ensure_binary(self.secret_key), password)
 
         try:
             self.store_account_info(username, email, enc_password, data)
@@ -199,19 +200,20 @@ class AccountManager:
     def set_auth_token(self, user_key):
         t = datetime.datetime(*time.gmtime()[:6]).isoformat()
         text = "%s,%s" % (user_key, t)
-        text += "," + self._generate_salted_hash(self.secret_key, text)
+        text += "," + self._generate_salted_hash(six.ensure_binary(self.secret_key), text)
         web.ctx.infobase_auth_token = text
 
     #### Utilities
 
     def _generate_salted_hash(self, key, text, salt=None):
-        salt = salt or hmac.HMAC(key, str(random.random())).hexdigest()[:5]
-        hash = hmac.HMAC(key, web.safestr(salt) + web.safestr(text)).hexdigest()
+        random_bytes = six.ensure_binary(str(random.random()))
+        salt = salt or hmac.HMAC(key, random_bytes).hexdigest()[:5]
+        hash = hmac.HMAC(key, six.ensure_binary(web.safestr(salt) + web.safestr(text))).hexdigest()
         return '%s$%s' % (salt, hash)
 
     def _check_salted_hash(self, key, text, salted_hash):
         salt, hash = salted_hash.split('$', 1)
-        return self._generate_salted_hash(key, text, salt) == salted_hash
+        return self._generate_salted_hash(six.ensure_binary(key), text, salt) == salted_hash
 
     def checkpassword(self, username, raw_password):
         details = self.site.store.get_user_details(username)
