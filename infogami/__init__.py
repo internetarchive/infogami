@@ -5,6 +5,11 @@ __version__ = "0.5dev"
 
 import web
 import sys
+
+if sys.version_info[0] == 3:
+    from web.template import ALLOWED_AST_NODES
+    ALLOWED_AST_NODES.append("Constant")
+
 from infogami import config
 
 
