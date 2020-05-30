@@ -11,13 +11,31 @@ See Bug#231831 for details.
     >>> loads(dumps({'x': u'\u1234'.encode('utf-8')}))
     {u'x': u'\u1234'}
 """
+import datetime
 
 import simplejson
+import six
+from six import iteritems
+
+def unicodify(d):
+    """Converts all utf-8 encoded strings to unicode recursively."""
+    if isinstance(d, dict):
+        return {k: unicodify(v) for k, v in iteritems(d)}
+    elif isinstance(d, list):
+        return [unicodify(x) for x in d]
+    elif isinstance(d, str):
+        return six.ensure_text(d)
+    elif isinstance(d, datetime.datetime):
+        return d.isoformat()
+    else:
+        return d
 
 class JSONEncoder(simplejson.JSONEncoder):
     def default(self, o):
         if hasattr(o, '__json__'):
             return simplejson.loads(o.__json__())
+        elif isinstance(d, datetime.datetime):
+            return d.isoformat()
         else:
             return simplejson.JSONEncoder.default(self, o)
 
@@ -30,7 +48,7 @@ def dumps(obj, **kw):
         >>> dumps(a)
         '[foo, foo]'
     """
-    return simplejson.dumps(obj, cls=JSONEncoder, **kw)
+    return simplejson.dumps(unicodify(obj), cls=JSONEncoder, **kw)
 
 def loads(s, **kw):
     return simplejson.loads(s, **kw)
