@@ -33,7 +33,7 @@ class review (delegate.mode):
     @require_login
     def GET(self, site, path):
         user = core.auth.get_user()
-        i = six.input()
+        i = input()
 
         if i.a == 0:
             alines = []
@@ -54,7 +54,7 @@ class review (delegate.mode):
 class approve (delegate.mode):
     @require_login
     def POST(self, site, path):
-        i = six.input()
+        i = input()
 
         if i.c != core.db.get_version(site, path).revision:
             return render.parallel_modification()
@@ -73,7 +73,7 @@ class approve (delegate.mode):
 class revert (delegate.mode):
     @require_login
     def POST(self, site, path):
-        i = six.input()
+        i = input()
 
         if i.c != core.db.get_version(site, path).revision:
             return render.parallel_modification()
