@@ -6,6 +6,7 @@ Creates '/changes' page for displaying modifications since last review.
 """
 
 import web
+import six
 
 from infogami import core
 from infogami.plugins.review import db
@@ -22,17 +23,17 @@ class changes (delegate.page):
         return render.changes(web.ctx.homepath, d)
 
 def input():
-	i = web.input("a", "b", "c")
-	i.a = (i.a and int(i.a) or 0)
-	i.b = int(i.b)
-	i.c = int(i.c)
-	return i
+    i = web.input("a", "b", "c")
+    i.a = (i.a and int(i.a) or 0)
+    i.b = int(i.b)
+    i.c = int(i.c)
+    return i
 
 class review (delegate.mode):
     @require_login
     def GET(self, site, path):
         user = core.auth.get_user()
-        i = input()
+        i = six.input()
 
         if i.a == 0:
             alines = []
@@ -53,7 +54,7 @@ class review (delegate.mode):
 class approve (delegate.mode):
     @require_login
     def POST(self, site, path):
-        i = input()
+        i = six.input()
 
         if i.c != core.db.get_version(site, path).revision:
             return render.parallel_modification()
@@ -72,12 +73,12 @@ class approve (delegate.mode):
 class revert (delegate.mode):
     @require_login
     def POST(self, site, path):
-        i = input()
+        i = six.input()
 
         if i.c != core.db.get_version(site, path).revision:
             return render.parallel_modification()
 
         if i.a == i.b:
-	        return approve().POST(site, path)
+            return approve().POST(site, path)
         else:
             web.seeother(web.changequery(m='review', b=i.b-1))

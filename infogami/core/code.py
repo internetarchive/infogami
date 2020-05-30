@@ -83,7 +83,7 @@ class edit (delegate.mode):
                     del d[k]
 
             # hack to stop saving empty properties
-            if list(d.keys()) == [] or list(d.keys()) == ['unique']:
+            if list(d) in ([], ['unique']):
                 return None
             else:
                 return d
@@ -95,7 +95,7 @@ class edit (delegate.mode):
         i = web.storage(helpers.unflatten(i))
         i.key = path
 
-        _ = web.storage((k, i.pop(k)) for k in list(i.keys()) if k.startswith('_'))
+        _ = web.storage((k, i.pop(k)) for k in list(i) if k.startswith('_'))
         action = self.get_action(_)
         comment = _.get('_comment', None)
 

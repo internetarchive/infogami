@@ -10,6 +10,7 @@ except ImportError:
     from collections import Mapping
 
 import web
+import six
 
 import infogami
 from infogami import config
@@ -286,7 +287,7 @@ def monkey_patch_debugerror():
         else:
             return open(filename)
 
-    web.debugerror.func_globals['open'] = xopen
+    six.get_function_globals(web.debugerror)['open'] = xopen
 
 from infogami.core.code import register_preferences
 register_preferences(template_preferences)
