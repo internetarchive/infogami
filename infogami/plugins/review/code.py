@@ -22,7 +22,7 @@ class changes (delegate.page):
         d = db.get_modified_pages(site, user.id)
         return render.changes(web.ctx.homepath, d)
 
-def input():
+def _input():
     i = web.input("a", "b", "c")
     i.a = (i.a and int(i.a) or 0)
     i.b = int(i.b)
@@ -33,7 +33,7 @@ class review (delegate.mode):
     @require_login
     def GET(self, site, path):
         user = core.auth.get_user()
-        i = input()
+        i = _input()
 
         if i.a == 0:
             alines = []
@@ -54,7 +54,7 @@ class review (delegate.mode):
 class approve (delegate.mode):
     @require_login
     def POST(self, site, path):
-        i = input()
+        i = _input()
 
         if i.c != core.db.get_version(site, path).revision:
             return render.parallel_modification()
@@ -73,7 +73,7 @@ class approve (delegate.mode):
 class revert (delegate.mode):
     @require_login
     def POST(self, site, path):
-        i = input()
+        i = _input()
 
         if i.c != core.db.get_version(site, path).revision:
             return render.parallel_modification()
