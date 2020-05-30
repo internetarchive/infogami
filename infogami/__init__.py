@@ -6,7 +6,7 @@ __version__ = "0.5dev"
 import web
 import sys
 
-if sys.version_info == 3:
+if sys.version_info[0] == 3:
     from web import ALLOWED_AST_NODES
     ALLOWED_AST_NODES.append("Constant")
 
