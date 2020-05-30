@@ -14,8 +14,6 @@ See Bug#231831 for details.
 import datetime
 
 import simplejson
-import six
-from six import iteritems
 
 class JSONEncoder(simplejson.JSONEncoder):
     def default(self, o):
