@@ -3,6 +3,9 @@ from infogami.infobase import dbstore, client, server
 import os
 import web
 
+if sys.version_info[0] == 3:
+    from web.template import ALLOWED_AST_NODES
+    ALLOWED_AST_NODES.append("Constant")
 
 db_parameters = dict(dbn='postgres', db='infobase_test', user=os.getenv('USER'), pw='', pooling=False)
 
