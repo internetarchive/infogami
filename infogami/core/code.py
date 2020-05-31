@@ -83,7 +83,7 @@ class edit (delegate.mode):
                     del d[k]
 
             # hack to stop saving empty properties
-            if list(d.keys()) == [] or list(d.keys()) == ['unique']:
+            if list(d) in ([], ['unique']):
                 return None
             else:
                 return d
