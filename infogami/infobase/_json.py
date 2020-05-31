@@ -34,8 +34,8 @@ class JSONEncoder(simplejson.JSONEncoder):
     def default(self, o):
         if hasattr(o, '__json__'):
             return simplejson.loads(o.__json__())
-        elif isinstance(d, datetime.datetime):
-            return d.isoformat()
+        elif isinstance(o, datetime.datetime):
+            return o.isoformat()
         else:
             return simplejson.JSONEncoder.default(self, o)
 
