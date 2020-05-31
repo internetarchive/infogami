@@ -5,6 +5,11 @@ __version__ = "0.5dev"
 
 import web
 import sys
+
+if sys.version_info[0] == 3:
+    from web.template import ALLOWED_AST_NODES
+    ALLOWED_AST_NODES.append("Constant")
+
 from infogami import config
 
 
@@ -158,7 +163,7 @@ def load_config(config_file):
 
     def storify(d):
         if isinstance(d, dict):
-            return web.storage((k, storify(v)) for k, v in d.items())
+            return web.storage((k, storify(v)) for k, v in list(d.items()))
         elif isinstance(d, list):
             return [storify(x) for x in d]
         else:
@@ -168,10 +173,10 @@ def load_config(config_file):
     runtime_config = yaml.load(open(config_file))
 
     # update config
-    for k, v in runtime_config.items():
+    for k, v in list(runtime_config.items()):
         setattr(config, k, storify(v))
 
-    for k, v in runtime_config.get('infobase', {}).items():
+    for k, v in list(runtime_config.get('infobase', {}).items()):
         setattr(infobase_config, k, storify(v))
 
     # setup python path

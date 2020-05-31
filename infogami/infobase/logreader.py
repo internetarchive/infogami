@@ -48,7 +48,7 @@ def to_timestamp(iso_date_string):
     y, m, d = date.split('-')
     H, M, S = time.split(':')
     S, ms = S.split('.')
-    return datetime.datetime(*map(int, [y, m, d, H, M, S, ms]))
+    return datetime.datetime(*list(map(int, [y, m, d, H, M, S, ms])))
 
 class LogReader:
     """
@@ -109,7 +109,7 @@ class LogFile:
         log.skip_till(datetime.datetime(2008, 01, 01))
 
         for line in log:
-            print log
+            print(log)
 
     Read log entries in chunks::
 
@@ -184,8 +184,7 @@ class LogFile:
 
     def find_filelist(self, from_date=None):
         if from_date is None:
-            filelist = glob.glob('%s/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9].log' % self.root)
-            filelist.sort()
+            filelist = sorted(glob.glob('%s/[0-9][0-9][0-9][0-9]/[0-9][0-9]/[0-9][0-9].log' % self.root))
         else:
             filelist = [self.date2file(date) for date in daterange(from_date)]
             filelist = [f for f in filelist if os.path.exists(f)]
@@ -257,7 +256,7 @@ class RsyncLogFile(LogFile):
         log = RsyncLogFile("machine::module_name/path", "log")
 
         for line in log:
-            print line
+            print(line)
     """
     def __init__(self, rsync_root, root):
         LogFile.__init__(self, root)

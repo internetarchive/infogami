@@ -88,7 +88,7 @@ class view(six.with_metaclass(metaview)):
         method = web.ctx.method.upper()
         f = getattr(self, method, None)
         encoding = find_encoding()
-        if encoding and hasattr(self, "%s_%s" % (method,encoding.lower())):
+        if encoding and hasattr(self, "%s_%s" % (method, encoding.lower())):
             f = getattr(self, "%s_%s" % (method, encoding.lower()))
         if f:
             ret = f(page)
@@ -254,12 +254,12 @@ web.unloadhooks = {}
 web.load = lambda: None
 
 def hook_processor(handler):
-    for h in web._loadhooks.values():
+    for h in list(web._loadhooks.values()):
         h()
     try:
         return handler()
     finally:
-        for h in web.unloadhooks.values():
+        for h in list(web.unloadhooks.values()):
             h()
 
 def parse_accept(header):
