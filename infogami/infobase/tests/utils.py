@@ -1,6 +1,7 @@
 from infogami.infobase import dbstore, client, server
 
 import os
+import sys
 import web
 
 if sys.version_info[0] == 3:
