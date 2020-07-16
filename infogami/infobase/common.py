@@ -127,10 +127,14 @@ def create_test_store():
     >>> t = Thing.from_json(store, u'/type/type', json)
     >>> t
     <thing: u'/type/type'>
-    >>> t.properties[0]
-    <Storage {'expected_type': <thing: u'/type/string'>, 'name': 'name', 'unique': True}>
     >>> t.properties[0].expected_type.key
-    u'/type/string'
+    '/type/string'
+    >>> t.properties[0]  # For repr(), test general format, not dict order #doctest: +ELLIPSIS
+    <Storage ...>
+    >>> t.properties[0].name
+    'name'
+    >>> t.properties[0].unique
+    True
     """
     class Store(web.storage):
         def get(self, key, revision=None):
