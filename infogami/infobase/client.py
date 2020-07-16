@@ -203,6 +203,9 @@ class LazyObject:
             self._o = self._creator()
         return self._o
 
+    def __repr__(self):
+        return self._get().__repr__()
+
     def __getattr__(self, key):
         return getattr(self._get(), key)
 

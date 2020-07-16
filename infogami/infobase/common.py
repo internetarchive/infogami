@@ -128,7 +128,7 @@ def create_test_store():
     >>> t
     <thing: u'/type/type'>
     >>> t.properties[0]
-    <Storage {'expected_type': <thing: u'/type/string'>, 'unique': True, 'name': 'name'}>
+    <Storage {'expected_type': <thing: u'/type/string'>, 'name': 'name', 'unique': True}>
     >>> t.properties[0].expected_type.key
     u'/type/string'
     """

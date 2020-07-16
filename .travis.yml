@@ -26,6 +26,8 @@ before_script:
   - flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 script:
   - pytest --doctest-modules || true
+  # The files below are expected to pass their doctests on Python 2 & 3.
+  - pytest --doctest-modules infogami/infobase/account.py infogami/infobase/bootstrap.py infogami/infobase/cache.py infogami/infobase/client.py infogami/infobase/common.py infogami/infobase/core.py infogami/infobase/dbstore.py infogami/infobase/infobase.py infogami/infobase/logger.py infogami/infobase/logreader.py infogami/infobase/lru.py infogami/infobase/readquery.py infogami/infobase/tests/pytest_wildcard.py infogami/infobase/utils.py infogami/infobase/writequery.py
   - pytest infogami -s
   - pytest tests
   - pytest test
