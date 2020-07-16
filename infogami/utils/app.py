@@ -265,8 +265,12 @@ def hook_processor(handler):
 def parse_accept(header):
     """Parses Accept: header.
 
-        >>> parse_accept("text/plain; q=0.5, text/html")
-        [{'media_type': 'text/html'}, {'q': 0.5, 'media_type': 'text/plain'}]
+        >>> len(parse_accept("text/plain; q=0.5, text/html"))
+        2
+        >>> parse_accept("text/plain; q=0.5, text/html")[0]
+        {'media_type': 'text/html'}
+        >>> sorted(parse_accept("text/plain; q=0.5, text/html")[1].items())
+        [('media_type', 'text/plain'), ('q', 0.5)]
     """
     result= []
     for media_range in header.split(','):

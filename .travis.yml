@@ -27,7 +27,7 @@ before_script:
 script:
   - pytest --doctest-modules || true
   # The files below are expected to pass their doctests on Python 2 & 3.
-  - pytest --doctest-modules infogami/infobase/account.py infogami/infobase/bootstrap.py infogami/infobase/cache.py infogami/infobase/client.py infogami/infobase/common.py infogami/infobase/core.py infogami/infobase/dbstore.py infogami/infobase/infobase.py infogami/infobase/logger.py infogami/infobase/logreader.py infogami/infobase/lru.py infogami/infobase/readquery.py infogami/infobase/tests/pytest_wildcard.py infogami/infobase/utils.py infogami/infobase/writequery.py
+  - pytest --doctest-modules infogami/infobase/account.py infogami/infobase/bootstrap.py infogami/infobase/cache.py infogami/infobase/client.py infogami/infobase/common.py infogami/infobase/core.py infogami/infobase/dbstore.py infogami/infobase/infobase.py infogami/infobase/logger.py infogami/infobase/logreader.py infogami/infobase/lru.py infogami/infobase/readquery.py infogami/infobase/tests/pytest_wildcard.py infogami/infobase/utils.py infogami/infobase/writequery.py infogami/core/code.py infogami/core/helpers.py infogami/utils/app.py infogami/utils/i18n.py infogami/utils/storage.py infogami/infobase/common.py infogami/infobase/client.py infogami/infobase/dbstore.py infogami/infobase/lru.py infogami/infobase/readquery.py infogami/infobase/utils.py infogami/infobase/writequery.py
   - pytest infogami -s
   - pytest tests
   - pytest test
