@@ -191,6 +191,8 @@ _connection_types = {
 class LazyObject:
     """LazyObject which creates the required object on demand.
         >>> o = LazyObject(lambda: [1, 2, 3])
+        >>> list(o)
+        [1, 2, 3]
         >>> o
         [1, 2, 3]
     """
@@ -202,6 +204,9 @@ class LazyObject:
         if self._o is None:
             self._o = self._creator()
         return self._o
+
+    def __iter__(self):
+        return self._get().__iter__()
 
     def __repr__(self):
         return self._get().__repr__()
