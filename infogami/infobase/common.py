@@ -52,7 +52,7 @@ def parse_data(d, level=0):
         >>> date= {'type': '/type/datetime', 'value': '2009-01-02T03:04:05'}
         >>> true = {'type': '/type/boolean', 'value': 'true'}
 
-        >>> parse_data(text)  # doctest: +ALLOW_UNICODE
+        >>> parse_data(text)
         <text: u'foo'>
         >>> parse_data(date)
         datetime.datetime(2009, 1, 2, 3, 4, 5)
@@ -60,16 +60,16 @@ def parse_data(d, level=0):
         True
         >>> parse_data({'key': '/type/type'})
         <Storage {'key': '/type/type'}>
-        >>> parse_data({'key': '/type/type'}, level=1)  # doctest: +ALLOW_UNICODE
+        >>> parse_data({'key': '/type/type'}, level=1)
         <ref: u'/type/type'>
-        >>> parse_data([text, date, true])  # doctest: +ALLOW_UNICODE
+        >>> parse_data([text, date, true])
         [<text: u'foo'>, datetime.datetime(2009, 1, 2, 3, 4, 5), True]
-        >>> parse_data({'a': text, 'b': date})  # doctest: +ALLOW_UNICODE
+        >>> parse_data({'a': text, 'b': date})
         <Storage {'a': <text: u'foo'>, 'b': datetime.datetime(2009, 1, 2, 3, 4, 5)}>
 
         >>> parse_query({'works': {'connect': 'update_list',
         ...              'value': [{'key': '/w/OL1W'}]},
-        ...              'key': '/b/OL1M'})  # doctest: +ALLOW_UNICODE
+        ...              'key': '/b/OL1M'})
         <Storage {'works': <Storage {'connect': 'update_list', 'value': [<ref: u'/w/OL1W'>]}>, 'key': '/b/OL1M'}>
     """
     if isinstance(d, dict):
@@ -93,11 +93,11 @@ def format_data(d):
         1
         >>> format_data('hello')
         'hello'
-        >>> format_data(Text('hello'))  # doctest: +ALLOW_UNICODE
+        >>> format_data(Text('hello'))
         {'type': '/type/text', 'value': u'hello'}
         >>> format_data(datetime.datetime(2009, 1, 2, 3, 4, 5))
         {'type': '/type/datetime', 'value': '2009-01-02T03:04:05'}
-        >>> format_data(Reference('/type/type'))  # doctest: +ALLOW_UNICODE
+        >>> format_data(Reference('/type/type'))
         {'key': u'/type/type'}
     """
     if isinstance(d, dict):
@@ -127,19 +127,19 @@ def create_test_store():
     >>> store = create_test_store()
     >>> json = store.get('/type/type')
     >>> t = Thing.from_json(store, u'/type/type', json)
-    >>> t  # doctest: +ALLOW_UNICODE
+    >>> t
     <thing: u'/type/type'>
     >>> isinstance(t.properties[0], web.utils.Storage)
     True
     >>> len(t.properties[0])
     3
-    >>> t.properties[0]['expected_type']  # doctest: +ALLOW_UNICODE
+    >>> t.properties[0]['expected_type']
     <thing: u'/type/string'>
     >>> t.properties[0]['name']
     'name'
     >>> t.properties[0]['unique']
     True
-    >>> t.properties[0].expected_type.key  # doctest: +ALLOW_UNICODE
+    >>> t.properties[0].expected_type.key
     u'/type/string'
     """
     class Store(web.storage):
