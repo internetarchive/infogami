@@ -1,6 +1,7 @@
 """
 Infogami configuration.
 """
+import web  # noqa: F401
 
 
 def get(name, default=None):
@@ -36,4 +37,3 @@ infobase_parameters = dict(type='local')
 bugfixer = None
 
 admin_password = "admin123"
-
