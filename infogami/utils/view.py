@@ -37,11 +37,6 @@ def get_markdown(text, safe_mode=False):
 def get_doc(text):
     return get_markdown(text)._transform()
 
-try:
-    breakpoint  # Python >= 3.7
-except NameError:
-    from ptvsd import break_into_debugger as breakpoint
-
 web.template.Template.globals.update(dict(
   changequery = web.changequery,
   url = web.url,
@@ -77,7 +72,6 @@ web.template.Template.globals.update(dict(
   slice = slice,
   urlencode = urlencode,
   debug = web.debug,
-  breakpoint = breakpoint,
   add_flash_message = add_flash_message,
   get_flash_messages = get_flash_messages,
   render_template = render_template,
