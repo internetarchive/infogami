@@ -37,6 +37,11 @@ def get_markdown(text, safe_mode=False):
 def get_doc(text):
     return get_markdown(text)._transform()
 
+try:
+    breakpoint  # Python >= 3.7
+except NameError:
+    from ptvsd import break_into_debugger as breakpoint
+
 web.template.Template.globals.update(dict(
   changequery = web.changequery,
   url = web.url,
@@ -72,6 +77,7 @@ web.template.Template.globals.update(dict(
   slice = slice,
   urlencode = urlencode,
   debug = web.debug,
+  breakpoint = breakpoint,
   add_flash_message = add_flash_message,
   get_flash_messages = get_flash_messages,
   render_template = render_template,
@@ -242,14 +248,12 @@ def thingdiff(type, name, v1, v2):
 def thingview(page):
     if not page.key.startswith('/works'):  # debug: internetarchive/openlibrary#3633
         work = page.works[0]
-        if isinstance(work.get_sorted_editions, client.Nothing):
-            from openlibrary.plugins.upstream.models import Work
-            page.works[0] = Work(
-                site=work._site, key=work.key, data=web.Storage(), revision=work._revision
+        assert work.key.startswith('/works')  # The key says that it is a work
+        from openlibrary.plugins.upstream.models import Work
+        if not isinstance(work, Work):  # But work is a Thing, not a Work object
+            page.works[0] = Work(  # Give it a .get_sorted_editions() method
+                site=work._site, key=work.key, data=work._data, revision=work._revision
             )
-            # work.data = web.Storage()
-            # work._data = web.Storage()
-            assert not isinstance(page.works[0].get_sorted_editions, client.Nothing)
     return render.view(page)
 
 @public
