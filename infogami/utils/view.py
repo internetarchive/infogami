@@ -240,6 +240,16 @@ def thingdiff(type, name, v1, v2):
 
 @public
 def thingview(page):
+    if not page.key.startswith('/works'):  # debug: internetarchive/openlibrary#3633
+        work = page.works[0]
+        if isinstance(work.get_sorted_editions, client.Nothing):
+            from openlibrary.plugins.upstream.models import Work
+            page.works[0] = Work(
+                site=work._site, key=work.key, data=web.Storage(), revision=work._revision
+            )
+            # work.data = web.Storage()
+            # work._data = web.Storage()
+            assert not isinstance(page.works[0].get_sorted_editions, client.Nothing)
     return render.view(page)
 
 @public
