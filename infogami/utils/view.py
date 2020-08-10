@@ -246,7 +246,8 @@ def thingview(page):
     and page.works[0] is not a Work object then create a new Work from its data
     """
     if not page.key.startswith('/works'):  # debug: internetarchive/openlibrary#3633
-        work = page.works[0]
+        page_works = list(page.works)
+        work = page_works[0]  # TypeError: LazyObject object is not subscriptable
         from openlibrary.plugins.upstream.models import Work
         # If the key says that it is a work but it is a Thing object, not a Work object
         if work.key.startswith('/works') and not isinstance(work, Work):
