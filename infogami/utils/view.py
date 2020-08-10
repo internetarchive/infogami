@@ -240,11 +240,16 @@ def thingdiff(type, name, v1, v2):
 
 @public
 def thingview(page):
+    """
+    Fix for internetarchive/openlibrary#3633
+    If the page does not start with /works but page.works[0] starts with /works
+    and page.works[0] is not a Work object then create a new Work from its data
+    """
     if not page.key.startswith('/works'):  # debug: internetarchive/openlibrary#3633
         work = page.works[0]
-        assert work.key.startswith('/works')  # The key says that it is a work
         from openlibrary.plugins.upstream.models import Work
-        if not isinstance(work, Work):  # But work is a Thing, not a Work object
+        # If the key says that it is a work but it is a Thing object, not a Work object
+        if work.key.startswith('/works') and not isinstance(work, Work):
             page.works[0] = Work(  # Give it a .get_sorted_editions() method
                 site=work._site, key=work.key, data=work._data, revision=work._revision
             )
