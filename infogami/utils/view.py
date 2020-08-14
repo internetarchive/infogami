@@ -249,13 +249,9 @@ def thingview(page):
         page_works = list(page.works)  # Force the loading of the LazyObject object
         if page_works:
             work = page_works[0]
-            from openlibrary.plugins.upstream.models import Work
-            # If the key says that it is a work but it is a Thing, not a Work object
-            if work.key.startswith('/works') and not isinstance(work, Work):
-                page.works[0] = Work(  # Give it a .get_sorted_editions() method
-                    site=work._site, key=work.key, data=work._data,
-                    revision=work._revision
-                )
+            # If the key says that it is a work but it has no .get_sorted_editions()
+            if work.key.startswith('/works/') and str(work.get_sorted_editions) == "":
+                page.works[0] = web.ctx.site.get(work.key)  # Add get_sorted_editions()
     return render.view(page)
 
 @public
