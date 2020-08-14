@@ -242,16 +242,14 @@ def thingdiff(type, name, v1, v2):
 def thingview(page):
     """
     Fix for internetarchive/openlibrary#3633
-    If the page does not start with /works but page.works[0] starts with /works
-    and page.works[0] is not a Work object then create a new Work from its data
+    If the page does not start with /works/ but page.works[0] starts with /works/ but
+    there is no page.works[0].get_sorted_editions() then get the work from web.ctx.site
     """
-    if not page.key.startswith('/works'):  # debug: internetarchive/openlibrary#3633
-        page_works = list(page.works)  # Force the loading of the LazyObject object
-        if page_works:
-            work = page_works[0]
-            # If the key says that it is a work but it has no .get_sorted_editions()
-            if work.key.startswith('/works/') and str(work.get_sorted_editions) == "":
-                page.works[0] = web.ctx.site.get(work.key)  # Add get_sorted_editions()
+    if not page.key.startswith('/works/'):  # debug: internetarchive/openlibrary#3633
+        work = page.works and list(page.works)[0]  # Force loading of LazyObject object
+        # If the key says that it is a work but it has no .get_sorted_editions()
+        if work and work.key.startswith('/works/') and not str(work.get_sorted_editions):
+            page.works[0] = web.ctx.site.get(work.key)  # Add .get_sorted_editions()
     return render.view(page)
 
 @public
