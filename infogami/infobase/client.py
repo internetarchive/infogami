@@ -253,7 +253,7 @@ class Site:
                 d[k] = self._process(v)
             return create_thing(self, None, d)
         elif isinstance(value, common.Reference):
-            return create_thing(self, text_type(value), None)
+            return create_thing(self, text_type(value), None, is_ref=True)
         else:
             return value
 
@@ -691,37 +691,49 @@ _thing_class_registry = {}
 def register_thing_class(type, klass):
     _thing_class_registry[type] = klass
 
-def create_thing(site, key, data, revision=None):
-    type = None
-    try:
-        if data is not None and data.get('type'):
-            type = data.get('type')
-
-            #@@@ Fix this!
-            if isinstance(type, Thing):
-                type = type.key
-            elif isinstance(type, dict):
-                type = type['key']
-
-            # just to be safe
-            if not isinstance(type, string_types):
-                type = None
-    except Exception as e:
-        # just for extra safety
-        print('ERROR:', str(e), file=web.debug)
+def create_thing(site, key, data, revision=None, is_ref=False):
+    """
+    :param bool is_ref: Whether the thing is inside anotehr thing
+    """
+    if is_ref:
+        klass = ThingReference
+    else:
         type = None
+        try:
+            if data is not None and data.get('type'):
+                type = data.get('type')
 
-    klass = _thing_class_registry.get(type) or _thing_class_registry.get(None)
+                #@@@ Fix this!
+                if isinstance(type, BaseThing):
+                    type = type.key
+                elif isinstance(type, dict):
+                    type = type['key']
+
+                # just to be safe
+                if not isinstance(type, string_types):
+                    type = None
+        except Exception as e:
+            # just for extra safety
+            print('ERROR:', str(e), file=web.debug)
+            type = None
+        klass = _thing_class_registry.get(type) or _thing_class_registry.get(None)
     return klass(site, key, data, revision)
 
-class Thing:
+
+class BaseThing:
     def __init__(self, site, key, data=None, revision=None):
+        """
+        :param Site site:
+        :param str key:
+        :param dict|web.storage|None data:
+        :param int|None revision:
+        """
+
         self._site = site
         self.key = key
         self._revision = revision
 
         assert data is None or isinstance(data, dict)
-
         self._data = data
         self._backreferences = None
 
@@ -729,6 +741,8 @@ class Thing:
         if self.key is None:
             self._backreferences = {}
 
+
+class Thing(BaseThing):
     def __hash__(self):
         if self.key:
             return hash(self.key)
@@ -740,12 +754,7 @@ class Thing:
             return hash(simplejson.dumps(d, sort_keys=True))
 
     def _getdata(self):
-        if self._data is None:
-            self._data = self._site._load(self.key, self._revision)
-
-            # @@ Hack: change class based on type
-            self.__class__ = _thing_class_registry.get(self._data.get('type').key, Thing)
-
+        assert self._data
         return self._data
 
     def _get_backreferences(self):
@@ -762,7 +771,8 @@ class Thing:
 
     def get(self, key, default=None):
         try:
-            return self._getdata()[key]
+            self._data[key] = ThingReference.recursive_resolve(self._getdata()[key])
+            return self._data[key]
         except KeyError:
             # try default-value
             d = self._get_defaults()
@@ -832,9 +842,9 @@ class Thing:
         # the expected behaviour.
         #
         # @@ Can this ever lead to infinite-recursion?
-        if self._data is None:
-            self._getdata() # initialize self._data
-            return getattr(self, key)
+        # if self._data is None:
+        #     self._getdata() # initialize self._data
+        #     return getattr(self, key)
 
         return self[key]
 
@@ -852,6 +862,37 @@ class Thing:
             return "<Thing: %s>" % repr(self.key)
         else:
             return "<Thing: %s>" % repr(self._data)
+
+
+class ThingReference(BaseThing):
+    """
+    A ThingReference is a wrapper around a Thing
+    """
+
+    def resolve(self):
+        """
+        Convert from a ThingReference to the correct Thing subclass
+        """
+        return self._site.get(self.key, self._revision)
+
+    @staticmethod
+    def recursive_resolve(x):
+        if isinstance(x, ThingReference):
+            return x.resolve()
+        elif isinstance(x, dict):
+            return {
+                key: ThingReference.recursive_resolve(x[key])
+                for key, item in x.iteritems()
+            }
+        elif isinstance(x, list):
+            return list(map(ThingReference.recursive_resolve, x))
+        else:
+            return x
+
+    def __repr__(self):
+        if self.key:
+            return "<ThingReference: %s>" % repr(self.key)
+
 
 class Type(Thing):
     def _get_defaults(self):
