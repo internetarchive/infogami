@@ -714,7 +714,7 @@ def create_thing(site, key, data, revision=None):
     klass = _thing_class_registry.get(type) or _thing_class_registry.get(None)
     return klass(site, key, data, revision)
 
-class Thing(object):
+class Thing:
     def __init__(self, site, key, data=None, revision=None):
         self._site = site
         self.key = key
@@ -844,17 +844,14 @@ class Thing(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-    #def __str__(self):
-    #    return web.safestr(self.key)
+    def __str__(self):
+        return web.safestr(self.key)
 
     def __repr__(self):
-    #    if self.key:
-    #        return "<Thing: %s>" % repr(self.key)
-    #    else:
-    #        return "<Thing: %s>" % repr(self._data)
-        return "{}(site={}, key={}, data={}, revision={})".format(
-            self.__class__.__name__, self._site, self.key, self._data, self._revision
-        )
+        if self.key:
+            return "<Thing: %s>" % repr(self.key)
+        else:
+            return "<Thing: %s>" % repr(self._data)
 
 class Type(Thing):
     def _get_defaults(self):
