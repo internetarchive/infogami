@@ -2,6 +2,8 @@ import os.path
 
 from six import string_types
 import web
+from web import webapi
+from web.webapi import HTTPError
 
 from infogami import config
 from infogami.utils import features, i18n
@@ -67,6 +69,9 @@ def layout_processor(handler):
 
     if isinstance(out, string_types):
         out = web.template.TemplateResult(__body__=out)
+
+    if isinstance(out, HTTPError):
+        raise out
 
     if 'title' not in out:
         out.title = path
