@@ -437,8 +437,11 @@ class account:
 
     def GET_find(self, site):
         i = input(email=None, username=None)
-        a = site.get_account_manager()
-        return a.find_account(email=i.email, username=i.username)
+        site = site.get_account_manager()
+        if site:
+            return site.find_account(email=i.email, username=i.username)
+        else:
+            print("Rebooting: Refresh in a few seconds...")
 
     def GET_get_user(self, site):
         a = site.get_account_manager()
