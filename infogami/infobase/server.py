@@ -10,6 +10,7 @@ import time
 import time
 import os
 import logging
+import yaml
 
 from infobase import config
 import common
@@ -17,11 +18,37 @@ import cache
 import logreader
 
 from account import get_user_root
+from infogami.utils.sentry import Sentry
 
 logger = logging.getLogger("infobase")
 
 def setup_remoteip():
     web.ctx.ip = web.ctx.env.get('HTTP_X_REMOTE_IP', web.ctx.ip)
+
+
+def load_config(config_filename=""):
+    # type: (str) -> None
+    """
+    Update the imported `config` using key/value pairs from the file
+    """
+    if config_filename:
+        with open(config_filename) as in_file:
+            for key, value in yaml.safe_load(in_file).items():
+                setattr(config, key, value)
+
+    if 'fastcgi' in config:
+        web.config.fastcgi = config['fastcgi']
+
+
+def setup_sentry(app, config_filename=""):
+    # type: (web.app, str) -> None
+    load_config(config_filename)
+
+    sentry = Sentry(getattr(config, 'sentry', {}))
+    if sentry.enabled:
+        sentry.init()
+        sentry.bind_to_webpy_app(app)
+
 
 urls = (
     "/", "server",
@@ -48,6 +75,8 @@ urls = (
 )
 
 app = web.application(urls, globals(), autoreload=False)
+
+setup_sentry(app)  # TODO: Should we add a config_filename="infobase.yml"?
 
 app.add_processor(web.loadhook(setup_remoteip))
 app.add_processor(web.loadhook(cache.loadhook))
