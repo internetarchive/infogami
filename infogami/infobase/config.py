@@ -34,6 +34,13 @@ use_bot_column = True
 
 verify_user_email = False
 
+sentry = {
+    "enabled": False,
+    # Dummy endpoint; where sentry logs are sent to
+    "dsn": "https://examplePublicKey@o0.ingest.sentry.io/0",
+    "environment": "local",
+}
+
+
 def get(key, default=None):
     return globals().get(key, default)
-
