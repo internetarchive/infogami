@@ -24,7 +24,6 @@ License: GPL 2 (http://www.gnu.org/copyleft/gpl.html) or BSD
 
 """
 
-from __future__ import print_function
 import codecs
 import re
 import sys
@@ -52,9 +51,9 @@ ENABLE_ATTRIBUTES = True  # @id = xyz -> <... id="xyz">
 SMART_EMPHASIS = 1        # this_or_that does not become this<i>or</i>that
 HTML_REMOVED_TEXT = "[HTML_REMOVED]" # text used instead of HTML in safe mode
 
-RTL_BIDI_RANGES = ( (u'\u0590', u'\u07FF'),
+RTL_BIDI_RANGES = ( ('\u0590', '\u07FF'),
                     # from Hebrew to Nko (includes Arabic, Syriac and Thaana)
-                    (u'\u2D30', u'\u2D7F'),
+                    ('\u2D30', '\u2D7F'),
                     # Tifinagh
                     )
 
@@ -66,9 +65,9 @@ RTL_BIDI_RANGES = ( (u'\u0590', u'\u07FF'),
 # 0780-07BF - Thaana
 # 07C0-07FF - Nko
 
-BOMS = { 'utf-8' : (six.text_type(codecs.BOM_UTF8, "utf-8"), ),
-         'utf-16' : (six.text_type(codecs.BOM_UTF16_LE, "utf-16"),
-                     six.text_type(codecs.BOM_UTF16_BE, "utf-16")),
+BOMS = { 'utf-8' : (str(codecs.BOM_UTF8, "utf-8"), ),
+         'utf-16' : (str(codecs.BOM_UTF16_LE, "utf-16"),
+                     str(codecs.BOM_UTF16_BE, "utf-16")),
          #'utf-32' : (six.text_type(codecs.BOM_UTF32_LE, "utf-32"),
          #            six.text_type(codecs.BOM_UTF32_BE, "utf-32")),
          }
@@ -132,7 +131,7 @@ def getBidiType(text) :
 
     ch = text[0]
 
-    if not isinstance(ch, six.text_type) or not ch.isalpha():
+    if not isinstance(ch, str) or not ch.isalpha():
         return None
 
     else :
@@ -329,7 +328,7 @@ class Element :
             value = self.attribute_values[attr]
             value = self.doc.normalizeEntities(value,
                                                avoidDoubleNormalizing=True)
-            buffer += ' %s="%s"' % (attr, value)
+            buffer += f' {attr}="{value}"'
 
 
         # Now let's actually append the children
@@ -1052,7 +1051,6 @@ class CorePatterns :
 RE = CorePatterns()
 
 
-@six.python_2_unicode_compatible
 class Markdown:
     """ Markdown formatter class for creating an html document from
         Markdown text """
@@ -1502,7 +1500,7 @@ class Markdown:
 
                 x = parts[i]
 
-                if isinstance(x, six.string_types) :
+                if isinstance(x, str) :
                     result = self._applyPattern(x, pattern)
 
                     if result :
@@ -1515,7 +1513,7 @@ class Markdown:
 
         for i in range(len(parts)) :
             x = parts[i]
-            if isinstance(x, six.string_types) :
+            if isinstance(x, str) :
                 parts[i] = self.doc.createTextNode(x)
 
         return parts
@@ -1590,7 +1588,7 @@ class Markdown:
 
                             for item in result:
 
-                                if isinstance(item, six.string_types):
+                                if isinstance(item, str):
                                     if len(item) > 0:
                                         node.insertChild(position,
                                              self.doc.createTextNode(item))

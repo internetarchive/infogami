@@ -35,7 +35,7 @@ def call_filter(spec):
         return False
 
 def find_enabled_features():
-    return {f for f, spec in iteritems(feature_flags) if call_filter(spec)}
+    return {f for f, spec in feature_flags.items() if call_filter(spec)}
 
 def loadhook():
     features = find_enabled_features()

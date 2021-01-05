@@ -3,7 +3,6 @@ Macro extension to markdown.
 
 Macros take argument string as input and returns result as markdown text.
 """
-from __future__ import print_function
 
 import os
 
@@ -56,7 +55,7 @@ def call_macro(name, args):
             i = web.input(_method="GET", debug="false")
             if i.debug.lower() == "true":
                 raise
-            result = "%s failed with error: <pre>%s</pre>" % (name, web.websafe(str(e)))
+            result = "{} failed with error: <pre>{}</pre>".format(name, web.websafe(str(e)))
             import traceback
             traceback.print_exc()
         return str(result)
@@ -116,7 +115,7 @@ def ListOfMacros():
     out = ""
     out += "<ul>"
     for name, macro in macrostore.items():
-        out += '  <li><b>%s</b>: %s</li>\n' % (name, macro.__doc__ or "")
+        out += '  <li><b>{}</b>: {}</li>\n'.format(name, macro.__doc__ or "")
     out += "</ul>"
     return out
 

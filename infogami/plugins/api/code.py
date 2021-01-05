@@ -49,7 +49,7 @@ def get_custom_headers():
         expected_decl_uri = infogami.config.get('http_ext_header_uri', 'http://infogami.org/api')
         if expected_decl_uri == decl_uri:
             prefix = 'HTTP_%s_' % ns
-            return dict((web.lstrips(k, prefix).lower(), v) for k, v in web.ctx.env.items() if k.startswith(prefix))
+            return {web.lstrips(k, prefix).lower(): v for k, v in web.ctx.env.items() if k.startswith(prefix)}
     else:
         return {}
 
@@ -132,7 +132,7 @@ def jsonapi(f):
         i = web.input(_method='GET', callback=None)
 
         if i.callback:
-            out = '%s(%s);' % (i.callback, out)
+            out = f'{i.callback}({out});'
 
         if web.input(_method="GET", text="false").text.lower() == "true":
             content_type = "text/plain"

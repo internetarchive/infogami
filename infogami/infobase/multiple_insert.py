@@ -41,7 +41,7 @@ def multiple_insert(tablename, values, seqname=None, _test=False):
         if list(v) != keys:
             raise Exception('Bad data')
 
-    q = web.SQLQuery('INSERT INTO %s (%s) VALUES ' % (tablename, ', '.join(keys))) 
+    q = web.SQLQuery('INSERT INTO {} ({}) VALUES '.format(tablename, ', '.join(keys))) 
 
     data = []
 

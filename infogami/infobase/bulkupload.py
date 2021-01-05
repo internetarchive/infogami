@@ -61,7 +61,7 @@ def multiple_insert(table, values, seqname=None):
     def escape(value):
         if value is None:
             return r'\N'
-        elif isinstance(value, string_types):
+        elif isinstance(value, str):
             value = value.replace('\\', r'\\') # this must be the first one
             value = value.replace('\t', r'\t')
             value = value.replace('\r', r'\r')
@@ -75,7 +75,7 @@ def multiple_insert(table, values, seqname=None):
     def increment_sequence(seqname, n):
         """Increments a sequence by the given amount."""
         d = web.query(
-            "SELECT setval('%s', $n + (SELECT last_value FROM %s), true) + 1 - $n AS START" % (seqname, seqname),
+            f"SELECT setval('{seqname}', $n + (SELECT last_value FROM {seqname}), true) + 1 - $n AS START",
             locals())
         return d[0].start
 
@@ -109,7 +109,7 @@ def multiple_insert(table, values, seqname=None):
 
     filename = tempfile.mktemp(suffix='.copy', prefix=table)
     write(filename, "\n".join(data))
-    web.query("COPY %s FROM '%s'" % (table, filename))
+    web.query(f"COPY {table} FROM '{filename}'")
     return ids
 
 def get_key2id():
@@ -244,12 +244,12 @@ class BulkUpload:
                                 _value, datatype = self.prepare_datum(v, result, "%s/%s#%d" % (path, key, i))
                                 append(thing_id, key, _value, datatype, i)
                         else:
-                            _value, datatype = self.prepare_datum(value, result, "%s/%s" % (path, key))
+                            _value, datatype = self.prepare_datum(value, result, f"{path}/{key}")
                             if key == 'key':
                                 datatype = 1
                             append(thing_id, key, _value, datatype, None)
                 return (thing_id, DATATYPE_REFERENCE)
-        elif isinstance(query, string_types):
+        elif isinstance(query, str):
             return (query, TYPES['/type/string'])
         elif isinstance(query, int):
             return (query, TYPES['/type/int'])
@@ -258,7 +258,7 @@ class BulkUpload:
         elif isinstance(query, bool):
             return (int(query), TYPES['/type/boolean'])
         else:
-            raise Exception('%s: invalid value: %s' % (path, repr(query)))
+            raise Exception('{}: invalid value: {}'.format(path, repr(query)))
 
 if __name__ == "__main__":
     web.config.db_parameters = dict(dbn='postgres', host='pharosdb', db='infobase_data2', user='anand', pw='')

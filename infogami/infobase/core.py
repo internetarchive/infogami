@@ -58,19 +58,19 @@ class Conflict(InfobaseException):
 
 class TypeMismatch(BadData):
     def __init__(self, type_expected, type_found, **kw):
-        BadData.__init__(self, message="expected %s, found %s" % (type_expected, type_found), **kw)
+        BadData.__init__(self, message=f"expected {type_expected}, found {type_found}", **kw)
 
 
-class Text(text_type):
+class Text(str):
     """Python type for /type/text."""
     def __repr__(self):
-        return "<text: %s>" % text_type.__repr__(self)
+        return "<text: %s>" % str.__repr__(self)
 
 
-class Reference(text_type):
+class Reference(str):
     """Python type for reference type."""
     def __repr__(self):
-        return "<ref: %s>" % text_type.__repr__(self)
+        return "<ref: %s>" % str.__repr__(self)
 
 
 class Thing:
@@ -83,10 +83,10 @@ class Thing:
         if isinstance(value, list):
             return [self._process(v) for v in value]
         elif isinstance(value, dict):
-            return web.storage((k, self._process(v)) for k, v in iteritems(value))
+            return web.storage((k, self._process(v)) for k, v in value.items())
         elif isinstance(value, Reference):
             json = self._store.get(value)
-            return Thing.from_json(self._store, text_type(value), json)
+            return Thing.from_json(self._store, str(value), json)
         else:
             return value
 

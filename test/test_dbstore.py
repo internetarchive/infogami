@@ -58,8 +58,7 @@ class TestSaveTest():
             key = d['key']
             assert site.save(key, d) == {'key': key, 'revision': 1}
         except common.InfobaseException as e:
-            if PY3:
-                error = py3_error[error]
+            error = py3_error[error]
             assert str(e) == error, (str(e), error)
 
     def test_type(self, site):

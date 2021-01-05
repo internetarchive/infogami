@@ -12,7 +12,7 @@ class BetterButton(Button):
     def render(self):
         label = self.attrs.get('label', self.name)
         safename = net.websafe(self.name)
-        x = '<button name="%s"%s>%s</button>' % (safename, self.addatts(), label)
+        x = f'<button name="{safename}"{self.addatts()}>{label}</button>'
         return x
 
 _ = i18n.strings.get_namespace('/account/login')

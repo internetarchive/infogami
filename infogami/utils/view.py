@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 import os
 import re
 import shutil
@@ -52,8 +50,8 @@ web.template.Template.globals.update(dict(
   # common utilities
   int = int,
   str = str,
-  basestring = six.string_types,
-  unicode = six.text_type,
+  basestring = (str,),
+  unicode = str,
   bool = bool,
   list = list,
   set = set,
@@ -129,7 +127,7 @@ def _format(text, safe_mode=False):
 
 @public
 def link(path, text=None):
-    return '<a href="%s">%s</a>' % (web.ctx.homepath + path, text or path)
+    return '<a href="{}">{}</a>'.format(web.ctx.homepath + path, text or path)
 
 @public
 def homepath():
@@ -176,7 +174,7 @@ def thingrepr(value, type=None):
     if isinstance(value, client.Thing):
         type = value.type
 
-    return six.text_type(render.repr(thingify(type, value)))
+    return str(render.repr(thingify(type, value)))
 
 #@public
 #def thinginput(type, name, value, **attrs):
@@ -187,26 +185,26 @@ def thingrepr(value, type=None):
 def thinginput(value, property=None, **kw):
     if property is None:
         if 'expected_type' in kw:
-            if isinstance(kw['expected_type'], six.string_types):
+            if isinstance(kw['expected_type'], str):
                 from infogami.core import db
                 kw['expected_type'] = db.get_version(kw['expected_type'])
         else:
             raise ValueError("missing expected_type")
         property = web.storage(kw)
-    return six.text_type(render.input(thingify(property.expected_type, value), property))
+    return str(render.input(thingify(property.expected_type, value), property))
 
 def thingify(type, value):
     # if type is given as string then get the type from db
     if type is None:
         type = '/type/string'
 
-    if isinstance(type, six.string_types):
+    if isinstance(type, str):
         from infogami.core import db
         type = db.get_version(type)
 
     PRIMITIVE_TYPES = "/type/key", "/type/string", "/type/text", "/type/int", "/type/float", "/type/boolean", "/type/uri"
 
-    if type.key not in PRIMITIVE_TYPES and isinstance(value, six.string_types) and not value.strip():
+    if type.key not in PRIMITIVE_TYPES and isinstance(value, str) and not value.strip():
         value = web.ctx.site.new('', {'type': type})
 
     if type.key not in PRIMITIVE_TYPES and (value is None or isinstance(value, client.Nothing)):
@@ -230,13 +228,13 @@ def thingdiff(type, name, v1, v2):
         return "".join(thingdiff(type, name, a, b) for a, b in zip(v1, v2))
 
     def strip(v):
-        return v.strip() if isinstance(v, six.string_types) else v
+        return v.strip() if isinstance(v, str) else v
 
     # ignore white-space changes and treat empty dictionaries as nothing
     if v1 == v2 or (not strip(v1) and not strip(v2)):
         return ""
     else:
-        return six.text_type(render.xdiff(thingify(type, v1), thingify(type, v2), name))
+        return str(render.xdiff(thingify(type, v1), thingify(type, v2), name))
 
 @public
 def thingview(page):
@@ -262,7 +260,7 @@ def movefiles():
                 to = os.path.join(dest, f)
                 cp_r(frm, to)
         else:
-            print('copying %s to %s' % (src, dest))
+            print(f'copying {src} to {dest}')
             shutil.copy(src, dest)
 
     static_dir = os.path.join(os.getcwd(), "static")
@@ -317,7 +315,7 @@ def movetypes():
                 else:
                     pages.append(d)
 
-    pagedict = dict((p['key'], p) for p in pages)
+    pagedict = {p['key']: p for p in pages}
     web.ctx.site.save_many(pagedict.values(), 'install')
 
 @infogami.install_hook
@@ -387,10 +385,10 @@ def datestr(then, now=None):
     _ = i18n.strings.get_namespace('/utils/date')
     if result[0] in string.digits:  # eg: 2 milliseconds ago
         t, unit, ago = result.split(' ', 2)
-        return "%s %s %s" % (t, _[unit], _[ago.replace(' ', '_')])
+        return "{} {} {}".format(t, _[unit], _[ago.replace(' ', '_')])
     else:
         month, rest = result.split(' ', 1)
-        return "%s %s" % (_[month.lower()], rest)
+        return "{} {}".format(_[month.lower()], rest)
 
 @public
 def get_types(regular=True):

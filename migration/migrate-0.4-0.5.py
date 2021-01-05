@@ -1,6 +1,5 @@
 """Script to migrate data from 0.4 to 0.5
 """
-from __future__ import print_function
 from optparse import OptionParser
 import os, sys
 import web
@@ -84,7 +83,7 @@ def fix_property_keys():
         print('fixing type', type, file=web.debug)
         prefix, multiple_types = get_table_prefix(type)
         keys_table = prefix + "_keys"
-        keys = dict((r.key, r.id) for r in db.query('SELECT * FROM ' + keys_table))
+        keys = {r.key: r.id for r in db.query('SELECT * FROM ' + keys_table)}
         newkeys = {}
         
         #@@ There is a chance that we may overwrite one update with another when new id is in the same range of old ids.
@@ -111,7 +110,7 @@ def fix_property_keys():
                 old_key_id = keys[key]
                 new_key_id = newkeys[key]
                 if multiple_types:
-                    updated = db.query('UPDATE %s SET key_id=$new_key_id FROM thing WHERE thing.id = %s.thing_id AND thing.type=$type_id AND key_id=$old_key_id' % (table, table), vars=locals())
+                    updated = db.query(f'UPDATE {table} SET key_id=$new_key_id FROM thing WHERE thing.id = {table}.thing_id AND thing.type=$type_id AND key_id=$old_key_id', vars=locals())
                 else:
                     updated = db.update(table, key_id=new_key_id, where='key_id=$old_key_id', vars=locals())
                 
@@ -125,7 +124,7 @@ def fix_property_keys():
     primitive = ['/type/key', '/type/int', '/type/float', '/type/boolean', '/type/string', '/type/datetime']
     # add embeddable types too
     primitive += ['/type/property', '/type/backreference', '/type/link']
-    types = dict((r.key, r.id) for r in db.query("SELECT * FROM thing WHERE type=1") if r.key not in primitive)
+    types = {r.key: r.id for r in db.query("SELECT * FROM thing WHERE type=1") if r.key not in primitive}
     
     for type in types:
         fix_type(type, types[type])
@@ -135,7 +134,7 @@ def drop_key_id_foreign_key():
     for prefix in table_prefixes:
         for d in DATATYPES:
             table = prefix + '_' + d
-            db.query('ALTER TABLE %s DROP CONSTRAINT %s_key_id_fkey' % (table, table))
+            db.query(f'ALTER TABLE {table} DROP CONSTRAINT {table}_key_id_fkey')
 
 def add_key_id_foreign_key():
     table_prefixes = ['datum']
@@ -166,7 +165,7 @@ def fix_version_table():
     filename = '/tmp/version.%d.txt' % os.getpid()
     new_filename = filename + ".new"
     db.query('copy version to $filename', vars=locals());
-    cmd = """awk -F'\t' 'BEGIN {OFS="\t"}{if ($3 == 1) action = "create"; else action="update"; print $1,action, $4,$5,$6,$8; }' < %s > %s""" % (filename, new_filename)
+    cmd = f"""awk -F'\t' 'BEGIN {{OFS="\t"}}{{if ($3 == 1) action = "create"; else action="update"; print $1,action, $4,$5,$6,$8; }}' < {filename} > {new_filename}"""
     os.system(cmd)
     db.query(TRANSACTION_TABLE)
     db.query("copy transaction from $new_filename", vars=locals())
@@ -174,7 +173,7 @@ def fix_version_table():
     db.query('ALTER TABLE version add column transaction_id int references transaction')
     db.query('UPDATE version set transaction_id=id')
     db.query(TRANSACTION_INDEXES)
-    os.system('rm %s %s' % (filename, new_filename))
+    os.system(f'rm {filename} {new_filename}')
 
 def main():
     parse_args()

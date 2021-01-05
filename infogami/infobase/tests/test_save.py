@@ -302,9 +302,9 @@ class TestIndex:
         self.indexer = IndexUtil(MockDB(), MockSchema())
 
     def monkeypatch_indexer(self):
-        self.indexer.get_thing_ids = lambda keys: dict((k, "id:" + k) for k in keys)
-        self.indexer.get_property_id = lambda type, name: "p:%s-%s" % (type.split("/")[-1], name)
-        self.indexer.get_table = lambda type, datatype, name: "%s_%s" % (type.split("/")[-1], datatype)
+        self.indexer.get_thing_ids = lambda keys: {k: "id:" + k for k in keys}
+        self.indexer.get_property_id = lambda type, name: "p:{}-{}".format(type.split("/")[-1], name)
+        self.indexer.get_table = lambda type, datatype, name: "{}_{}".format(type.split("/")[-1], datatype)
 
     def test_monkeypatch(self):
         self.monkeypatch_indexer()
@@ -314,7 +314,7 @@ class TestIndex:
 
     def process_index(self, index):
         """Process index to remove order in the values, so that it is easier to compare."""
-        return {k: set(v) for k, v in iteritems(index)}
+        return {k: set(v) for k, v in index.items()}
 
     def test_compute_index(self, testdata):
         index = self.indexer.compute_index(testdata['doc1'])
@@ -402,7 +402,7 @@ class TestIndex:
     def test_too_long(self):
         assert self.indexer._is_too_long("a" * 10000) is True
         assert self.indexer._is_too_long("a" * 2047) is False
-        c = u'\u20AC'  # 3 bytes in utf-8  TODO: Why different in Python 2 vs. 3??
+        c = '\u20AC'  # 3 bytes in utf-8  TODO: Why different in Python 2 vs. 3??
         assert self.indexer._is_too_long(c * 1000) is PY2
 
 

@@ -1,7 +1,6 @@
 """Infobase server to expose the API.
 """
 
-from __future__ import print_function
 
 __version__ = "0.5dev"
 
@@ -138,7 +137,7 @@ def to_int(value, key):
     try:
         return int(value)
     except:
-        raise common.BadData(message="Bad integer value for %s: %s" % (repr(key), repr(value)))
+        raise common.BadData(message="Bad integer value for {}: {}".format(repr(key), repr(value)))
 
 def from_json(s):
     try:
@@ -208,7 +207,7 @@ class withkey:
         i = input("key", revision=None, expand=False)
         site = get_site(sitename)
         if not site:
-            logger.exception("get_site({}) failed".format(sitename))
+            logger.exception(f"get_site({sitename}) failed")
         revision = i.revision and to_int(i.revision, "revision")
         json_data = site.get(i.key, revision=revision)
         if not json_data:
@@ -383,8 +382,8 @@ class account:
     def delegate(self, sitename, method):
         site = get_site(sitename)
         if not site:
-            raise RuntimeError("get_site({}) failed".format(sitename))
-        methodname = "%s_%s" % (self.get_method(), method)
+            raise RuntimeError(f"get_site({sitename}) failed")
+        methodname = f"{self.get_method()}_{method}"
 
         m = getattr(self, methodname, None)
         if m:

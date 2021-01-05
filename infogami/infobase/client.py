@@ -1,5 +1,4 @@
 """Infobase client."""
-from __future__ import print_function
 
 import datetime
 import logging
@@ -35,7 +34,7 @@ def storify(d):
 
 def unstorify(d):
     if isinstance(d, dict):
-        return {k: unstorify(v) for k, v in iteritems(d)}
+        return {k: unstorify(v) for k, v in d.items()}
     elif isinstance(d, list):
         return [unstorify(x) for x in d]
     else:
@@ -134,7 +133,7 @@ class RemoteConnection(Connection):
 
         if data:
             if isinstance(data, dict):
-                data = dict((web.safestr(k), web.safestr(v)) for k, v in data.items())
+                data = {web.safestr(k): web.safestr(v) for k, v in data.items()}
                 data = urlencode(data)
                 headers['Content-Type'] = 'application/x-www-form-urlencoded'
             if method == 'GET':
@@ -158,7 +157,7 @@ class RemoteConnection(Connection):
             conn.request(method, path, data, headers=headers)
             response = conn.getresponse()
             stats.end()
-        except socket.error:
+        except OSError:
             stats.end(error=True)
             logger.error("Unable to connect to infobase server", exc_info=True)
             raise ClientException("503 Service Unavailable", "Unable to connect to infobase server")
@@ -176,7 +175,7 @@ class RemoteConnection(Connection):
 
         if web.config.debug:
             b = time.time()
-            print("%.02f (%s):" % (round(b-a, 2), web.ctx.infobase_req_count), response.status, method, _path, _data, file=web.debug)
+            print("{:.02f} ({}):".format(round(b-a, 2), web.ctx.infobase_req_count), response.status, method, _path, _data, file=web.debug)
 
         if response.status == 200:
             return response.read()
@@ -253,7 +252,7 @@ class Site:
                 d[k] = self._process(v)
             return create_thing(self, None, d)
         elif isinstance(value, common.Reference):
-            return create_thing(self, text_type(value), None)
+            return create_thing(self, str(value), None)
         else:
             return value
 
@@ -310,7 +309,7 @@ class Site:
             self._request(path="", method="PUT")
 
     def get(self, key, revision=None, lazy=False):
-        assert key.startswith('/'), "key {} does not start with '/'".format(key)
+        assert key.startswith('/'), f"key {key} does not start with '/'"
 
         if lazy:
             data = None
@@ -548,7 +547,7 @@ class Store:
             return self.unlimited_query(type, name, value, offset=offset, include_docs=include_docs)
 
         params = dict(type=type, name=name, value=value, limit=limit, offset=offset, include_docs=str(include_docs))
-        params = dict((k, v) for k, v in params.items() if v is not None)
+        params = {k: v for k, v in params.items() if v is not None}
         return self._request("_query", method="GET", data=params)
 
     def unlimited_query(self, type, name, value, offset=0, include_docs=False):
@@ -558,8 +557,7 @@ class Store:
                 break
 
             offset += len(result)
-            for k in result:
-                yield k
+            yield from result
 
     def __getitem__(self, key):
         try:
@@ -706,7 +704,7 @@ def create_thing(site, key, data, revision=None):
                 type = type['key']
 
             # just to be safe
-            if not isinstance(type, string_types):
+            if not isinstance(type, str):
                 type = None
     except Exception as e:
         # just for extra safety
@@ -716,7 +714,7 @@ def create_thing(site, key, data, revision=None):
     klass = _thing_class_registry.get(type) or _thing_class_registry.get(None)
     return klass(site, key, data, revision)
 
-class Thing(object):
+class Thing:
     def __init__(self, site, key, data=None, revision=None):
         self._site = site
         self.key = key
@@ -798,7 +796,7 @@ class Thing(object):
 
     def _format(self, d):
         if isinstance(d, dict):
-            return {k: self._format(v) for k, v in iteritems(d)}
+            return {k: self._format(v) for k, v in d.items()}
         elif isinstance(d, list):
             return [self._format(v) for v in d]
         elif isinstance(d, common.Text):
@@ -914,7 +912,7 @@ class Changeset:
         return format % kwargs
 
     def __repr__(self):
-        return "<Changeset@%s of kind %s>" % (self.id, self.kind)
+        return f"<Changeset@{self.id} of kind {self.kind}>"
 
     @staticmethod
     def create(site, data):
@@ -937,7 +935,7 @@ class metahook(type):
         hooks.append(self())
         type.__init__(self, name, bases, attrs)
 
-class hook(with_metaclass(metahook)):
+class hook(metaclass=metahook):
     pass
 
 #remove hook from hooks

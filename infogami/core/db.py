@@ -30,7 +30,7 @@ def get_expected_type(page, property_name):
     return "/type/string"
 
 def new_version(path, type):
-    if isinstance(type, string_types):
+    if isinstance(type, str):
         type = get_type(type)
 
     assert type is not None

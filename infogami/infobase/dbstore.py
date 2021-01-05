@@ -48,7 +48,7 @@ class DBSiteStore(common.SiteStore):
     def get_metadata(self, key, for_update=False):
         # postgres doesn't seem to like Reference objects even though Reference extends from unicode.
         if isinstance(key, common.Reference):
-            key = text_type(key)
+            key = str(key)
 
         if for_update:
             d = self.db.query('SELECT * FROM thing WHERE key=$key FOR UPDATE NOWAIT', vars=locals())
@@ -61,7 +61,7 @@ class DBSiteStore(common.SiteStore):
             return {}
 
         result = self.db.select('thing', what='*', where="key IN $keys", vars=locals()).list()
-        d = dict((r.key, r) for r in result)
+        d = {r.key: r for r in result}
         return d
 
     def new_thing(self, **kw):
@@ -76,7 +76,7 @@ class DBSiteStore(common.SiteStore):
             return {}
 
         result = self.db.select('thing', what='*', where="id IN $ids", vars=locals()).list()
-        d = dict((r.id, r) for r in result)
+        d = {r.id: r for r in result}
         return d
 
     def new_key(self, type, kw):
@@ -120,7 +120,7 @@ class DBSiteStore(common.SiteStore):
             + ' WHERE data.revision = thing.latest_revision and data.thing_id=thing.id' \
             + ' AND thing.key IN $keys'
 
-        return dict((row.key, row.data) for row in self.db.query(query, vars=locals()))
+        return {row.key: row.data for row in self.db.query(query, vars=locals())}
 
     def get_many(self, keys):
         if not keys:
@@ -205,7 +205,7 @@ class DBSiteStore(common.SiteStore):
 
             def sql(self):
                 if self.label != self.name:
-                    return "%s as %s" % (self.name, self.label)
+                    return f"{self.name} as {self.label}"
                 else:
                     return self.name
 
@@ -256,9 +256,9 @@ class DBSiteStore(common.SiteStore):
                     return
 
                 if isinstance(c.value, list):
-                    q = web.sqlors('thing.%s %s ' % (c.key, op), c.value)
+                    q = web.sqlors(f'thing.{c.key} {op} ', c.value)
                 else:
-                    q = web.reparam('thing.%s %s $c.value' % (c.key, op), locals())
+                    q = web.reparam(f'thing.{c.key} {op} $c.value', locals())
                 xwheres = [q]
 
                 # Add thing table explicitly because get_table is not called
@@ -269,12 +269,12 @@ class DBSiteStore(common.SiteStore):
                 if not key_id:
                     raise StopIteration
 
-                q1 = web.reparam('%(table)s.key_id=$key_id' % {'table': table}, locals())
+                q1 = web.reparam(f'{table}.key_id=$key_id', locals())
 
                 if isinstance(c.value, list):
-                    q2 = web.sqlors('%s.value %s ' % (table, op), c.value)
+                    q2 = web.sqlors(f'{table}.value {op} ', c.value)
                 else:
-                    q2 = web.reparam('%s.value %s $c.value' % (table, op), locals())
+                    q2 = web.reparam(f'{table}.value {op} $c.value', locals())
 
                 xwheres = [q1, q2]
                 if ordering_func:
@@ -289,7 +289,7 @@ class DBSiteStore(common.SiteStore):
                     # avoid a comparison when both tables are same. it fails when ordering is None
                     return "1 = 1"
                 else:
-                    return '%s.ordering = %s.ordering' % (table, d.table)
+                    return f'{table}.ordering = {d.table}.ordering'
             return f
 
         def process_query(q, ordering_func=None):
@@ -318,7 +318,7 @@ class DBSiteStore(common.SiteStore):
                     key_id = self.get_property_id(type, sort_key)
                     if key_id is None:
                         raise StopIteration
-                    q = '%(table)s.key_id=$key_id' % {'table': table}
+                    q = f'{table}.key_id=$key_id'
                     wheres.append(web.reparam(q, locals()))
                     order = table.label + '.value'
                 return order + ascending
@@ -374,7 +374,7 @@ class DBSiteStore(common.SiteStore):
             )
             ids = [r.thing_id for r in result]
             rows = ids and self.db.query('SELECT id, key FROM thing where id in $ids', vars={"ids": ids})
-            d = dict((r.id, r.key) for r in rows)
+            d = {r.id: r.key for r in rows}
             keys = [d[id] for id in ids]
         t.commit()
         return keys
@@ -396,7 +396,7 @@ class DBSiteStore(common.SiteStore):
         offset = query.pop("offset", 0)
 
         keys = "key", "author", "ip", "kind", "bot", "begin_date", "end_date", "data"
-        kwargs = dict((k, query[k]) for k in keys if k in query)
+        kwargs = {k: query[k] for k in keys if k in query}
 
         return engine.recentchanges(limit=limit, offset=offset, **kwargs)
 
@@ -465,7 +465,7 @@ class DBSiteStore(common.SiteStore):
 
         result = self.db.select(['thing','version', 'transaction'], what=what, where=where, offset=query.offset, limit=query.limit, order=sort)
         result = result.list()
-        author_ids = list(set(r.author_id for r in result if r.author_id))
+        author_ids = list({r.author_id for r in result if r.author_id})
         authors = self.get_metadata_list_from_ids(author_ids)
 
         t.commit()
@@ -649,7 +649,7 @@ class MultiDBSiteStore(DBSiteStore):
     def get_metadata_list(self, keys):
         where = web.reparam('site_id=$self.site_id', locals()) + web.sqlors('key=', keys)
         result = self.db.select('thing', what='*', where=where).list()
-        d = dict((r.key, r) for r in result)
+        d = {r.key: r for r in result}
         return d
 
     def new_thing(self, **kw):

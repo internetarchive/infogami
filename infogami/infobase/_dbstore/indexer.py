@@ -17,12 +17,12 @@ class Indexer:
 
         # skip special values and /type/text
         skip = ["id", "key", "type.key", "revision", "latest_revison", "last_modified", "created"]
-        index = set((k, v) for k, v in index if k not in skip and not k.endswith(".value") and not k.endswith(".type"))
+        index = {(k, v) for k, v in index if k not in skip and not k.endswith(".value") and not k.endswith(".type")}
 
         for k, v in index:
             if k.endswith(".key"):
                 yield 'ref', web.rstrips(k, ".key"), v
-            elif isinstance(v, string_types):
+            elif isinstance(v, str):
                 yield 'str', k, v
             elif isinstance(v, int):
                 yield 'int', k, v

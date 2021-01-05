@@ -1,6 +1,5 @@
 """Infogami application.
 """
-from __future__ import absolute_import
 
 import collections
 import os
@@ -60,21 +59,21 @@ class metaview(type):
                     views[suffix][t] = self
 
 
-class mode(six.with_metaclass(metamode)):
+class mode(metaclass=metamode):
     def HEAD(self, *a):
         return self.GET(*a)
 
     def GET(self, *a):
         return web.nomethod(web.ctx.method)
 
-class page(six.with_metaclass(metapage)):
+class page(metaclass=metapage):
     def HEAD(self, *a):
         return self.GET(*a)
 
     def GET(self, *a):
         return web.nomethod(web.ctx.method)
 
-class view(six.with_metaclass(metaview)):
+class view(metaclass=metaview):
     suffix = None
     types = None
 
@@ -88,8 +87,8 @@ class view(six.with_metaclass(metaview)):
         method = web.ctx.method.upper()
         f = getattr(self, method, None)
         encoding = find_encoding()
-        if encoding and hasattr(self, "%s_%s" % (method,encoding.lower())):
-            f = getattr(self, "%s_%s" % (method, encoding.lower()))
+        if encoding and hasattr(self, f"{method}_{encoding.lower()}"):
+            f = getattr(self, f"{method}_{encoding.lower()}")
         if f:
             ret = f(page)
             converter = converters.get(encoding)

@@ -1,7 +1,7 @@
 """Infobase cache.
 """
 
-class Node(object):
+class Node:
     """Queue Node."""
     __slots__ = ["key", "value", "next", "prev"]
     def __init__(self, key):

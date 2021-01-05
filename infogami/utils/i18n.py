@@ -1,7 +1,6 @@
 """
 Support for Internationalization.
 """
-from __future__ import print_function
 
 import os
 import re
@@ -29,10 +28,10 @@ class i18n:
         return web.ctx.lang
 
     def get_namespaces(self):
-        return sorted(set(k[0] for k in self._data))
+        return sorted({k[0] for k in self._data})
 
     def get_languages(self):
-        return sorted(set(k[1] for k in self._data))
+        return sorted({k[1] for k in self._data})
 
     def get_count(self, namespace, lang=None):
         lang = lang or DEFAULT_LANG
@@ -112,7 +111,7 @@ class i18n_string:
             return str(self) % tuple(web.safestr(x) for x in a)
         except:
             traceback.print_exc()
-            print('failed to substitute (%s/%s) in language %s' % (self._namespace, self._key, web.ctx.lang), file=web.debug)
+            print(f'failed to substitute ({self._namespace}/{self._key}) in language {web.ctx.lang}', file=web.debug)
         return str(self)
 
 def i18n_loadhook():

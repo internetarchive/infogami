@@ -91,13 +91,13 @@ class SaveImpl:
     def _index_transaction_data(self, tx_id, data):
         d = []
         def index(key, value):
-            if isinstance(value, (string_types, int)):
+            if isinstance(value, ((str,), int)):
                 d.append({"tx_id": tx_id, "key": key, "value": value})
             elif isinstance(value, list):
                 for v in value:
                     index(key, v)
 
-        for k, v in iteritems(data):
+        for k, v in data.items():
             index(k, v)
 
         if d:
@@ -177,7 +177,7 @@ class SaveImpl:
         except:
             raise common.Conflict(keys=keys, reason="Edit conflict detected.")
 
-        records = dict((r.key, r) for r in rows)
+        records = {r.key: r for r in rows}
         for r in records.values():
             r.revision = r.latest_revision
             json = r.data and self.process_json(r.key, r.data)
@@ -191,7 +191,7 @@ class SaveImpl:
 
     def _update_thing_table(self, records):
         """Insert/update entries in the thing table for the given records."""
-        d = dict((r.key, r) for r in records)
+        d = {r.key: r for r in records}
         timestamp = records[0].last_modified
 
         # insert new records
@@ -226,12 +226,12 @@ class SaveImpl:
     def get_thing_ids(self, keys):
         keys = list(set(keys))
 
-        thing_ids = dict((key, self.thing_ids[key]) for key in keys if key in self.thing_ids)
+        thing_ids = {key: self.thing_ids[key] for key in keys if key in self.thing_ids}
         notfound = [key for key in keys if key not in thing_ids]
 
         if notfound:
             rows = self.db.query("SELECT id, key FROM thing WHERE key in $notfound", vars=locals())
-            d = dict((r.key, r.id) for r in rows)
+            d = {r.key: r.id for r in rows}
             thing_ids.update(d)
             self.thing_ids.update(d)
 
@@ -332,7 +332,7 @@ class IndexUtil:
         """Returns set equivalent of d1.difference(d2) for dictionaries.
         """
         eq = eq or (lambda a, b: a == b)
-        return {k: v for k, v in iteritems(d1) if not eq(v, d2.get(k))}
+        return {k: v for k, v in d1.items() if not eq(v, d2.get(k))}
 
     def diff_records(self, records):
         """Takes a list of records and returns the index to be deleted and index to be inserted.
@@ -365,8 +365,8 @@ class IndexUtil:
     def compile_index(self, index):
         """Compiles doc-index into db-index.
         """
-        keys = set(key for type, key, datatype, name in index)
-        for (type, key, datatype, name), values in iteritems(index):
+        keys = {key for type, key, datatype, name in index}
+        for (type, key, datatype, name), values in index.items():
             if datatype == 'ref':
                 keys.update(values)
 
@@ -386,7 +386,7 @@ class IndexUtil:
 
         dbindex = {}
 
-        for (type, key, datatype, name), values in iteritems(index):
+        for (type, key, datatype, name), values in index.items():
             table = self.find_table(type, datatype, name)
             thing_id = thing_ids[key]
             pid = get_pid(type, name)
@@ -399,7 +399,7 @@ class IndexUtil:
         """Groups the index based on table.
         """
         groups = defaultdict(dict)
-        for (table, thing_id, property_id), values in iteritems(index):
+        for (table, thing_id, property_id), values in index.items():
             groups[table][thing_id, property_id] = values
         return groups
 
@@ -407,11 +407,11 @@ class IndexUtil:
         """The DB schema has a limit of 2048 chars on string values. This function ignores values which are longer than that.
         """
         is_too_long = self._is_too_long
-        return {k: [v for v in values if not is_too_long(v)] for k, values in iteritems(index)}
+        return {k: [v for v in values if not is_too_long(v)] for k, values in index.items()}
 
     def _is_too_long(self, v, limit=2048):
         return (
-            isinstance(v, string_types)
+            isinstance(v, str)
             # unicode string can be as long as 4 bytes in utf-8.
             # This check avoid UTF-8 conversion for small strings.
             and len(v) > limit/4
@@ -420,17 +420,17 @@ class IndexUtil:
 
     def insert_index(self, index):
         """Inserts the given index into database."""
-        for table, group in iteritems(self.group_index(index)):
+        for table, group in self.group_index(index).items():
             # ignore values longer than 2048, the limit specified by the db schema.
             group = self.ignore_long_values(group)
             data = [dict(thing_id=thing_id, key_id=property_id, value=v)
-                for (thing_id, property_id), values in iteritems(group)
+                for (thing_id, property_id), values in group.items()
                 for v in values]
             self.db.multiple_insert(table, data, seqname=False)
 
     def delete_index(self, index):
         """Deletes the given index from database."""
-        for table, group in iteritems(self.group_index(index)):
+        for table, group in self.group_index(index).items():
 
             thing_ids = [] # thing_ids to delete all
 
@@ -445,7 +445,7 @@ class IndexUtil:
             if thing_ids:
                 self.db.delete(table, where='thing_id IN $thing_ids', vars=locals())
 
-            for thing_id, pids in iteritems(d):
+            for thing_id, pids in d.items():
                 self.db.delete(table, where="thing_id=$thing_id AND key_id IN $pids", vars=locals())
 
     def get_thing_ids(self, keys):
@@ -454,12 +454,12 @@ class IndexUtil:
         if not keys:
             return {}
 
-        thing_ids = dict((key, self.thing_ids[key]) for key in keys if key in self.thing_ids)
+        thing_ids = {key: self.thing_ids[key] for key in keys if key in self.thing_ids}
         notfound = [key for key in keys if key not in thing_ids]
 
         if notfound:
             rows = self.db.query("SELECT id, key FROM thing WHERE key in $notfound", vars=locals())
-            d = dict((r.key, r.id) for r in rows)
+            d = {r.key: r.id for r in rows}
             thing_ids.update(d)
             self.thing_ids.update(d)
 
@@ -488,8 +488,8 @@ class PropertyManager:
             self._cache = {}
 
             rows = self.db.select('property').list()
-            type_ids = list(set(r.type for r in rows)) or [-1]
-            types = dict((r.id, r.key) for r in self.db.select("thing", where='id IN $type_ids', vars=locals()))
+            type_ids = list({r.type for r in rows}) or [-1]
+            types = {r.id: r.key for r in self.db.select("thing", where='id IN $type_ids', vars=locals())}
             for r in rows:
                 self._cache[types[r.type], r.name] = r.id
 
