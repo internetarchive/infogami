@@ -5,7 +5,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [2.7, 3.9]
+        python-version: [3.9]  # 2.7
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
