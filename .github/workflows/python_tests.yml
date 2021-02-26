@@ -9,6 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: harmon758/postgresql-action@v1
+        with:
+          postgresql version: '13'  # See https://hub.docker.com/_/postgres for available versions
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
