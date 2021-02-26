@@ -1,7 +1,7 @@
 import datetime
 
 import pytest
-import simplejson
+import json
 from six import PY2, iteritems
 import web
 
