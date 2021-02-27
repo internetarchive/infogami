@@ -5,7 +5,7 @@ from __future__ import absolute_import
 import collections
 import os
 
-import json
+import simplejson
 
 import web
 
@@ -81,7 +81,7 @@ class view(six.with_metaclass(metaview)):
     def emit_json(self, data):
         from infogami.utils.delegate import RawText
         web.header('Content-Type', 'application/json')
-        return RawText(json.dumps(data))
+        return RawText(simplejson.dumps(data))
 
     def delegate(self, page):
         converters = {"json" : self.emit_json}
