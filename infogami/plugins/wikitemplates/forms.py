@@ -1,6 +1,9 @@
 from __future__ import print_function
+
 from web.form import Button, Form, Textbox, net
+
 from infogami.utils import i18n
+
 
 class BetterButton(Button):
     def render(self):
@@ -9,11 +12,11 @@ class BetterButton(Button):
         x = '<button name="%s"%s>%s</button>' % (safename, self.addatts(), label)
         return x
 
+
 _ = i18n.strings.get_namespace('/account/preferences')
 
 template_preferences = Form(
-    Textbox("path", description=_.template_root),
-    BetterButton('save', label=_.save)
+    Textbox("path", description=_.template_root), BetterButton('save', label=_.save)
 )
 
 if __name__ == "__main__":

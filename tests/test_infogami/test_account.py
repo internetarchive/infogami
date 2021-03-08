@@ -1,10 +1,14 @@
-from infogami.utils.delegate import app
 import pytest
 import web
 
+from infogami.utils.delegate import app
+
 b = app.browser()
 
-@pytest.mark.skip(reason="Browser test not currently functioning, requires BeautifulSoup and ClientForm, and site is still set to None")
+
+@pytest.mark.skip(
+    reason="Browser test not currently functioning, requires BeautifulSoup and ClientForm, and site is still set to None"
+)
 def test_login():
     # try with bad account
     b.open('/account/login')

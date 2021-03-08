@@ -1,17 +1,18 @@
 import pytest
 import simplejson
 import web
-
 from six.moves.urllib.parse import urlencode
 
 from infogami.utils.delegate import app
 
 b = app.browser()
 
+
 @pytest.mark.skip(reason="Site is None")
 def test_home():
     b.open('/')
     b.status == 200
+
 
 @pytest.mark.skip(reason="Site is None")
 def test_write():
@@ -25,6 +26,7 @@ def test_write():
     b.open('/sandbox/test')
     assert 'Foo' in b.data
     assert 'Bar' in b.data
+
 
 @pytest.mark.skip(reason="Site is None")
 def test_delete():
@@ -44,6 +46,7 @@ def test_delete():
     else:
         assert False, "expected 404"
 
+
 @pytest.mark.skip(reason="Site is None")
 def test_notfound():
     try:
@@ -51,9 +54,11 @@ def test_notfound():
     except web.BrowserError:
         assert b.status == 404
 
+
 @pytest.mark.skip(reason="Site is None")
 def test_recent_changes():
     b.open('/recentchanges')
+
 
 def save(key, **data):
     b.open(key + '?m=edit')
@@ -66,9 +71,11 @@ def save(key, **data):
         b[k] = v
     b.submit()
 
+
 def query(**kw):
     url = '/query.json?' + urlencode(kw)
     return [d['key'] for d in simplejson.loads(b.open(url).read())]
+
 
 @pytest.mark.skip(reason="Site is None")
 def test_query():

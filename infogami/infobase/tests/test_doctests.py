@@ -1,4 +1,5 @@
 import doctest
+
 import pytest
 
 modules = [
@@ -18,6 +19,7 @@ modules = [
     "infogami.infobase.utils",
     "infogami.infobase.writequery",
 ]
+
 
 @pytest.mark.parametrize('module', modules)
 def test_doctest(module):

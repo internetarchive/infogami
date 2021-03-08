@@ -6,9 +6,11 @@ Change author of a book from a1 to a2.
 That book is not listed in a2.books.
 """
 
+from infogami.infobase import client
+
 from . import webtest
 from .test_infobase import InfobaseTestCase
-from infogami.infobase import client
+
 
 class Test(InfobaseTestCase):
     def create_site(self, name='test'):
@@ -32,13 +34,15 @@ class Test(InfobaseTestCase):
         assert keys(a1.books) == ['/b/b1']
         assert keys(a2.books) == []
 
-        site.write({
-            'key': '/b/b1',
-            'author': {
-                'connect': 'update',
-                'key': '/a/a2',
+        site.write(
+            {
+                'key': '/b/b1',
+                'author': {
+                    'connect': 'update',
+                    'key': '/a/a2',
+                },
             }
-        })
+        )
 
         site = self.create_site()
         a1 = site.get('/a/a1')
@@ -46,6 +50,7 @@ class Test(InfobaseTestCase):
 
         assert keys(a1.books) == []
         assert keys(a2.books) == ['/b/b1']
+
 
 if __name__ == "__main__":
     webtest.main()

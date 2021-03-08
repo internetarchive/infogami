@@ -7,17 +7,15 @@ import socket
 import time
 
 import simplejson
+import web
 from six import iteritems, string_types, text_type, with_metaclass
 from six.moves.http_client import HTTPConnection
 from six.moves.http_cookies import SimpleCookie
-from six.moves.urllib_parse import urlencode, quote, unquote
-
-import web
+from six.moves.urllib_parse import quote, unquote, urlencode
 
 from infogami import config
 from infogami.infobase import common, server
 from infogami.utils import stats
-
 
 logger = logging.getLogger("infobase.client")
 
@@ -633,7 +631,8 @@ def parse_datetime(datestring):
     """Parses from isoformat.
     Is there any way to do this in stdlib?
     """
-    import re, datetime
+    import datetime
+    import re
     tokens = re.split(r'-|T|:|\.| ', datestring)
     return datetime.datetime(*map(int, tokens))
 

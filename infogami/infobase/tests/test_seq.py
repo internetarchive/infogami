@@ -1,5 +1,6 @@
-from infogami.infobase.tests import utils
 from infogami.infobase._dbstore.sequence import SequenceImpl
+from infogami.infobase.tests import utils
+
 
 def setup_module(mod):
     global db
