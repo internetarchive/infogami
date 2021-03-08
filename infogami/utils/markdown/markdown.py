@@ -248,10 +248,11 @@ class Element :
         self.childNodes = None
 
     def setAttribute(self, attr, value) :
-        if not attr in self.attributes :
-            self.attributes.append(attr)
+        if attr in self.attributes :
+            self.attribute_values[attr] = value
 
-        self.attribute_values[attr] = value
+        
+        self.attributes.append(attr)
 
     def insertChild(self, position, child) :
         self.childNodes.insert(position, child)
