@@ -1571,7 +1571,7 @@ class Markdown:
 
         if isinstance(node, Element):
 
-            if not node.nodeName in ["code", "pre"] :
+            if  node.nodeName not in ["code", "pre"] :
                 for child in node.childNodes :
                     if isinstance(child, TextNode):
 
