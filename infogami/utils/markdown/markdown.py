@@ -249,10 +249,8 @@ class Element :
 
     def setAttribute(self, attr, value) :
         if attr not in self.attributes :
-            self.attributes.append(attr)
-            
-
-        
+            self.attributes.append(attr)       
+       
         self.attribute_values[attr] = value
 
     def insertChild(self, position, child) :
@@ -1572,7 +1570,7 @@ class Markdown:
 
         if isinstance(node, Element):
 
-            if  node.nodeName not in ["code", "pre"] :
+            if node.nodeName not in ("code", "pre") :
                 for child in node.childNodes :
                     if isinstance(child, TextNode):
 
