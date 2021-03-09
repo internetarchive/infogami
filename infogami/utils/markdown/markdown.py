@@ -249,8 +249,8 @@ class Element :
 
     def setAttribute(self, attr, value) :
         if attr not in self.attributes :
-            self.attributes.append(attr)       
-       
+            self.attributes.append(attr)
+
         self.attribute_values[attr] = value
 
     def insertChild(self, position, child) :
@@ -1824,7 +1824,6 @@ if __name__ == '__main__':
         sys.exit(0)
 
     markdownFromFile(**options)
-
 
 
 
