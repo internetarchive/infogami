@@ -1570,7 +1570,7 @@ class Markdown:
 
         if isinstance(node, Element):
 
-            if node.nodeName not in ("code", "pre") :
+            if node.nodeName not in ("code", "pre"):
                 for child in node.childNodes :
                     if isinstance(child, TextNode):
 
@@ -1824,7 +1824,6 @@ if __name__ == '__main__':
         sys.exit(0)
 
     markdownFromFile(**options)
-
 
 
 
