@@ -248,7 +248,7 @@ class Element :
         self.childNodes = None
 
     def setAttribute(self, attr, value) :
-        if attr not in self.attributes :
+        if attr not in self.attributes:
             self.attributes.append(attr)
 
         self.attribute_values[attr] = value
@@ -1824,7 +1824,6 @@ if __name__ == '__main__':
         sys.exit(0)
 
     markdownFromFile(**options)
-
 
 
 
