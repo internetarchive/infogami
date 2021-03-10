@@ -169,10 +169,10 @@ class SaveImpl:
         Each record is a storage object with (id, key, type, revision, last_modified, data) keys.
         """
         try:
-            rows = self.db.query("SELECT thing.*, data.data FROM thing, data" +
-                " WHERE thing.key in $keys" +
-                " AND data.thing_id=thing.id AND data.revision = thing.latest_revision" +
-                " FOR UPDATE NOWAIT",
+            rows = self.db.query("SELECT thing.*, data.data FROM thing, data" 
+                + " WHERE thing.key in $keys" 
+                + " AND data.thing_id=thing.id AND data.revision = thing.latest_revision" 
+                + " FOR UPDATE NOWAIT",
                 vars=locals())
         except:
             raise common.Conflict(keys=keys, reason="Edit conflict detected.")
