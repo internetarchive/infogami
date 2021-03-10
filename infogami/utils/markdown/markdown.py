@@ -99,15 +99,15 @@ BLOCK_LEVEL_ELEMENTS = ['p', 'div', 'blockquote', 'pre', 'table',
                         'del', 'hr', 'hr/', 'style']
 
 def is_block_level (tag) :
-    return ( (tag in BLOCK_LEVEL_ELEMENTS) or
-             (tag[0] == 'h' and tag[1] in "0123456789") )
+    return ( (tag in BLOCK_LEVEL_ELEMENTS)
+             or (tag[0] == 'h' and tag[1] in "0123456789") )
 
 """
 ======================================================================
 ========================== NANODOM ===================================
 ======================================================================
 
-The three classes below implement some of the most basic DOM
+The three classes below imorplement some of the most basic DOM
 methods.  I use this instead of minidom because I need a simpler
 functionality and do not want to require additional libraries.
 
@@ -1374,9 +1374,9 @@ class Markdown:
                     break
 
                 # Check if the next non-blank line is still a part of the list
-                if ( RE.regExp['ul'].match(next) or
-                     RE.regExp['ol'].match(next) or
-                     RE.regExp['tabbed'].match(next) ):
+                if ( RE.regExp['ul'].match(next) 
+                     or RE.regExp['ol'].match(next) 
+                     or RE.regExp['tabbed'].match(next) ):
                     # get rid of any white space in the line
                     items[item].append(line.strip())
                     looseList = loose or looseList
