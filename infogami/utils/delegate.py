@@ -5,7 +5,7 @@ import web
 
 from infogami import config
 from infogami.utils import features, i18n
-from infogami.utils.app import app
+from infogami.utils.app import app, mode  # noqa: F401
 from infogami.utils.context import context
 from infogami.utils.view import render_site, public
 
@@ -13,7 +13,7 @@ def create_site():
     from infogami.infobase import client
 
     if config.site is None:
-        site = web.ctx.host.split(':')[0] # strip port
+        site = web.ctx.host.split(':')[0]  # strip port
     else:
         site = config.site
 
