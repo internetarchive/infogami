@@ -5,7 +5,7 @@ import web
 
 from infogami import config
 from infogami.utils import features, i18n
-from infogami.utils.app import app, mode  # noqa: F401
+from infogami.utils.app import app, mode, page  # noqa: F401
 from infogami.utils.context import context
 from infogami.utils.view import render_site, public
 
