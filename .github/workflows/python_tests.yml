@@ -24,7 +24,10 @@ jobs:
       - run: flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - run: isort --check-only --profile black . || true
       - run: pip install -r requirements.txt
-      - run: mypy --ignore-missing-imports . || true
+      - run:  mypy
+          --exclude infogami/infobase/bulkupload.py
+          --exclude migration/migrate-0.4-0.5.py
+          --ignore-missing-imports . || true
       - run: shopt -s globstar && pyupgrade --py36-plus **/*.py || true
       - run: psql -c 'create database infobase_test;' -U postgres || true
       - run: pytest . || true
