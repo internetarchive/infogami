@@ -1,4 +1,5 @@
-from web.form import *
+from web.form import (Button, Checkbox, Form, Hidden, Password, Textbox,
+                      Validator, net, notnull, regexp)
 
 from infogami.core import db
 from infogami.utils import i18n
