@@ -645,10 +645,10 @@ class Nothing:
     ''
     >>> web.safestr(n)
     ''
-    >>> bool([None])
-    True
-    >>> bool([n])
-    False
+    >>> str([None])
+    '[None]'
+    >>> str([n])
+    '[]'
     """
     def __getattr__(self, name):
         if name.startswith('__') or name == 'next':
