@@ -6,7 +6,7 @@ import infogami
 from infogami.utils import delegate, features
 from infogami.utils.view import safeint
 from infogami.infobase import client
-import simplejson
+import json
 
 hooks = {}
 def add_hook(name, cls):
@@ -101,10 +101,10 @@ class infobase_request:
         #@@ this should be done in the connection.
         try:
             if path == "/save_many":
-                for q in simplejson.loads(query):
+                for q in json.loads(query):
                     web.ctx.site._run_hooks("on_new_version", q)
             elif path == "/write":
-                result = simplejson.loads(out)
+                result = json.loads(out)
                 for k in result.get('created', []) + result.get('updated', []):
                     web.ctx.site._run_hooks("on_new_version", request("/get", data=dict(key=k)))
         except Exception as e:
@@ -179,9 +179,9 @@ class view(delegate.mode):
         h = get_custom_headers()
         comment = h.get('comment')
         if comment:
-            data = simplejson.loads(data)
+            data = json.loads(data)
             data['_comment'] = comment
-            data = simplejson.dumps(data)
+            data = json.dumps(data)
 
         result = request('/save' + path, 'POST', data)
 
@@ -216,7 +216,7 @@ class history(delegate.mode):
         query = make_query(web.input(), required_keys=['author', 'ip', 'offset', 'limit'])
         query['key'] = path
         query['sort'] = '-created'
-        return request('/versions', data=dict(query=simplejson.dumps(query)))
+        return request('/versions', data=dict(query=json.dumps(query)))
 
 class recentchanges(delegate.page):
     encoding = "json"
@@ -226,7 +226,7 @@ class recentchanges(delegate.page):
         i = web.input(query=None)
         query = i.pop('query')
         if not query:
-            query = simplejson.dumps(make_query(i, required_keys=["key", "type", "author", "ip", "offset", "limit", "bot"]))
+            query = json.dumps(make_query(i, required_keys=["key", "type", "author", "ip", "offset", "limit", "bot"]))
 
         if features.is_enabled("recentchanges_v2"):
             return request('/_recentchanges', data=dict(query=query))
@@ -242,7 +242,7 @@ class query(delegate.page):
         i.pop("callback", None)
         query = i.pop('query')
         if not query:
-            query = simplejson.dumps(make_query(i))
+            query = json.dumps(make_query(i))
         return request('/things', data=dict(query=query, details="true"))
 
 class login(delegate.page):
@@ -251,7 +251,7 @@ class login(delegate.page):
 
     def POST(self):
         try:
-            d = simplejson.loads(web.data())
+            d = json.loads(web.data())
             web.ctx.site.login(d['username'], d['password'])
             web.setcookie(infogami.config.login_cookie_name, web.ctx.conn.get_auth_token())
         except Exception as e:
