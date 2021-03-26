@@ -642,11 +642,11 @@ class Nothing:
 
     >>> n = Nothing()
     >>> str(n)
-    'Nothing()'
+    '<Nothing>'
     >>> web.safestr(n)
-    'Nothing()'
+    '<Nothing>'
     >>> str([n])  # See #148 and #151
-    '[Nothing()]'
+    '[<Nothing>]'
     """
     def __getattr__(self, name):
         if name.startswith('__') or name == 'next':
@@ -685,7 +685,7 @@ class Nothing:
         return not (self == other)
 
     def __repr__(self):
-        return "Nothing()"
+        return "<Nothing>"
 
 nothing = Nothing()
 
