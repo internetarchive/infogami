@@ -1,6 +1,6 @@
 from web.form import (Button, Checkbox, Form, Hidden, Password, Textbox,
                       Validator, net, notnull, regexp)
-from web.form import *  # TODO (cclauss): Remove wildcard imports
+from web.form import *  # noqa: F403 TODO (cclauss): Remove wildcard imports
 
 
 from infogami.core import db
