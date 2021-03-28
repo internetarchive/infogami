@@ -11,7 +11,7 @@ except ImportError:
 import web
 
 
-storage = defaultdict(OrderedDict)
+storage = defaultdict(OrderedDict)  # type: ignore
 
 
 class SiteLocalDict:
