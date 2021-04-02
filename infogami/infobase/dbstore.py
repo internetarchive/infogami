@@ -5,8 +5,6 @@ import datetime
 import logging
 import time
 
-from six import text_type
-
 import web
 
 from infogami.infobase import common, config, readquery, _json as simplejson

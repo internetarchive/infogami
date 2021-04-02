@@ -5,8 +5,6 @@ import copy
 import simplejson
 import web
 
-from six import iteritems, text_type
-
 
 class InfobaseException(Exception):
     status = "500 Internal Server Error"

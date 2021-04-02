@@ -1,6 +1,5 @@
 import os.path
 
-from six import string_types
 import web
 
 from infogami import config

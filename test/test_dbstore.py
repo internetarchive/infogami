@@ -3,8 +3,6 @@ import web
 import os
 import pytest
 
-from six import PY3
-
 from infogami.infobase import dbstore, infobase, common
 
 class InfobaseTestCase(unittest.TestCase):

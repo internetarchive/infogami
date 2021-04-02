@@ -6,7 +6,6 @@ import datetime
 import re
 import tempfile
 
-from six import string_types
 import web
 
 from infogami.infobase.infobase import Infobase, TYPES, DATATYPE_REFERENCE

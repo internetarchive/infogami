@@ -1,6 +1,5 @@
 from infogami.infobase import common
 import web
-from six import string_types
 
 
 class Indexer:

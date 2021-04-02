@@ -1,6 +1,5 @@
 import datetime
 import simplejson
-from six import iteritems, string_types, text_type
 
 import web
 

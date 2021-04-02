@@ -3,7 +3,6 @@ import re
 import shutil
 import string
 
-import six
 from six.moves.urllib.parse import urlencode
 import web
 

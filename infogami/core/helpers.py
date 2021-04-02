@@ -2,8 +2,6 @@
 Generic Utilities.
 """
 
-from six import iteritems
-
 
 class xdict:
     """Dictionary wrapper to give sorted repr.

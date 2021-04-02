@@ -1,5 +1,4 @@
 import web
-from six import string_types
 
 from infogami.utils.view import public
 

@@ -2,7 +2,6 @@
 """
 import web
 import simplejson
-from six import iteritems, string_types, text_type
 
 from infogami.infobase import account, common
 

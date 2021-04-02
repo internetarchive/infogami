@@ -9,7 +9,6 @@ import simplejson
 import web
 
 from infogami.utils import flash
-import six
 
 urls = ("/.*", "item")
 app = web.application(urls, globals(), autoreload=False)

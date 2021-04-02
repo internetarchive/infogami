@@ -2,7 +2,6 @@
 
 import simplejson
 import web
-from six import string_types
 from infogami.infobase import config
 
 def get_user_root():

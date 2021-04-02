@@ -2,7 +2,6 @@
 """
 from collections import defaultdict
 
-from six import iteritems, string_types
 import simplejson
 import web
 

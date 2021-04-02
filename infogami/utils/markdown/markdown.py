@@ -28,8 +28,6 @@ import codecs
 import re
 import sys
 
-import six
-
 version = "1.6b"
 version_info = (1,6,2,"rc-2")
 __revision__ = "$Rev$"

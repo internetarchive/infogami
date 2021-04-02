@@ -2,11 +2,9 @@
 
 import datetime
 import logging
-import socket
 import time
 
 import simplejson
-from six import iteritems, string_types, text_type, with_metaclass
 from six.moves.http_client import HTTPConnection
 from six.moves.http_cookies import SimpleCookie
 from six.moves.urllib_parse import urlencode, quote, unquote

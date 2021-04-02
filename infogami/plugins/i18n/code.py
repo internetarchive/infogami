@@ -2,7 +2,6 @@
 i18n: allow keeping i18n strings in wiki
 """
 
-from six import iteritems
 import web
 
 import infogami

@@ -2,7 +2,7 @@ import datetime
 
 import pytest
 import json
-from six import PY2, iteritems
+from six import PY2
 import web
 
 from infogami.infobase._dbstore.save import SaveImpl, IndexUtil, PropertyManager

@@ -10,7 +10,6 @@ TODOs:
 
 import os
 
-from six import iteritems
 import web
 
 import infogami

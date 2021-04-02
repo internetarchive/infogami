@@ -1,6 +1,5 @@
 """Feature flags support for Infogami.
 """
-from six import iteritems
 import web
 
 from infogami.utils.context import context
