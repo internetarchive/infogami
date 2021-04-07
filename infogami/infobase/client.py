@@ -155,8 +155,10 @@ class RemoteConnection(Connection):
 
         try:
             response = requests.request(method, path, data=data, headers=headers)
+            if not response.ok:
+                response.raise_for_status()
             stats.end()
-        except socket.error:
+        except requests.exceptions.HTTPError:
             stats.end(error=True)
             logger.error("Unable to connect to infobase server", exc_info=True)
             raise ClientException("503 Service Unavailable", "Unable to connect to infobase server")
