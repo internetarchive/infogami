@@ -4,6 +4,6 @@ codespell
 flake8
 isort
 mypy
+psycopg2
 pytest
 pyupgrade
-psycopg2
