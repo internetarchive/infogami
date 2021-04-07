@@ -37,8 +37,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v2
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          path: ~/infogami_python_venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('*requirements.txt') }}
+      - run: python3 -m venv ~/infogami_python_venv
+      - run: source ~/infogami_python_venv/bin/activate
       - run: pip install black codespell flake8 isort mypy pytest pyupgrade
       - run: black --check . || true
       - run: codespell . --ignore-words-list=ba,referer --quiet-level=2
