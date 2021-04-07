@@ -38,7 +38,7 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/infogami_python_venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('*requirements.txt') }}
+          key: ${{ runner.os }}-venv1-${{ hashFiles('*requirements.txt') }}
       - run: python3 -m venv ~/infogami_python_venv
       - name: Install dependencies
         run: |
