@@ -38,28 +38,15 @@ jobs:
       - uses: actions/cache@v2
         with:
           path: ~/infogami_python_venv
-          key: ${{ runner.os }}-venv1-${{ hashFiles('*requirements.txt') }}
+          key: ${{ runner.os }}-venv-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements_test.txt') }}
       - run: python3 -m venv ~/infogami_python_venv
       - name: Install dependencies
         run: |
           source ~/infogami_python_venv/bin/activate
-          pip install black codespell flake8 isort mypy pytest pyupgrade
-          pip install psycopg2 -r requirements.txt
+          pip install -r requirements_test.txt
       - name: Run tests
         run: |
           source ~/infogami_python_venv/bin/activate
-          black --check . || true
-          codespell . --ignore-words-list=ba,referer --quiet-level=2
-          flake8 . --count --select=C,E5,E9,F4,F6,F7,F82 --max-complexity=43 --max-line-length=233 --show-source --statistics
-          # exit-zero treats all errors as warnings.  The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-          isort --check-only --profile black . || true
-          mypy .
-          shopt -s globstar && pyupgrade --py38-plus **/*.py || true
-          # web.py needs to find the database on a host named postgres
-          echo "127.0.0.1 postgres" | sudo tee -a /etc/hosts
-          psql --host=postgres --command='create database infobase_test;'  # MUST have a --host=
-          pytest infogami -s
-          pytest tests
-          pytest test
+          scripts/run_python_linters.sh
+          scripts/run_python_tests.sh
           scripts/run_doctests.sh
