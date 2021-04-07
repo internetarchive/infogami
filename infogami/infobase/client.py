@@ -3,7 +3,6 @@ from __future__ import print_function
 
 import datetime
 import logging
-import socket
 import time
 
 import requests
