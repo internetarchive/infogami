@@ -41,12 +41,12 @@ jobs:
           key: ${{ runner.os }}-venv-${{ hashFiles('*requirements.txt') }}
       - run: python3 -m venv ~/infogami_python_venv
       - name: Install dependencies
-      - run: |
+        run: |
           source ~/infogami_python_venv/bin/activate
           pip install black codespell flake8 isort mypy pytest pyupgrade
           pip install psycopg2 -r requirements.txt
       - name: Run tests
-      - run: |
+        run: |
           source ~/infogami_python_venv/bin/activate
           black --check . || true
           codespell . --ignore-words-list=ba,referer --quiet-level=2
