@@ -647,7 +647,7 @@ class Nothing:
     >>> web.safestr(n)
     ''
     >>> str([n])  # See #148 and #151
-    '[]'
+    '[<Nothing>]'
     """
     def __getattr__(self, name):
         if name.startswith('__') or name == 'next':
