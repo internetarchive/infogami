@@ -640,12 +640,14 @@ class Nothing:
     """For representing missing values.
 
     >>> n = Nothing()
+    >>> repr(n)
+    '<Nothing>'
     >>> str(n)
-    '<Nothing>'
+    ''
     >>> web.safestr(n)
-    '<Nothing>'
+    ''
     >>> str([n])  # See #148 and #151
-    '[<Nothing>]'
+    '[]'
     """
     def __getattr__(self, name):
         if name.startswith('__') or name == 'next':
@@ -685,6 +687,9 @@ class Nothing:
 
     def __repr__(self):
         return "<Nothing>"
+
+    def __str__(self):
+        return ""
 
 nothing = Nothing()
 
