@@ -2,7 +2,7 @@
 # Used for GitHub actions
 
 # Run linters and formatters
-black --check .
+black --skip-string-normalization --check .
 codespell . --ignore-words-list=ba,referer --quiet-level=2
 flake8 .
   \ --count
