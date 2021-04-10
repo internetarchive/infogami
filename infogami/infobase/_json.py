@@ -13,7 +13,7 @@ See Bug#231831 for details.
 """
 import datetime
 
-import simplejson
+import json
 from six import iteritems
 
 
@@ -31,12 +31,12 @@ def unicodify(d):
         return d
 
 
-class JSONEncoder(simplejson.JSONEncoder):
+class JSONEncoder(json.JSONEncoder):
     def default(self, o):
         if hasattr(o, '__json__'):
-            return simplejson.loads(o.__json__())
+            return json.loads(o.__json__())
         else:
-            return simplejson.JSONEncoder.default(self, o)
+            return json.JSONEncoder.default(self, o)
 
 
 def dumps(obj, **kw):
@@ -48,11 +48,11 @@ def dumps(obj, **kw):
     >>> dumps(a)
     '[foo, foo]'
     """
-    return simplejson.dumps(unicodify(obj), cls=JSONEncoder, **kw)
+    return json.dumps(unicodify(obj), cls=JSONEncoder, **kw)
 
 
 def loads(s, **kw):
-    return simplejson.loads(s, **kw)
+    return json.loads(s, **kw)
 
 
 if __name__ == "__main__":
