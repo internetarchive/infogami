@@ -3,7 +3,15 @@ from infogami.infobase import dbstore, client, server
 import os
 import web
 
-db_parameters = dict(dbn='postgres', db='infobase_test', user=os.getenv('USER'), pw='', pooling=False)
+db_parameters = dict(
+    host='postgres',
+    dbn='postgres',
+    db='infobase_test',
+    user=os.getenv('USER'),
+    pw='',
+    pooling=False,
+)
+
 
 @web.memoize
 def recreate_database():
@@ -11,13 +19,15 @@ def recreate_database():
 
     This function is memoized to recreate the db only once per test session.
     """
-    assert os.system('dropdb infobase_test; createdb infobase_test') == 0
+    assert os.system('dropdb   --host=postgres infobase_test') == 0
+    assert os.system('createdb --host=postgres infobase_test') == 0
 
     db = web.database(**db_parameters)
 
     schema = dbstore.default_schema or dbstore.Schema()
     sql = str(schema.sql())
     db.query(sql)
+
 
 def setup_db(mod):
     recreate_database()
@@ -31,6 +41,7 @@ def setup_db(mod):
 
     mod._tx = mod.db.transaction()
 
+
 def teardown_db(mod):
     dbstore.create_database = mod._create_database
 
@@ -42,26 +53,30 @@ def teardown_db(mod):
     except:
         pass
 
+
 def setup_conn(mod):
     setup_db(mod)
     web.config.db_parameters = mod.db_parameters
     web.config.debug = False
     mod.conn = client.LocalConnection()
 
+
 def teardown_conn(mod):
     teardown_db(mod)
     try:
-        del mod.conn 
+        del mod.conn
     except:
         pass
+
 
 def setup_server(mod):
     # clear unwanted state
     web.ctx.clear()
 
-    server._infobase = None # clear earlier reference, if any.
-    server.get_site("test") # initialize server._infobase
-    mod.site = server._infobase.create("test") # create a new site
+    server._infobase = None  # clear earlier reference, if any.
+    server.get_site("test")  # initialize server._infobase
+    mod.site = server._infobase.create("test")  # create a new site
+
 
 def teardown_server(mod):
     server._infobase = None
@@ -71,10 +86,12 @@ def teardown_server(mod):
     except:
         pass
 
+
 def setup_site(mod):
     web.config.db_parameters = db_parameters.copy()
     setup_db(mod)
     setup_server(mod)
+
 
 def teardown_site(mod):
     teardown_server(mod)

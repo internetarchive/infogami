@@ -3,12 +3,11 @@ from __future__ import print_function
 
 import datetime
 import logging
-import socket
 import time
 
-import simplejson
+import json
+import requests
 from six import iteritems, string_types, text_type, with_metaclass
-from six.moves.http_client import HTTPConnection
 from six.moves.http_cookies import SimpleCookie
 from six.moves.urllib_parse import urlencode, quote, unquote
 
@@ -23,6 +22,7 @@ logger = logging.getLogger("infobase.client")
 
 DEBUG = False
 
+
 def storify(d):
     if isinstance(d, dict):
         for k, v in d.items():
@@ -33,6 +33,7 @@ def storify(d):
     else:
         return d
 
+
 def unstorify(d):
     if isinstance(d, dict):
         return {k: unstorify(v) for k, v in iteritems(d)}
@@ -40,6 +41,7 @@ def unstorify(d):
         return [unstorify(x) for x in d]
     else:
         return d
+
 
 class ClientException(Exception):
     def __init__(self, status, msg, json=None):
@@ -49,21 +51,23 @@ class ClientException(Exception):
 
     def get_data(self):
         if self.json:
-            return simplejson.loads(self.json)
+            return json.loads(self.json)
         else:
             return {}
+
 
 class NotFound(ClientException):
     def __init__(self, msg):
         ClientException.__init__(self, "404 Not Found", msg)
 
+
 def connect(type, **params):
-    """Connect to infobase server using the given params.
-    """
+    """Connect to infobase server using the given params."""
     for t in _connection_types:
         if type == t:
             return _connection_types[t](**params)
     raise Exception('Invalid connection type: ' + type)
+
 
 class Connection:
     response_type = "json"
@@ -82,7 +86,7 @@ class Connection:
 
     def handle_error(self, status, error):
         try:
-            data = simplejson.loads(error)
+            data = json.loads(error)
             message = data.get('message', data.get('error', ''))
             json = error
         except Exception as e:
@@ -90,8 +94,10 @@ class Connection:
             json = None
         raise ClientException(status, message, json)
 
+
 class LocalConnection(Connection):
     """LocalConnection assumes that db_parameters are set in web.config."""
+
     def __init__(self, **params):
         Connection.__init__(self)
         pass
@@ -110,8 +116,10 @@ class LocalConnection(Connection):
             self.handle_error(e.status, str(e))
         return out
 
+
 class RemoteConnection(Connection):
     """Connection to remote Infobase server."""
+
     def __init__(self, base_url):
         Connection.__init__(self)
         self.base_url = base_url
@@ -142,7 +150,6 @@ class RemoteConnection(Connection):
                 data = None
 
         stats.begin("infobase", path=path, method=method, data=data)
-        conn = HTTPConnection(self.base_url)
         env = web.ctx.get('env') or {}
 
         if self.auth_token:
@@ -155,15 +162,18 @@ class RemoteConnection(Connection):
         headers['X-REMOTE-IP'] = web.ctx.get('ip') or ''
 
         try:
-            conn.request(method, path, data, headers=headers)
-            response = conn.getresponse()
+            response = requests.request(method, path, data=data, headers=headers)
+            if not response.ok:
+                response.raise_for_status()
             stats.end()
-        except socket.error:
+        except requests.exceptions.HTTPError:
             stats.end(error=True)
             logger.error("Unable to connect to infobase server", exc_info=True)
-            raise ClientException("503 Service Unavailable", "Unable to connect to infobase server")
+            raise ClientException(
+                "503 Service Unavailable", "Unable to connect to infobase server"
+            )
 
-        cookie = response.getheader('Set-Cookie')
+        cookie = response.headers.get('Set-Cookie')
         if cookie:
             c = SimpleCookie()
             c.load(cookie)
@@ -176,24 +186,33 @@ class RemoteConnection(Connection):
 
         if web.config.debug:
             b = time.time()
-            print("%.02f (%s):" % (round(b-a, 2), web.ctx.infobase_req_count), response.status, method, _path, _data, file=web.debug)
+            print(
+                "%.02f (%s):" % (round(b - a, 2), web.ctx.infobase_req_count),
+                response.status_code,
+                method,
+                _path,
+                _data,
+                file=web.debug,
+            )
 
-        if response.status == 200:
-            return response.read()
+        if response.status_code == 200:
+            return response.content
         else:
-            self.handle_error("%d %s" % (response.status, response.reason), response.read())
+            self.handle_error(
+                "%d %s" % (response.status_code, response.reason), response.content
+            )
 
-_connection_types = {
-    'local': LocalConnection,
-    'remote': RemoteConnection
-}
+
+_connection_types = {'local': LocalConnection, 'remote': RemoteConnection}
+
 
 class LazyObject:
     """LazyObject which creates the required object on demand.
-        >>> o = LazyObject(lambda: [1, 2, 3])
-        >>> list(o)
-        [1, 2, 3]
+    >>> o = LazyObject(lambda: [1, 2, 3])
+    >>> list(o)
+    [1, 2, 3]
     """
+
     def __init__(self, creator):
         self.__dict__['_creator'] = creator
         self.__dict__['_o'] = None
@@ -208,6 +227,7 @@ class LazyObject:
 
     def __iter__(self):
         return self._get().__iter__()
+
 
 class Site:
     def __init__(self, conn, sitename):
@@ -224,7 +244,7 @@ class Site:
 
         # Allow connection to return dict
         if self._conn.response_type != "dict":
-            out = simplejson.loads(out)
+            out = json.loads(out)
         return storify(out)
 
     def _get(self, key, revision=None):
@@ -270,8 +290,10 @@ class Site:
 
     def _get_backreferences(self, thing):
         def safeint(x):
-            try: return int(x)
-            except ValueError: return 0
+            try:
+                return int(x)
+            except ValueError:
+                return 0
 
         if 'env' in web.ctx:
             i = web.input(_method='GET')
@@ -282,19 +304,16 @@ class Site:
 
         for p in thing.type._getdata().get('backreferences', []):
             offset = page_size * safeint(i.get(p.name + '_page') or '0')
-            q = {
-                p.property_name: thing.key,
-                'offset': offset,
-                'limit': page_size
-            }
+            q = {p.property_name: thing.key, 'offset': offset, 'limit': page_size}
             if p.expected_type:
                 q['type'] = p.expected_type.key
-            backreferences[p.name] = LazyObject(lambda q=q: self.get_many(self.things(q)))
+            backreferences[p.name] = LazyObject(
+                lambda q=q: self.get_many(self.things(q))
+            )
         return backreferences
 
     def exists(self):
-        """Returns true if this site exists.
-        """
+        """Returns true if this site exists."""
         try:
             self._request(path="", method="GET")
             return True
@@ -322,8 +341,7 @@ class Site:
         return create_thing(self, key, data, revision=revision)
 
     def get_many(self, keys, raw=False):
-        """When raw=True, the raw data is returned instead of objects.
-        """
+        """When raw=True, the raw data is returned instead of objects."""
         if not keys:
             return []
 
@@ -335,12 +353,12 @@ class Site:
                 keys = keys[100:]
             return things
 
-        data = dict(keys=simplejson.dumps(keys))
+        data = dict(keys=json.dumps(keys))
         result = self._request('/get_many', data=data)
         things = []
 
         for key in keys:
-            #@@ what if key is not there?
+            # @@ what if key is not there?
             if key in result:
                 data = result[key]
                 if raw:
@@ -357,8 +375,10 @@ class Site:
         return result
 
     def things(self, query, details=False):
-        query = simplejson.dumps(query)
-        return self._request('/things', 'GET', {'query': query, "details": str(details)})
+        query = json.dumps(query)
+        return self._request(
+            '/things', 'GET', {'query': query, "details": str(details)}
+        )
 
     def versions(self, query):
         def process(v):
@@ -366,12 +386,13 @@ class Site:
             v.created = parse_datetime(v.created)
             v.author = v.author and self.get(v.author, lazy=True)
             return v
-        query = simplejson.dumps(query)
-        versions =  self._request('/versions', 'GET', {'query': query})
+
+        query = json.dumps(query)
+        versions = self._request('/versions', 'GET', {'query': query})
         return [process(v) for v in versions]
 
     def recentchanges(self, query):
-        query = simplejson.dumps(query)
+        query = json.dumps(query)
         changes = self._request('/_recentchanges', 'GET', {'query': query})
         return [Changeset.create(self, c) for c in changes]
 
@@ -381,8 +402,10 @@ class Site:
 
     def write(self, query, comment=None, action=None):
         self._run_hooks('before_new_version', query)
-        _query = simplejson.dumps(query)
-        result = self._request('/write', 'POST', dict(query=_query, comment=comment, action=action))
+        _query = json.dumps(query)
+        result = self._request(
+            '/write', 'POST', dict(query=_query, comment=comment, action=action)
+        )
         self._run_hooks('on_new_version', query)
         self._invalidate_cache(result.created + result.updated)
         return result
@@ -396,8 +419,8 @@ class Site:
         query['_data'] = data
         key = query['key']
 
-        #@@ save sends payload of application/json instead of form data
-        data = simplejson.dumps(query)
+        # @@ save sends payload of application/json instead of form data
+        data = json.dumps(query)
         result = self._request('/save' + key, 'POST', data)
         if result:
             self._invalidate_cache([result['key']])
@@ -405,11 +428,20 @@ class Site:
         return result
 
     def save_many(self, query, comment=None, data=None, action=None):
-        _query = simplejson.dumps(query)
-        #for q in query:
+        _query = json.dumps(query)
+        # for q in query:
         #    self._run_hooks('before_new_version', q)
         data = data or {}
-        result = self._request('/save_many', 'POST', dict(query=_query, comment=comment, action=action, data=simplejson.dumps(data)))
+        result = self._request(
+            '/save_many',
+            'POST',
+            dict(
+                query=_query,
+                comment=comment,
+                action=action,
+                data=json.dumps(data),
+            ),
+        )
         self._invalidate_cache([r['key'] for r in result])
         for q in query:
             self._run_hooks('on_new_version', q)
@@ -442,10 +474,14 @@ class Site:
                 _run_hooks(name, t)
 
     def login(self, username, password, remember=False):
-        return self._request('/account/login', 'POST', dict(username=username, password=password))
+        return self._request(
+            '/account/login', 'POST', dict(username=username, password=password)
+        )
 
     def register(self, username, displayname, email, password):
-        data = dict(username=username, displayname=displayname, email=email, password=password)
+        data = dict(
+            username=username, displayname=displayname, email=email, password=password
+        )
         _run_hooks("before_register", data)
         return self._request('/account/register', 'POST', data)
 
@@ -454,8 +490,7 @@ class Site:
         return self._request('/account/activate', 'POST', data)
 
     def update_account(self, username, **kw):
-        """Updates an account.
-        """
+        """Updates an account."""
         data = dict(kw, username=username)
         return self._request('/account/update', 'POST', data)
 
@@ -467,8 +502,11 @@ class Site:
         return self._request("/account/find", "GET", data)
 
     def update_user(self, old_password, new_password, email):
-        return self._request('/account/update_user', 'POST',
-            dict(old_password=old_password, new_password=new_password, email=email))
+        return self._request(
+            '/account/update_user',
+            'POST',
+            dict(old_password=old_password, new_password=new_password, email=email),
+        )
 
     def update_user_details(self, username, **kw):
         params = dict(kw, username=username)
@@ -485,13 +523,19 @@ class Site:
         return self._request('/account/get_reset_code', 'GET', dict(email=email))
 
     def check_reset_code(self, username, code):
-        return self._request('/account/check_reset_code', 'GET', dict(username=username, code=code))
+        return self._request(
+            '/account/check_reset_code', 'GET', dict(username=username, code=code)
+        )
 
     def get_user_email(self, username):
         return self._request('/account/get_user_email', 'GET', dict(username=username))
 
     def reset_password(self, username, code, password):
-        return self._request('/account/reset_password', 'POST', dict(username=username, code=code, password=password))
+        return self._request(
+            '/account/reset_password',
+            'POST',
+            dict(username=username, code=code, password=password),
+        )
 
     def get_user(self):
         # avoid hitting infobase when there is no cookie.
@@ -502,15 +546,17 @@ class Site:
         except ClientException:
             return None
 
-        user = data and create_thing(self, data['key'], self._process_dict(common.parse_query(data)))
+        user = data and create_thing(
+            self, data['key'], self._process_dict(common.parse_query(data))
+        )
         return user
 
     def new(self, key, data=None):
-        """Creates a new thing in memory.
-        """
+        """Creates a new thing in memory."""
         data = common.parse_query(data)
         data = self._process_dict(data or {})
         return create_thing(self, key, data)
+
 
 class Store:
     """Store to store any arbitrary data.
@@ -518,13 +564,14 @@ class Store:
     This provides a dictionary like interface for storing documents.
     Each document can have an optional type (default is "") and all the (type, name, value) triples are indexed.
     """
+
     def __init__(self, conn, sitename):
         self.conn = conn
         self.name = sitename
 
     def _request(self, path, method='GET', data=None):
         out = self.conn.request(self.name, "/_store/" + path, method, data)
-        return simplejson.loads(out)
+        return json.loads(out)
 
     def delete(self, key):
         return self._request(key, method='DELETE')
@@ -532,28 +579,41 @@ class Store:
     def update(self, d={}, **kw):
         d2 = dict(d, **kw)
         docs = [dict(doc, _key=key) for key, doc in d2.items()]
-        self._request("_save_many", method="POST", data=simplejson.dumps(docs))
+        self._request("_save_many", method="POST", data=json.dumps(docs))
 
     def clear(self):
         """Removes all keys from the store. Use this with caution!"""
         for k in self.keys(limit=-1):
             del self[k]
 
-    def query(self, type=None, name=None, value=None, limit=100, offset=0, include_docs=False):
+    def query(
+        self, type=None, name=None, value=None, limit=100, offset=0, include_docs=False
+    ):
         """Returns the  a list of keys matching the given query.
         Sample result:
             [{"key": "a"}, {"key": "b"}, {"key": "c"}]
         """
         if limit == -1:
-            return self.unlimited_query(type, name, value, offset=offset, include_docs=include_docs)
+            return self.unlimited_query(
+                type, name, value, offset=offset, include_docs=include_docs
+            )
 
-        params = dict(type=type, name=name, value=value, limit=limit, offset=offset, include_docs=str(include_docs))
+        params = dict(
+            type=type,
+            name=name,
+            value=value,
+            limit=limit,
+            offset=offset,
+            include_docs=str(include_docs),
+        )
         params = dict((k, v) for k, v in params.items() if v is not None)
         return self._request("_query", method="GET", data=params)
 
     def unlimited_query(self, type, name, value, offset=0, include_docs=False):
         while True:
-            result = self.query(type, name, value, limit=1000, offset=offset, include_docs=include_docs)
+            result = self.query(
+                type, name, value, limit=1000, offset=offset, include_docs=include_docs
+            )
             if not result:
                 break
 
@@ -571,7 +631,7 @@ class Store:
                 raise
 
     def __setitem__(self, key, data):
-        return self._request(key, method='PUT', data=simplejson.dumps(data))
+        return self._request(key, method='PUT', data=json.dumps(data))
 
     def __delitem__(self, key):
         self.delete(key)
@@ -607,6 +667,7 @@ class Store:
     def items(self, **kw):
         return list(self.iteritems(**kw))
 
+
 class Sequence:
     """Dynamic sequences.
     Quite similar to sequences in postgres, but there is no need of define anything upfront..
@@ -615,13 +676,14 @@ class Sequence:
         for i in range(10):
             print(seq.next_value("foo"))
     """
+
     def __init__(self, conn, sitename):
         self.conn = conn
         self.name = sitename
 
     def _request(self, path, method='GET', data=None):
         out = self.conn.request(self.name, "/_seq/" + path, method, data)
-        return simplejson.loads(out)
+        return json.loads(out)
 
     def get_value(self, name):
         return self._request(name, method="GET")['value']
@@ -629,23 +691,31 @@ class Sequence:
     def next_value(self, name):
         return self._request(name, method="POST", data=" ")['value']
 
+
 def parse_datetime(datestring):
     """Parses from isoformat.
     Is there any way to do this in stdlib?
     """
     import re, datetime
+
     tokens = re.split(r'-|T|:|\.| ', datestring)
     return datetime.datetime(*map(int, tokens))
+
 
 class Nothing:
     """For representing missing values.
 
     >>> n = Nothing()
+    >>> repr(n)
+    '<Nothing>'
     >>> str(n)
     ''
     >>> web.safestr(n)
     ''
+    >>> str([n])  # See #148 and #151
+    '[<Nothing>]'
     """
+
     def __getattr__(self, name):
         if name.startswith('__') or name == 'next':
             raise AttributeError(name)
@@ -682,14 +752,21 @@ class Nothing:
     def __ne__(self, other):
         return not (self == other)
 
-    def __str__(self): return ""
-    def __repr__(self): return ""
+    def __repr__(self):
+        return "<Nothing>"
+
+    def __str__(self):
+        return ""
+
 
 nothing = Nothing()
 
 _thing_class_registry = {}
+
+
 def register_thing_class(type, klass):
     _thing_class_registry[type] = klass
+
 
 def create_thing(site, key, data, revision=None):
     type = None
@@ -697,7 +774,7 @@ def create_thing(site, key, data, revision=None):
         if data is not None and data.get('type'):
             type = data.get('type')
 
-            #@@@ Fix this!
+            # @@@ Fix this!
             if isinstance(type, Thing):
                 type = type.key
             elif isinstance(type, dict):
@@ -713,6 +790,7 @@ def create_thing(site, key, data, revision=None):
 
     klass = _thing_class_registry.get(type) or _thing_class_registry.get(None)
     return klass(site, key, data, revision)
+
 
 class Thing(object):
     def __init__(self, site, key, data=None, revision=None):
@@ -737,14 +815,16 @@ class Thing(object):
             # dict is not hashable and converting it to tuple of items isn't #
             # enough as values might again be dictionaries. The simplest
             # solution seems to be converting it to JSON.
-            return hash(simplejson.dumps(d, sort_keys=True))
+            return hash(json.dumps(d, sort_keys=True))
 
     def _getdata(self):
         if self._data is None:
             self._data = self._site._load(self.key, self._revision)
 
             # @@ Hack: change class based on type
-            self.__class__ = _thing_class_registry.get(self._data.get('type').key, Thing)
+            self.__class__ = _thing_class_registry.get(
+                self._data.get('type').key, Thing
+            )
 
         return self._data
 
@@ -782,7 +862,13 @@ class Thing(object):
     def __setattr__(self, key, value):
         if key == '__class__':
             object.__setattr__(self, '__class__', value)
-        elif key in ['key', 'revision', 'latest_revision', 'last_modified', 'created'] or key.startswith('_'):
+        elif key.startswith('_') or key in (
+            'key',
+            'revision',
+            'latest_revision',
+            'last_modified',
+            'created',
+        ):
             self.__dict__[key] = value
         else:
             self._getdata()[key] = value
@@ -835,7 +921,7 @@ class Thing(object):
         #
         # @@ Can this ever lead to infinite-recursion?
         if self._data is None:
-            self._getdata() # initialize self._data
+            self._getdata()  # initialize self._data
             return getattr(self, key)
 
         return self[key]
@@ -854,6 +940,7 @@ class Thing(object):
             self.__class__.__name__, self._site, self.key, self._data, self._revision
         )
 
+
 class Type(Thing):
     def _get_defaults(self):
         return {"kind": "regular"}
@@ -867,6 +954,7 @@ class Type(Thing):
         for p in self.backreferences:
             if p.name == name:
                 return p
+
 
 class Changeset:
     def __init__(self, site, data):
@@ -891,7 +979,9 @@ class Changeset:
         return self.comment
 
     def get_changes(self):
-        return [self._site.get(c['key'], c['revision'], lazy=True) for c in self.changes]
+        return [
+            self._site.get(c['key'], c['revision'], lazy=True) for c in self.changes
+        ]
 
     def dict(self):
         return unstorify(self._data)
@@ -905,7 +995,7 @@ class Changeset:
             "month": self.timestamp.month,
             "day": self.timestamp.day,
             "kind": self.kind,
-            "id": self.id
+            "id": self.id,
         }
         default_format = "/recentchanges/%(year)s/%(month)02d/%(day)02d/%(kind)s/%(id)s"
         format = config.get("recentchanges_view_link_format", default_format)
@@ -917,12 +1007,18 @@ class Changeset:
     @staticmethod
     def create(site, data):
         kind = data['kind']
-        klass = _changeset_class_register.get(kind) or _changeset_class_register.get(None)
+        klass = _changeset_class_register.get(kind) or _changeset_class_register.get(
+            None
+        )
         return klass(site, data)
 
+
 _changeset_class_register = {}
+
+
 def register_changeset_class(kind, klass):
     _changeset_class_register[kind] = klass
+
 
 register_changeset_class(None, Changeset)
 register_thing_class(None, Thing)
@@ -930,16 +1026,21 @@ register_thing_class('/type/type', Type)
 
 # hooks can be registered by extending the hook class
 hooks = []
+
+
 class metahook(type):
     def __init__(self, name, bases, attrs):
         hooks.append(self())
         type.__init__(self, name, bases, attrs)
 
+
 class hook(with_metaclass(metahook)):
     pass
 
-#remove hook from hooks
+
+# remove hook from hooks
 hooks.pop()
+
 
 def _run_hooks(name, thing):
     for h in hooks:
@@ -947,6 +1048,8 @@ def _run_hooks(name, thing):
         if m:
             m(thing)
 
+
 if __name__ == "__main__":
     import doctest
+
     doctest.testmod()
