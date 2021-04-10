@@ -8,8 +8,9 @@ import time
 from six import text_type
 
 import web
+import json
 
-from infogami.infobase import common, config, readquery, _json as simplejson
+from infogami.infobase import common, config, readquery
 from infogami.infobase._dbstore import store, sequence
 from infogami.infobase._dbstore.indexer import Indexer
 from infogami.infobase._dbstore.save import SaveImpl, PropertyManager
@@ -154,7 +155,7 @@ class DBSiteStore(common.SiteStore):
             for i, r in enumerate(self.db.query(query)):
                 if i:
                     yield ',\n'
-                yield simplejson.dumps(r.key)
+                yield json.dumps(r.key)
                 yield ": "
                 yield process_json(r.key, r.data)
             yield '}'
@@ -196,7 +197,7 @@ class DBSiteStore(common.SiteStore):
         # update cache.
         # Use the docs from result as they contain the updated revision and last_modified fields.
         for doc in changeset.get('docs', []):
-            web.ctx.new_objects[doc['key']] = simplejson.dumps(doc)
+            web.ctx.new_objects[doc['key']] = json.dumps(doc)
 
         return changeset
 
@@ -632,7 +633,7 @@ class DBSiteStore(common.SiteStore):
             self.db.update('thing', type=id, where='id=$id', vars=locals())
             self.db.insert('version', False, thing_id=id, revision=1)
             self.db.insert(
-                'data', False, thing_id=id, revision=1, data=simplejson.dumps(data)
+                'data', False, thing_id=id, revision=1, data=json.dumps(data)
             )
             t.commit()
 
