@@ -1,5 +1,5 @@
 import datetime
-import simplejson
+import json
 from six import iteritems, string_types, text_type
 
 import web
@@ -180,8 +180,8 @@ def create_test_store():
     """Creates a test implementation for using in doctests.
 
     >>> store = create_test_store()
-    >>> json = store.get('/type/type')
-    >>> t = Thing.from_json(store, u'/type/type', json)
+    >>> json_data = store.get('/type/type')
+    >>> t = Thing.from_json(store, '/type/type', json_data)
     >>> allow_unicode(t)
     "<thing: '/type/type'>"
     >>> isinstance(t.properties[0], web.utils.Storage)
@@ -199,7 +199,7 @@ def create_test_store():
 
     class Store(web.storage):
         def get(self, key, revision=None):
-            return simplejson.dumps(self[key].format_data())
+            return json.dumps(self[key].format_data())
 
     store = Store()
 
@@ -287,10 +287,10 @@ def create_test_store():
 
 
 class LazyThing:
-    def __init__(self, store, key, json):
+    def __init__(self, store, key, json_data):
         self.__dict__['_key'] = key
         self.__dict__['_store'] = store
-        self.__dict__['_json'] = json
+        self.__dict__['_json'] = json_data
         self.__dict__['_thing'] = None
 
     def _get(self):

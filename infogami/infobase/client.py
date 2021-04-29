@@ -1,11 +1,10 @@
 """Infobase client."""
-from __future__ import print_function
-
 import datetime
+import json
 import logging
+import re
 import time
 
-import json
 import requests
 from six import iteritems, string_types, text_type, with_metaclass
 from six.moves.http_cookies import SimpleCookie
@@ -44,16 +43,13 @@ def unstorify(d):
 
 
 class ClientException(Exception):
-    def __init__(self, status, msg, json=None):
+    def __init__(self, status, msg, json_data=None):
         self.status = status
-        self.json = json
+        self.json = json_data
         Exception.__init__(self, msg)
 
     def get_data(self):
-        if self.json:
-            return json.loads(self.json)
-        else:
-            return {}
+        return json.loads(self.json) if self.json else {}
 
 
 class NotFound(ClientException):
@@ -88,11 +84,11 @@ class Connection:
         try:
             data = json.loads(error)
             message = data.get('message', data.get('error', ''))
-            json = error
+            json_data = error
         except Exception as e:
             message = error or str(e)
-            json = None
-        raise ClientException(status, message, json)
+            json_data = None
+        raise ClientException(status, message, json_data)
 
 
 class LocalConnection(Connection):
@@ -162,7 +158,9 @@ class RemoteConnection(Connection):
         headers['X-REMOTE-IP'] = web.ctx.get('ip') or ''
 
         try:
-            response = requests.request(method, path, data=data, headers=headers)
+            response = requests.request(
+                method, f'http://{self.base_url}{path}', data=data, headers=headers
+            )
             if not response.ok:
                 response.raise_for_status()
             stats.end()
@@ -696,8 +694,6 @@ def parse_datetime(datestring):
     """Parses from isoformat.
     Is there any way to do this in stdlib?
     """
-    import re, datetime
-
     tokens = re.split(r'-|T|:|\.| ', datestring)
     return datetime.datetime(*map(int, tokens))
 
