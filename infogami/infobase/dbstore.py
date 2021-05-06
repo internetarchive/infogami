@@ -613,6 +613,13 @@ class DBSiteStore(common.SiteStore):
         thing_id = d and d[0].thing_id or None
         return thing_id and self.get_metadata_from_id(thing_id).key
 
+    def check_datetime(self, obj):
+        if isinstance(obj, datetime.datetime):
+            return obj.isoformat()
+        else:
+            return TypeError
+
+
     def initialize(self):
         if not self.initialized():
             t = self.db.transaction()
@@ -632,9 +639,7 @@ class DBSiteStore(common.SiteStore):
 
             self.db.update('thing', type=id, where='id=$id', vars=locals())
             self.db.insert('version', False, thing_id=id, revision=1)
-            self.db.insert(
-                'data', False, thing_id=id, revision=1, data=json.dumps(data)
-            )
+            self.db.insert('data', False, thing_id=id, revision=1, data= json.dumps(data, default=self.check_datetime(t)))
             t.commit()
 
     def initialized(self):
