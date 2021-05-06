@@ -617,7 +617,7 @@ class DBSiteStore(common.SiteStore):
         if isinstance(obj, datetime.datetime):
             return obj.isoformat()
         else:
-            return TypeError
+            raise TypeError
 
 
     def initialize(self):
