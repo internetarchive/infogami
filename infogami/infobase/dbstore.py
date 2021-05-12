@@ -25,6 +25,11 @@ def process_json(key, json_data):
     """Hook to process json data."""
     return json_data
 
+def encode_datetime(self,obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+    else:
+        raise TypeError(f'Object of type "{obj.__class__.__name__}" is not JSON serializable')
 
 class DBSiteStore(common.SiteStore):
     def __init__(self, db, schema):
@@ -610,13 +615,6 @@ class DBSiteStore(common.SiteStore):
         thing_id = d and d[0].thing_id or None
         return thing_id and self.get_metadata_from_id(thing_id).key
 
-    def check_datetime(self, obj):
-        if isinstance(obj, datetime.datetime):
-            return obj.isoformat()
-        else:
-            raise TypeError()
-
-
     def initialize(self):
         if not self.initialized():
             t = self.db.transaction()
@@ -636,7 +634,7 @@ class DBSiteStore(common.SiteStore):
 
             self.db.update('thing', type=id, where='id=$id', vars=locals())
             self.db.insert('version', False, thing_id=id, revision=1)
-            self.db.insert('data', False, thing_id=id, revision=1, data= json.dumps(data, default=self.check_datetime(t)))
+            self.db.insert('data', False, thing_id=id, revision=1, data= json.dumps(data, default=encode_datetime))
             t.commit()
 
     def initialized(self):
