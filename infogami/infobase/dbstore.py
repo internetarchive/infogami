@@ -132,9 +132,9 @@ class DBSiteStore(common.SiteStore):
             return {}
 
         query = (
-            'SELECT thing.key, data.data from thing, data'
-            + ' WHERE data.revision = thing.latest_revision and data.thing_id=thing.id'
-            + ' AND thing.key IN $keys'
+                'SELECT thing.key, data.data from thing, data'
+                + ' WHERE data.revision = thing.latest_revision and data.thing_id=thing.id'
+                + ' AND thing.key IN $keys'
         )
 
         return dict((row.key, row.data) for row in self.db.query(query, vars=locals()))
@@ -145,11 +145,11 @@ class DBSiteStore(common.SiteStore):
 
         xkeys = [web.reparam('$k', dict(k=k)) for k in keys]
         query = (
-            'SELECT thing.key, data.data from thing, data '
-            + 'WHERE data.revision = thing.latest_revision and data.thing_id=thing.id '
-            + ' AND thing.key IN ('
-            + self.sqljoin(xkeys, ', ')
-            + ')'
+                'SELECT thing.key, data.data from thing, data '
+                + 'WHERE data.revision = thing.latest_revision and data.thing_id=thing.id '
+                + ' AND thing.key IN ('
+                + self.sqljoin(xkeys, ', ')
+                + ')'
         )
 
         def process(query):
@@ -204,16 +204,16 @@ class DBSiteStore(common.SiteStore):
         return changeset
 
     def save(
-        self,
-        key,
-        doc,
-        timestamp=None,
-        comment=None,
-        data=None,
-        ip=None,
-        author=None,
-        transaction_id=None,
-        action=None,
+            self,
+            key,
+            doc,
+            timestamp=None,
+            comment=None,
+            data=None,
+            ip=None,
+            author=None,
+            transaction_id=None,
+            action=None,
     ):
         logger.debug("saving %s", key)
         timestamp = timestamp or datetime.datetime.utcnow
