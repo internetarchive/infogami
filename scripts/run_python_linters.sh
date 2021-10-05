@@ -16,7 +16,7 @@ flake8 . \
 flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 # FIXME: Remove `|| true` once the code is isort compliant
 isort --check-only --profile black . || true
-mypy .
+mypy --install-types --non-interactive .
 
 # FIXME: Remove `|| true`
 shopt -s globstar && pyupgrade --py38-plus **/*.py || true
