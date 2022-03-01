@@ -1338,7 +1338,10 @@ class Markdown:
             if theRest:
                 theRest = theRest[1:]  # skip the first (blank) line
 
-            self._processSection(parent_elem, theRest, inList)
+            try:
+                self._processSection(parent_elem, theRest, inList)
+            except RecursionError as e:
+                message(CRITICAL, repr(e))
 
     def _processUList(self, parent_elem, lines, inList):
         self._processList(parent_elem, lines, inList, listexpr='ul', tag='ul')
