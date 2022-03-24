@@ -7,8 +7,9 @@ import time
 from six import text_type
 
 import web
+import json
 
-from infogami.infobase import common, config, readquery, _json as simplejson
+from infogami.infobase import common, config, readquery
 from infogami.infobase._dbstore import store, sequence
 from infogami.infobase._dbstore.indexer import Indexer
 from infogami.infobase._dbstore.save import SaveImpl, PropertyManager
@@ -24,6 +25,11 @@ def process_json(key, json_data):
     """Hook to process json data."""
     return json_data
 
+def encode_datetime(self,obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.isoformat()
+    else:
+        raise TypeError(f'Object of type "{obj.__class__.__name__}" is not JSON serializable')
 
 class DBSiteStore(common.SiteStore):
     def __init__(self, db, schema):
@@ -126,9 +132,9 @@ class DBSiteStore(common.SiteStore):
             return {}
 
         query = (
-            'SELECT thing.key, data.data from thing, data'
-            + ' WHERE data.revision = thing.latest_revision and data.thing_id=thing.id'
-            + ' AND thing.key IN $keys'
+                'SELECT thing.key, data.data from thing, data'
+                + ' WHERE data.revision = thing.latest_revision and data.thing_id=thing.id'
+                + ' AND thing.key IN $keys'
         )
 
         return dict((row.key, row.data) for row in self.db.query(query, vars=locals()))
@@ -139,11 +145,11 @@ class DBSiteStore(common.SiteStore):
 
         xkeys = [web.reparam('$k', dict(k=k)) for k in keys]
         query = (
-            'SELECT thing.key, data.data from thing, data '
-            + 'WHERE data.revision = thing.latest_revision and data.thing_id=thing.id '
-            + ' AND thing.key IN ('
-            + self.sqljoin(xkeys, ', ')
-            + ')'
+                'SELECT thing.key, data.data from thing, data '
+                + 'WHERE data.revision = thing.latest_revision and data.thing_id=thing.id '
+                + ' AND thing.key IN ('
+                + self.sqljoin(xkeys, ', ')
+                + ')'
         )
 
         def process(query):
@@ -151,7 +157,7 @@ class DBSiteStore(common.SiteStore):
             for i, r in enumerate(self.db.query(query)):
                 if i:
                     yield ',\n'
-                yield simplejson.dumps(r.key)
+                yield json.dumps(r.key)
                 yield ": "
                 yield process_json(r.key, r.data)
             yield '}'
@@ -193,21 +199,21 @@ class DBSiteStore(common.SiteStore):
         # update cache.
         # Use the docs from result as they contain the updated revision and last_modified fields.
         for doc in changeset.get('docs', []):
-            web.ctx.new_objects[doc['key']] = simplejson.dumps(doc)
+            web.ctx.new_objects[doc['key']] = json.dumps(doc)
 
         return changeset
 
     def save(
-        self,
-        key,
-        doc,
-        timestamp=None,
-        comment=None,
-        data=None,
-        ip=None,
-        author=None,
-        transaction_id=None,
-        action=None,
+            self,
+            key,
+            doc,
+            timestamp=None,
+            comment=None,
+            data=None,
+            ip=None,
+            author=None,
+            transaction_id=None,
+            action=None,
     ):
         logger.debug("saving %s", key)
         timestamp = timestamp or datetime.datetime.utcnow
@@ -628,9 +634,7 @@ class DBSiteStore(common.SiteStore):
 
             self.db.update('thing', type=id, where='id=$id', vars=locals())
             self.db.insert('version', False, thing_id=id, revision=1)
-            self.db.insert(
-                'data', False, thing_id=id, revision=1, data=simplejson.dumps(data)
-            )
+            self.db.insert('data', False, thing_id=id, revision=1, data= json.dumps(data, default=encode_datetime))
             t.commit()
 
     def initialized(self):
