@@ -61,9 +61,7 @@ def unstringify(d):
     {'a': 1, 'b': 2}
     """
     return {
-            web.lstrips(k, 'string_'): v
-            for k, v in d.items()
-            if k.startswith('string_')
+        web.lstrips(k, 'string_'): v for k, v in d.items() if k.startswith('string_')
     }
 
 

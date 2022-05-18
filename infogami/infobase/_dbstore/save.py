@@ -268,9 +268,7 @@ class SaveImpl:
     def get_thing_ids(self, keys):
         keys = list(set(keys))
 
-        thing_ids = {
-            key: self.thing_ids[key] for key in keys if key in self.thing_ids
-        }
+        thing_ids = {key: self.thing_ids[key] for key in keys if key in self.thing_ids}
         notfound = [key for key in keys if key not in thing_ids]
 
         if notfound:
@@ -465,8 +463,7 @@ class IndexUtil:
         """The DB schema has a limit of 2048 chars on string values. This function ignores values which are longer than that."""
         is_too_long = self._is_too_long
         return {
-            k: [v for v in values if not is_too_long(v)]
-            for k, values in index.items()
+            k: [v for v in values if not is_too_long(v)] for k, values in index.items()
         }
 
     def _is_too_long(self, v, limit=2048):
@@ -518,9 +515,7 @@ class IndexUtil:
         if not keys:
             return {}
 
-        thing_ids = {
-            key: self.thing_ids[key] for key in keys if key in self.thing_ids
-        }
+        thing_ids = {key: self.thing_ids[key] for key in keys if key in self.thing_ids}
         notfound = [key for key in keys if key not in thing_ids]
 
         if notfound:

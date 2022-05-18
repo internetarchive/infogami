@@ -317,9 +317,7 @@ class DBSiteStore(common.SiteStore):
                 if not key_id:
                     raise StopIteration
 
-                q1 = web.reparam(
-                    f'{table}.key_id=$key_id', locals()
-                )
+                q1 = web.reparam(f'{table}.key_id=$key_id', locals())
 
                 if isinstance(c.value, list):
                     q2 = web.sqlors(f'{table}.value {op} ', c.value)

@@ -127,9 +127,7 @@ class Site:
     def _get_many_things(self, keys):
         json_data = self.get_many(keys)
         d = json.loads(json_data)
-        return {
-            k: common.Thing.from_dict(self.store, k, doc) for k, doc in d.items()
-        }
+        return {k: common.Thing.from_dict(self.store, k, doc) for k, doc in d.items()}
 
     def get_many(self, keys):
         return self.store.get_many(keys)

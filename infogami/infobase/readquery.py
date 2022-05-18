@@ -36,9 +36,7 @@ def run_things_query(store, query):
             return value
 
     def get_data(thingdata, query):
-        fields = {
-            web.lstrips(k, query.prefix): v for k, v in query.requested.items()
-        }
+        fields = {web.lstrips(k, query.prefix): v for k, v in query.requested.items()}
 
         # special care for '*'
         if '*' in fields:

@@ -19,9 +19,7 @@ class xdict:
                 return d
 
         return (
-            '{'
-            + ", ".join([f"'{k}': {f(v)}" for k, v in sorted(self.d.items())])
-            + '}'
+            '{' + ", ".join([f"'{k}': {f(v)}" for k, v in sorted(self.d.items())]) + '}'
         )
 
 

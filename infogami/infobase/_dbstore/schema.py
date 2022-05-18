@@ -90,8 +90,5 @@ class Schema:
         return tables
 
     def __str__(self):
-        lines = [
-            f"{e.table}\t{e.type}\t{e.datatype}\t{e.name}"
-            for e in self.entries
-        ]
+        lines = [f"{e.table}\t{e.type}\t{e.datatype}\t{e.name}" for e in self.entries]
         return "\n".join(lines)

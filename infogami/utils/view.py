@@ -219,9 +219,7 @@ def thinginput(value, property=None, **kw):
         else:
             raise ValueError("missing expected_type")
         property = web.storage(kw)
-    return str(
-        render.input(thingify(property.expected_type, value), property)
-    )
+    return str(render.input(thingify(property.expected_type, value), property))
 
 
 def thingify(type, value):
@@ -244,11 +242,7 @@ def thingify(type, value):
         "/type/uri",
     )
 
-    if (
-        type.key not in PRIMITIVE_TYPES
-        and isinstance(value, str)
-        and not value.strip()
-    ):
+    if type.key not in PRIMITIVE_TYPES and isinstance(value, str) and not value.strip():
         value = web.ctx.site.new('', {'type': type})
 
     if type.key not in PRIMITIVE_TYPES and (
