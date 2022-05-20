@@ -103,7 +103,7 @@ class SaveImpl:
         d = []
 
         def index(key, value):
-            if isinstance(value, ((str,), int)):
+            if isinstance(value, (int, str)):
                 d.append({"tx_id": tx_id, "key": key, "value": value})
             elif isinstance(value, list):
                 for v in value:

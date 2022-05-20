@@ -55,7 +55,7 @@ web.template.Template.globals.update(
         # common utilities
         int=int,
         str=str,
-        basestring=(str,),
+        basestring=str,
         unicode=str,
         bool=bool,
         list=list,
@@ -409,7 +409,8 @@ def write(filename):
     print(web.ctx.site.write(q))
 
 
-# this is not really the right place to move this, but couldn't find a better place than this.
+# this is not really the right place to move this, but couldn't find a better place
+# than this.
 def require_login(f):
     def g(*a, **kw):
         if not web.ctx.site.get_user():
