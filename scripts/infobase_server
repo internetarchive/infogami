@@ -12,8 +12,11 @@ USAGE:
     $ python ./script/infobase_server infobase.yaml fastcgi 7070
 """
 import sys
+
 import _init_path
+
 from infogami.infobase import server
+
 
 def main(args):
     if len(args) < 1 or args[0] in ['-h', '--help']:

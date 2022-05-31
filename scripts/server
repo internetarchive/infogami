@@ -12,9 +12,11 @@ USAGE:
     $ ./scripts/server infogami.yml startserver fastcgi 8080
 """
 import sys
+
 import _init_path
 
 import infogami
+
 
 def main(args):
     if len(args) < 1 or sys.argv[0] in ['-h', '--help']:
