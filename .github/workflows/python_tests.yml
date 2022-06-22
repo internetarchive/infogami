@@ -32,6 +32,8 @@ jobs:
           # Map TCP port 5432 on service container to the host
           - 5432:5432
     steps:
+      - if: matrix.python-version == 3.11-dev
+        run: sudo apt-get install -y libxml2 libxslt
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
         with:
