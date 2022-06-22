@@ -13,8 +13,6 @@ jobs:
         python-version: ["3.9", "3.10", "3.11-dev"]
     runs-on: ubuntu-latest
     steps:
-      - if: "contains(matrix.python-version, '-dev')"
-        run: sudo apt-get update && sudo apt-get install -y libxml2 libxslt-dev
       - name: Checkout Open Library
         uses: actions/checkout@v3
         with:
@@ -27,5 +25,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install --upgrade pip wheel
+      - if: "contains(matrix.python-version, '-dev')"
+        run: |
+          pip install Cython
+          sudo apt-get update && sudo apt-get install -y libxml2 libxslt-dev
+          pip install lxml
       - run: pip install -r requirements_test.txt
       - run: make test-py
