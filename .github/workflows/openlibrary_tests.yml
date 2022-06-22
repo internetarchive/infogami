@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - if: "contains(matrix.python-version, '-dev')"
-        run: sudo apt-get install -y libxml2 libxslt-dev
+        run: sudo apt-get update && sudo apt-get install -y libxml2 libxslt-dev
       - name: Checkout Open Library
         uses: actions/checkout@v3
         with:
