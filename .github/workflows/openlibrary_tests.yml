@@ -27,4 +27,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -r requirements_test.txt
+      - if: "contains(matrix.python-version, '-dev')"
+        run: pip install --upgrade psycopg2
       - run: make test-py
