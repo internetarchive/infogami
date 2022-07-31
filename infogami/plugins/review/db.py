@@ -49,7 +49,7 @@ class SQL:
                 user_id=user_id,
                 revision=revision,
             )
-        except:
+        except Exception:
             web.rollback()
             raise
         else:

@@ -1149,7 +1149,7 @@ class Markdown:
             try:
                 module = __import__(extension_module_name)
 
-            except:
+            except Exception:
                 message(
                     CRITICAL,
                     "couldn't load extension %s (looking for %s module)"
@@ -1759,7 +1759,7 @@ def parse_options():
 
     try:
         optparse = __import__("optparse")
-    except:
+    except Exception:
         if len(sys.argv) == 2:
             return {
                 'input': sys.argv[1],
