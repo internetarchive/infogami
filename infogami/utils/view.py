@@ -339,7 +339,8 @@ def movetypes():
         return q
 
     def readfile(filename):
-        text = open(filename).read()
+        with open(filename) as in_file:
+            text = in_file.read()
         return eval(
             text,
             {
@@ -391,7 +392,8 @@ def move(dir, extension, recursive=False, readfunc=None):
                 os.path.join(path, f) for f in os.listdir(path) if f.endswith(extension)
             ]
             for f in files:
-                page = readfunc(open(f).read())
+                with open(f) as in_file:
+                    page = readfunc(in_file.read())
                 if isinstance(page, list):
                     pages.extend(page)
                 else:
@@ -405,8 +407,8 @@ def move(dir, extension, recursive=False, readfunc=None):
 
 @infogami.action
 def write(filename):
-    q = open(filename).read()
-    print(web.ctx.site.write(q))
+    with open(filename) as in_file:
+        print(web.ctx.site.write(in_file.read()))
 
 
 # this is not really the right place to move this, but couldn't find a better place

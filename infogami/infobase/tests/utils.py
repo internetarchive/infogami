@@ -1,3 +1,4 @@
+import contextlib
 import os
 
 import web
@@ -49,10 +50,8 @@ def teardown_db(mod):
     mod._tx.rollback()
 
     mod.db.ctx.clear()
-    try:
+    with contextlib.suppress(Exception):
         del mod.db
-    except Exception:
-        pass
 
 
 def setup_conn(mod):
@@ -64,10 +63,8 @@ def setup_conn(mod):
 
 def teardown_conn(mod):
     teardown_db(mod)
-    try:
+    with contextlib.suppress(Exception):
         del mod.conn
-    except Exception:
-        pass
 
 
 def setup_server(mod):
@@ -82,10 +79,8 @@ def setup_server(mod):
 def teardown_server(mod):
     server._infobase = None
 
-    try:
+    with contextlib.suppress(Exception):
         del mod.site
-    except Exception:
-        pass
 
 
 def setup_site(mod):

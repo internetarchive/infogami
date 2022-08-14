@@ -108,8 +108,7 @@ def upgrade_types():
                 p.unique = False
             else:
                 p.unique = True
-            if typename in primitives:
-                typename = primitives[typename]
+            typename = primitives.get(typename, typename)
             p.type = db.get_type(ctx.site, typename)
             properties.append(p)
         _create_type(ctx.site, t.name, properties, backreferences)

@@ -234,7 +234,8 @@ def movetemplates(prefix_pattern=None):
         wikipath = _wikiname(name, prefix, '.tmpl')
         if prefix_pattern is None or wikipath.startswith(prefix_pattern):
             title = get_title(name)
-            body = open(t.filepath).read()
+            with open(t.filepath) as in_file:
+                body = in_file.read()
             d = web.storage(
                 create='unless_exists',
                 key=wikipath,
@@ -264,7 +265,8 @@ def movemacros():
 
     for name, m in macro.diskmacros.items():
         key = _wikiname(name, '/macros/', '')
-        body = open(m.filepath).read()
+        with open(m.filepath) as in_file:
+            body = in_file.read()
         d = web.storage(
             create='unless_exists',
             key=key,

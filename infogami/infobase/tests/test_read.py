@@ -35,7 +35,7 @@ class TestRecentChanges(DBTest):
         timestamp=None,
         data=None,
     ):
-        timestamp = timestamp = timestamp or datetime.datetime(2010, 1, 2, 3, 4, 5)
+        timestamp = timestamp or datetime.datetime(2010, 1, 2, 3, 4, 5)
         s = SaveImpl(db)
         s.save(
             docs,

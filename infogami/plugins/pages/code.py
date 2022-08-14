@@ -57,9 +57,8 @@ def _readpages(root):
 
     def read(root, path):
         path = path or "__root__"
-        text = open(os.path.join(root, path + ".page")).read()
-        d = eval(text)
-        return storify(d)
+        with open(os.path.join(root, path + ".page")) as in_file:
+            return storify(eval(in_file.read()))
 
     pages = {}
     for path in listfiles(root, filter=lambda path: path.endswith('.page')):
@@ -150,9 +149,8 @@ def pull(root, paths_files):
         dir = os.path.dirname(filepath)
         if not os.path.exists(dir):
             os.makedirs(dir)
-        f = open(filepath, 'w')
-        f.write(repr(data))
-        f.close()
+        with open(filepath, 'w') as out_file:
+            out_file.write(repr(data))
 
     pages = {}
     paths = [line.strip() for line in open(paths_files).readlines()]
@@ -287,7 +285,8 @@ def datadump(filename):
 @infogami.action
 def dataload(filename):
     """Loads data dumped using datadump action into the database."""
-    lines = open(filename).xreadlines()
+    with open(filename) as in_file:
+        lines = in_file.xreadlines()
     tdb.transact()
     try:
         for line in lines:
