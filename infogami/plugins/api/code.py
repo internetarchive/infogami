@@ -101,8 +101,8 @@ class infobase_request:
 
         query = web.data()
         h = get_custom_headers()
-        comment = h.get('comment')
-        action = h.get('action')
+        data = {key: h.get(key) for key in ('action', 'comment', 'data')}
+        data['query'] = query
         qdata = h.get('data')
         data = dict(query=query, comment=comment, action=action, data=qdata)
 
