@@ -103,7 +103,8 @@ class infobase_request:
         h = get_custom_headers()
         comment = h.get('comment')
         action = h.get('action')
-        data = dict(query=query, comment=comment, action=action)
+        qdata = h.get('data')
+        data = dict(query=query, comment=comment, action=action, data=qdata)
 
         conn = self.create_connection()
 
