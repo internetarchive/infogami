@@ -2,8 +2,6 @@
 Infogami configuration.
 """
 
-from typing import Optional
-
 
 def get(name, default=None):
     return globals().get(name, default)
