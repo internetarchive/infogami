@@ -78,8 +78,7 @@ class LogReader:
         """Reads one entry from the log.
         None is returned when there are no more enties.
         """
-        line = self.logfile.read()
-        if line:
+        if (line := self.logfile.read()):
             return self._loads(line)
         else:
             return None

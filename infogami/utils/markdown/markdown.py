@@ -1000,8 +1000,7 @@ class BlockGuru:
 
     def detabbed_fn(self, line):
         """An auxiliary method to be passed to _findHead"""
-        m = RE.regExp['tabbed'].match(line)
-        if m:
+        if (m := RE.regExp['tabbed'].match(line)):
             return m.group(4)
         else:
             return None

@@ -49,9 +49,8 @@ def get_custom_headers():
         return {}
 
     rx = web.re_compile(r'"(.*)"; ns=(\d\d)')
-    m = rx.match(opt.strip())
 
-    if m:
+    if (m := rx.match(opt.strip())):
         decl_uri, ns = m.groups()
         expected_decl_uri = infogami.config.get(
             'http_ext_header_uri', 'http://infogami.org/api'
@@ -202,8 +201,7 @@ class view(delegate.mode):
 
         data = web.data()
         h = get_custom_headers()
-        comment = h.get('comment')
-        if comment:
+        if (comment := h.get('comment')):
             data = json.loads(data)
             data['_comment'] = comment
             data = json.dumps(data)

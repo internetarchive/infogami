@@ -83,8 +83,7 @@ class DBSiteStore(common.SiteStore):
         return d
 
     def new_key(self, type, kw):
-        seq = self.schema.get_seq(type)
-        if seq:
+        if (seq := self.schema.get_seq(type)):
             # repeat until a non-existing key is found.
             # This is required to prevent error in cases where an object with the next key is already created.
             while True:
@@ -474,8 +473,7 @@ class DBSiteStore(common.SiteStore):
             what += ", version.machine_comment"
 
         def get_id(key):
-            meta = self.get_metadata(key)
-            if meta:
+            if (meta := self.get_metadata(key)):
                 return meta.id
             else:
                 raise StopIteration

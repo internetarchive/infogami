@@ -105,8 +105,7 @@ class AccountManager:
         store = self.site.store.store
         account_key = "account/" + username
 
-        doc = store.get(account_key)
-        if doc:
+        if (doc := store.get(account_key)):
             # create profile first
             self._create_profile(username, doc.get('data', {}))
             # and then update the status
@@ -258,8 +257,7 @@ class AccountManager:
     def get_user(self):
         """Returns the current user from the session."""
         # @@ TODO: call assert_trusted_machine when user is admin.
-        auth_token = web.ctx.get('infobase_auth_token')
-        if auth_token:
+        if (auth_token := web.ctx.get('infobase_auth_token')):
             try:
                 user_key, login_time, digest = auth_token.split(',')
             except ValueError:

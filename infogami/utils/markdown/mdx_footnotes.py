@@ -87,8 +87,7 @@ class FootnoteExtension(markdown.Extension):
                 if node.value.find(self.getConfig("PLACE_MARKER")) > -1:
                     return True
 
-        fn_div_list = doc.find(findFootnotePlaceholderFn)
-        if fn_div_list:
+        if (fn_div_list := doc.find(findFootnotePlaceholderFn)):
             return fn_div_list[0]
 
     def setFootnote(self, id, text):
@@ -231,8 +230,7 @@ class FootnotePostprocessor(markdown.Postprocessor):
         self.footnotes = footnotes
 
     def run(self, doc):
-        footnotesDiv = self.footnotes.makeFootnotesDiv(doc)
-        if footnotesDiv:
+        if (footnotesDiv := self.footnotes.makeFootnotesDiv(doc)):
             fnPlaceholder = self.extension.findFootnotesPlaceholder(doc)
             if fnPlaceholder:
                 fnPlaceholder.parent.replaceChild(fnPlaceholder, footnotesDiv)

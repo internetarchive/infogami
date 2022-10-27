@@ -453,8 +453,7 @@ class account:
             raise RuntimeError(f"get_site({sitename}) failed")
         methodname = f"{self.get_method()}_{method}"
 
-        m = getattr(self, methodname, None)
-        if m:
+        if (m := getattr(self, methodname, None)):
             return m(site)
         else:
             raise web.notfound()
@@ -517,8 +516,7 @@ class account:
 
     def GET_get_user(self, site):
         a = site.get_account_manager()
-        user = a.get_user()
-        if user:
+        if (user := a.get_user()):
             d = user.format_data()
             username = d['key'].split("/")[-1]
             d['email'] = a.find_account(username=username)['email']

@@ -67,8 +67,7 @@ class RecentChanges:
         if offset < 0:
             offset = 0
 
-        key = kwargs.pop('key', None)
-        if key is not None:
+        if (key := kwargs.pop('key', None)) is not None:
             thing_id = self.get_thing_id(key)
             if thing_id is None:
                 return []
@@ -76,16 +75,14 @@ class RecentChanges:
                 tables.append('version v')
                 wheres.append('v.transaction_id = t.id AND v.thing_id = $thing_id')
 
-        bot = kwargs.pop('bot', None)
-        if bot is not None:
+        if (bot := kwargs.pop('bot', None)) is not None:
             bot_ids = get_bot_users(self.db)
             if bot is True or str(bot).lower() == "true":
                 wheres.append("t.author_id IN $bot_ids")
             else:
                 wheres.append("(t.author_id NOT in $bot_ids OR t.author_id IS NULL)")
 
-        author = kwargs.pop('author', None)
-        if author is not None:
+        if (author := kwargs.pop('author', None)) is not None:
             author_id = self.get_thing_id(author)
             if not author_id:
                 # Unknown author. Implies no changes by him.
@@ -93,8 +90,7 @@ class RecentChanges:
             else:
                 wheres.append("t.author_id=$author_id")
 
-        ip = kwargs.pop("ip", None)
-        if ip is not None:
+        if (ip := kwargs.pop("ip", None)) is not None:
             if not self._is_valid_ipv4(ip):
                 return []
             else:
@@ -114,8 +110,7 @@ class RecentChanges:
             # end_date is not included in the interval.
             wheres.append("t.created < $end_date")
 
-        data = kwargs.pop('data', None)
-        if data:
+        if (data := kwargs.pop('data', None)):
             for i, (k, v) in enumerate(data.items()):
                 t = 'ti%d' % i
                 tables.append('transaction_index ' + t)
