@@ -151,7 +151,7 @@ def runscript(filename, *args):
 
 
 def run_action(name, args=[]):
-    if (a := find_action(name)):
+    if a := find_action(name):
         a(*args)
     else:
         print('unknown command', name, file=sys.stderr)

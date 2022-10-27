@@ -110,7 +110,7 @@ class RecentChanges:
             # end_date is not included in the interval.
             wheres.append("t.created < $end_date")
 
-        if (data := kwargs.pop('data', None)):
+        if data := kwargs.pop('data', None):
             for i, (k, v) in enumerate(data.items()):
                 t = 'ti%d' % i
                 tables.append('transaction_index ' + t)

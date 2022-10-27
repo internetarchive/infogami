@@ -28,7 +28,7 @@ def load_strings(site):
 
 
 def load(key, data):
-    if (result := re_i18n.match(key)):
+    if result := re_i18n.match(key):
         namespace, lang = result.groups()
         namespace = namespace or '/'
         i18n.strings._set_strings(namespace, lang, unstringify(data))

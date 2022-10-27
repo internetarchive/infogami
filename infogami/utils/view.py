@@ -495,7 +495,7 @@ def parse_db_url(dburl):
     """,
         re.X,
     )
-    if (m := rx.match(dburl)):
+    if m := rx.match(dburl):
         d = m.groupdict()
 
         if d['host'] is None:

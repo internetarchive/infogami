@@ -24,7 +24,7 @@ web_render = web.template.render
 class TemplateRender(web_render):  # type: ignore
     def _lookup(self, name):
         path = os.path.join(self._loc, name)
-        if (filepath := self._findfile(path)):
+        if filepath := self._findfile(path):
             return 'file', filepath
         elif os.path.isdir(path):
             return 'dir', path
