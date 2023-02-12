@@ -7,4 +7,5 @@ mypy
 psycopg2
 pytest
 pyupgrade
+ruff
 setuptools

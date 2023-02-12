@@ -6,6 +6,9 @@ from infogami.infobase._dbstore.store import Store
 from infogami.infobase.tests import utils
 from infogami.infobase.tests.pytest_wildcard import wildcard  # noqa: F401
 
+global db
+db = db  # noqa: F821
+
 
 def setup_module(mod):
     utils.setup_db(mod)

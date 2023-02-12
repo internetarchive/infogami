@@ -1,4 +1,4 @@
-from web.form import *  # noqa: F40 TODO (cclauss): Remove wildcard imports
+from web.form import *  # noqa: F403 TODO (cclauss): Remove wildcard imports
 from web.form import (
     Button,
     Checkbox,
