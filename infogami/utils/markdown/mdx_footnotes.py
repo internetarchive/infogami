@@ -28,12 +28,10 @@ from infogami.utils.markdown import markdown
 
 
 class FootnoteExtension(markdown.Extension):
-
     DEF_RE = re.compile(r'(\ ?\ ?\ ?)\[\^([^\]]*)\]:\s*(.*)')
     SHORT_USE_RE = re.compile(r'\[\^([^\]]*)\]', re.M)  # [^a]
 
     def __init__(self, configs):
-
         self.config = {
             'PLACE_MARKER': [
                 "///Footnotes Go Here///",
@@ -47,7 +45,6 @@ class FootnoteExtension(markdown.Extension):
         self.reset()
 
     def extendMarkdown(self, md, md_globals):
-
         self.md = md
 
         # Stateless extensions do not need to be registered
@@ -148,7 +145,6 @@ class FootnotePreprocessor:
         self.footnotes = footnotes
 
     def run(self, lines):
-
         self.blockGuru = markdown.BlockGuru()
         lines = self._handleFootnoteDefinitions(lines)
 
@@ -163,7 +159,6 @@ class FootnotePreprocessor:
         return text.split("\n")
 
     def recordFootnoteUse(self, match):
-
         id = match.group(1)
         id = id.strip()
         nextNum = len(self.footnotes.used_footnotes.keys()) + 1
@@ -179,7 +174,6 @@ class FootnotePreprocessor:
         i, id, footnote = self._findFootnoteDefinition(lines)
 
         if id:
-
             plain = lines[:i]
 
             detabbed, theRest = self.blockGuru.detectTabbed(lines[i + 1 :])
@@ -209,7 +203,6 @@ class FootnotePreprocessor:
 
 class FootnotePattern(markdown.Pattern):
     def __init__(self, pattern, footnotes):
-
         markdown.Pattern.__init__(self, pattern)
         self.footnotes = footnotes
 

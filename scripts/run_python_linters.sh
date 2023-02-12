@@ -10,4 +10,4 @@ flake8  # See setup.cfg for args
 isort --check-only --profile black . || true
 mypy --install-types --non-interactive .
 shopt -s globstar && pyupgrade --py311-plus **/*.py scripts/*
-ruff --check .  # See pyproject.toml for args
+ruff check .  # See pyproject.toml for args

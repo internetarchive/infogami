@@ -6,9 +6,6 @@ from infogami.infobase._dbstore.store import Store
 from infogami.infobase.tests import utils
 from infogami.infobase.tests.pytest_wildcard import wildcard  # noqa: F401
 
-global db
-db = db  # noqa: F821
-
 
 def setup_module(mod):
     utils.setup_db(mod)
@@ -20,6 +17,7 @@ def teardown_module(mod):
 
 class DBTest:
     def setup_method(self, method):
+        global db
         self.tx = db.transaction()
         db.insert("thing", key='/type/object')
 
@@ -38,6 +36,7 @@ class TestRecentChanges(DBTest):
         timestamp=None,
         data=None,
     ):
+        global db
         timestamp = timestamp or datetime.datetime(2010, 1, 2, 3, 4, 5)
         s = SaveImpl(db)
         s.save(
@@ -51,6 +50,7 @@ class TestRecentChanges(DBTest):
         )
 
     def recentchanges(self, **kw):
+        global db
         return RecentChanges(db).recentchanges(**kw)
 
     def doc(self, key, **kw):
@@ -63,6 +63,7 @@ class TestRecentChanges(DBTest):
         return self._save(docs, **kw)
 
     def test_all(self, wildcard):
+        global db
         docs = [
             {"key": "/foo", "type": {"key": "/type/object"}, "title": "foo"},
             {"key": "/bar", "type": {"key": "/type/object"}, "title": "bar"},
@@ -115,6 +116,7 @@ class TestRecentChanges(DBTest):
         assert len(self.recentchanges(author="/user/two")) == 1
 
     def test_ip(self):
+        global db
         db.insert("thing", key='/user/foo')
 
         self.save_doc("/zero")
@@ -138,7 +140,7 @@ class TestRecentChanges(DBTest):
 
     def new_account(self, username, **kw):
         # backdoor to create new account
-
+        global db
         db.insert("thing", key='/user/' + username)
 
         store = Store(db)

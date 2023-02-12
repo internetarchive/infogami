@@ -154,7 +154,6 @@ ENTITY_NORMALIZATION_EXPRESSIONS_SOFT = [
 
 
 def getBidiType(text):
-
     if not text:
         return None
 
@@ -164,7 +163,6 @@ def getBidiType(text):
         return None
 
     else:
-
         for min, max in RTL_BIDI_RANGES:
             if ch >= min and ch <= max:
                 return "rtl"
@@ -212,7 +210,6 @@ class Document:
         return self.documentElement.toxml()
 
     def normalizeEntities(self, text, avoidDoubleNormalizing=False):
-
         if avoidDoubleNormalizing:
             regexps = ENTITY_NORMALIZATION_EXPRESSIONS_SOFT
         else:
@@ -231,7 +228,6 @@ class Document:
 
 
 class CDATA:
-
     type = "cdata"
 
     def __init__(self, text):
@@ -245,11 +241,9 @@ class CDATA:
 
 
 class Element:
-
     type = "element"
 
     def __init__(self, tag):
-
         self.nodeName = tag
         self.attributes = []
         self.attribute_values = {}
@@ -258,9 +252,7 @@ class Element:
         self.isDocumentElement = False
 
     def setBidi(self, bidi):
-
         if bidi:
-
             orig_bidi = self.bidi
 
             if not self.bidi or self.isDocumentElement:
@@ -339,7 +331,6 @@ class Element:
         buffer += "<" + self.nodeName
 
         if self.nodeName in ['p', 'li', 'ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-
             if "dir" not in self.attribute_values:
                 if self.bidi:
                     bidi = self.bidi
@@ -365,7 +356,6 @@ class Element:
 
 
 class TextNode:
-
     type = "text"
     attrRegExp = re.compile(r'\{@([^\}]*)=([^\}]*)}')  # {@id=123}
 
@@ -373,14 +363,12 @@ class TextNode:
         self.value = text
 
     def attributeCallback(self, match):
-
         self.parent.setAttribute(match.group(1), match.group(2))
 
     def handleAttributes(self):
         self.value = self.attrRegExp.sub(self.attributeCallback, self.value)
 
     def toxml(self):
-
         text = self.value
 
         self.parent.setBidi(getBidiType(text))
@@ -395,7 +383,6 @@ class TextNode:
 
 
 class EntityReference:
-
     type = "entity_ref"
 
     def __init__(self, entity):
@@ -436,7 +423,6 @@ class HeaderPreprocessor(Preprocessor):
     """
 
     def run(self, lines):
-
         i = -1
         while i + 1 < len(lines):
             i = i + 1
@@ -447,7 +433,6 @@ class HeaderPreprocessor(Preprocessor):
                 lines.insert(i + 1, "\n")
 
             if i + 1 <= len(lines) and lines[i + 1] and lines[i + 1][0] in ['-', '=']:
-
                 underline = lines[i + 1].strip()
 
                 if underline == "=" * len(underline):
@@ -513,7 +498,6 @@ class HtmlBlockPreprocessor(Preprocessor):
         return block.rstrip()[-len(left_tag) - 2 : -1].lower()
 
     def _equal_tags(self, left_tag, right_tag):
-
         if left_tag in ['?', '?php', 'div']:  # handle PHP, etc.
             return True
         if ("/" + left_tag) == right_tag:
@@ -529,7 +513,6 @@ class HtmlBlockPreprocessor(Preprocessor):
         return tag in ['hr', 'hr/']
 
     def run(self, lines):
-
         new_blocks = []
         text = "\n".join(lines)
         text = text.split("\n\n")
@@ -544,9 +527,7 @@ class HtmlBlockPreprocessor(Preprocessor):
                 block = block[1:]
 
             if not in_tag:
-
                 if block.startswith("<"):
-
                     left_tag = self._get_left_tag(block)
                     right_tag = self._get_right_tag(left_tag, block)
 
@@ -602,7 +583,6 @@ HTML_BLOCK_PREPROCESSOR = HtmlBlockPreprocessor()
 
 class ReferencePreprocessor(Preprocessor):
     def run(self, lines):
-
         new_text = []
         for line in lines:
             m = RE.regExp['reference-def'].match(line)
@@ -807,7 +787,6 @@ class ImagePattern(Pattern):
 
 class ReferencePattern(Pattern):
     def handleMatch(self, m, doc):
-
         if m.group(9):
             id = m.group(9).lower()
         else:
@@ -940,7 +919,6 @@ class HtmlStash:
 
 class BlockGuru:
     def _findHead(self, lines, fn, allowBlank=0):
-
         """Functional magic to help determine boundaries of indented
         blocks.
 
@@ -958,7 +936,6 @@ class BlockGuru:
         i = 0  # to keep track of where we are
 
         for line in lines:
-
             if not line.strip() and not allowBlank:
                 return items, lines[i:]
 
@@ -1006,7 +983,6 @@ class BlockGuru:
             return None
 
     def detectTabbed(self, lines):
-
         return self._findHead(lines, self.detabbed_fn, allowBlank=1)
 
 
@@ -1055,7 +1031,6 @@ class CorePatterns:
     }
 
     def __init__(self):
-
         self.regExp = {}
         for key in self.patterns.keys():
             self.regExp[key] = re.compile("^%s$" % self.patterns[key], re.DOTALL)
@@ -1137,12 +1112,10 @@ class Markdown:
         self.reset()
 
     def registerExtensions(self, extensions, configs):
-
         if not configs:
             configs = {}
 
         for ext in extensions:
-
             extension_module_name = "mdx_" + ext
 
             try:
@@ -1155,7 +1128,6 @@ class Markdown:
                     % (ext, extension_module_name),
                 )
             else:
-
                 if ext in configs:
                     configs_for_ext = configs[ext]
                 else:
@@ -1234,7 +1206,6 @@ class Markdown:
         return self.doc
 
     def _processSection(self, parent_elem, lines, inList=0, looseList=0):
-
         """Process a section of a source document, looking for high
         level structural elements like lists, block quotes, code
         segments, html blocks, etc.  Some those then get stripped
@@ -1282,7 +1253,6 @@ class Markdown:
         #
 
         if inList:
-
             start, theRest = self._linesUntil(
                 lines,
                 (
@@ -1296,7 +1266,6 @@ class Markdown:
             self._processSection(parent_elem, theRest, inList - 1, looseList=looseList)
 
         else:  # Ok, so it's just a simple block
-
             paragraph, theRest = self._linesUntil(lines, lambda line: not line.strip())
 
             if len(paragraph) and paragraph[0].startswith('#'):
@@ -1311,13 +1280,11 @@ class Markdown:
                     message(CRITICAL, "We've got a problem header!")
 
             elif paragraph:
-
                 list = self._handleInlineWrapper("\n".join(paragraph))
 
                 if parent_elem.nodeName == 'li' and not (
                     looseList or parent_elem.childNodes
                 ):
-
                     # and not parent_elem.childNodes) :
                     # If this is the first paragraph inside "li", don't
                     # put <p> around it - append the paragraph bits directly
@@ -1364,7 +1331,6 @@ class Markdown:
         i = 0  # a counter to keep track of where we are
 
         for line in lines:
-
             loose = 0
             if not line.strip():
                 # If we see a blank line, this _might_ be the end of the list
@@ -1397,7 +1363,6 @@ class Markdown:
             # while also detabing child elements if necessary
 
             for expr in ['ul', 'ol', 'tabbed']:
-
                 m = RE.regExp[expr].match(line)
                 if m:
                     if expr in ['ul', 'ol']:  # We are looking at a new item
@@ -1495,15 +1460,12 @@ class Markdown:
         self._processSection(parent_elem, theRest, inList)
 
     def _handleInlineWrapper(self, line):
-
         parts = [line]
 
         for pattern in self.inlinePatterns:
-
             i = 0
 
             while i < len(parts):
-
                 x = parts[i]
 
                 if isinstance(x, str):
@@ -1545,7 +1507,6 @@ class Markdown:
         return [self.doc.createTextNode(line)]
 
     def _applyPattern(self, line, pattern):
-
         """Given a pattern name, this function checks if the line
         fits the pattern, creates the necessary elements, and returns
         back a list consisting of NanoDom elements and/or strings.
@@ -1571,15 +1532,12 @@ class Markdown:
         # check if any of this nodes have children that need processing
 
         if isinstance(node, Element):
-
             if node.nodeName not in ("code", "pre"):
                 for child in node.childNodes:
                     if isinstance(child, TextNode):
-
                         result = self._handleInlineWrapper(child.value)
 
                         if result:
-
                             if result == [child]:
                                 continue
 
@@ -1591,7 +1549,6 @@ class Markdown:
                             node.removeChild(child)
 
                             for item in result:
-
                                 if isinstance(item, str):
                                     if len(item) > 0:
                                         node.insertChild(
@@ -1674,7 +1631,6 @@ def markdownFromFile(
     message_threshold=CRITICAL,
     safe=False,
 ):
-
     global MESSAGE_THRESHOLD
     MESSAGE_THRESHOLD = message_threshold
 
@@ -1699,7 +1655,6 @@ def markdownFromFile(
 
 
 def markdown(text, extensions=[], encoding=None, safe_mode=False):
-
     message(VERBOSE, "in markdown.markdown(), received text:\n%s" % text)
 
     extension_names = []
@@ -1755,7 +1710,6 @@ For lower versions of Python use:
 
 
 def parse_options():
-
     try:
         optparse = __import__("optparse")
     except Exception:

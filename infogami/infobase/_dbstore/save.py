@@ -490,7 +490,6 @@ class IndexUtil:
     def delete_index(self, index):
         """Deletes the given index from database."""
         for table, group in self.group_index(index).items():
-
             thing_ids = []  # thing_ids to delete all
 
             # group all deletes for a thing_id

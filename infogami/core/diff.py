@@ -51,7 +51,7 @@ def simple_diff(a, b):
     a = web.safestr(a).split(' ')
     b = web.safestr(b).split(' ')
     out = []
-    for (tag, i1, i2, j1, j2) in SequenceMatcher(a=a, b=b).get_opcodes():
+    for tag, i1, i2, j1, j2 in SequenceMatcher(a=a, b=b).get_opcodes():
         out.append(
             web.storage(tag=tag, left=' '.join(a[i1:i2]), right=' '.join(b[j1:j2]))
         )

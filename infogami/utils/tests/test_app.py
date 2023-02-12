@@ -2,7 +2,6 @@ from infogami.utils import app
 
 
 def test_parse_accept():
-
     # testing examples from http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
     assert app.parse_accept("audio/*; q=0.2, audio/basic") == [
         {"media_type": "audio/basic"},
