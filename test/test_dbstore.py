@@ -112,8 +112,8 @@ class TestSaveTest:
                 link=dict(title='foo', link='http://infogami.org'),
             )
             d = site.get(key)._get_data()
-            self.assertEqual(d['link']['title'], 'foo')
-            self.assertEqual(d['link']['link'], 'http://infogami.org')
+            assert d['link']['title'] == 'foo'
+            assert d['link']['link'] == 'http://infogami.org'
 
         def p(name, expected_type, unique=True, **d):
             return locals()
