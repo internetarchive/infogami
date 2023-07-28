@@ -3,11 +3,7 @@
 set -e -v
 
 # Run linters and formatters
-black --skip-string-normalization --check .
-codespell  # See setup.cfg for args
-flake8  # See setup.cfg for args
-# FIXME: Remove `|| true` once the code is isort compliant
-isort --check-only --profile black . || true
+black --skip-string-normalization .
+codespell
+ruff .  # See pyproject.toml for args
 mypy --install-types --non-interactive .
-shopt -s globstar && pyupgrade --py311-plus **/*.py scripts/*
-ruff check .  # See pyproject.toml for args

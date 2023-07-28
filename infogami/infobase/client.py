@@ -5,8 +5,7 @@ import logging
 import re
 import time
 from http.cookies import SimpleCookie
-from urllib.parse import urlencode, quote, unquote
-
+from urllib.parse import quote, unquote, urlencode
 
 import requests
 import web

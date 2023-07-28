@@ -58,7 +58,7 @@ class RecentChanges:
         authors = self.get_keys([change.author_id])
         return self._process_transaction(change, authors=authors)
 
-    def recentchanges(self, limit=100, offset=0, **kwargs):
+    def recentchanges(self, limit=100, offset=0, **kwargs):  # noqa: PLR0912
         tables = ['transaction t']
         what = 't.*'
         order = 't.created DESC'

@@ -31,7 +31,7 @@ def test_wildcard():
     assert ["foo", 1, 2] == [wildcard, 1, 2]
 
 
-@pytest.fixture
+@pytest.fixture()
 def wildcard(request):
     """Returns the wildcard object.
 

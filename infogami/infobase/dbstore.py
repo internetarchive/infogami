@@ -222,7 +222,7 @@ class DBSiteStore(common.SiteStore):
     def get_property_id(self, type, name):
         return self.property_manager.get_property_id(type, name)
 
-    def things(self, query):
+    def things(self, query):  # noqa: C901, PLR0915
         type = query.get_type()
         if type:
             type_metedata = self.get_metadata(type)

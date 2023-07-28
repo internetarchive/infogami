@@ -67,7 +67,7 @@ def allow_unicode(s):
     return str(s.replace(' u"', ' "').replace(" u'", " '"))
 
 
-def find_type(value):
+def find_type(value):  # noqa: PLR0911
     if isinstance(value, Thing):
         return value.type.key
     elif isinstance(value, Reference):

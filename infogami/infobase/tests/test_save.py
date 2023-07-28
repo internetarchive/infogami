@@ -312,7 +312,7 @@ class MockSchema:
         return "datum_" + datatype
 
 
-@pytest.fixture
+@pytest.fixture()
 def testdata(request):
     return {
         "doc1": {

@@ -97,7 +97,7 @@ class TestSaveTest:
             key='/e1',
             type='/type/test',
             i='bad integer',
-            error='{"error": "bad_data", "message": "invalid literal for int() with base 10: \'bad integer\'", "at": {"key": "/e1", "property": "i"}, "value": "bad integer"}',
+            error='{"error": "bad_data", "message": "invalid literal for int() with base 10: \'bad integer\'", "at": {"key": "/e1", "property": "i"}, "value": "bad integer"}',  # noqa: E501
         )
 
     @pytest.mark.skip(
