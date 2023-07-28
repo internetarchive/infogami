@@ -1,3 +1,9 @@
+[tool.mypy]
+ignore_missing_imports = true
+pretty = true
+show_error_codes = true
+show_error_context = true
+
 [tool.ruff]
 select = [
     "AIR",    # Airflow
