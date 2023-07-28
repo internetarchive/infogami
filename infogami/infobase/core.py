@@ -68,12 +68,16 @@ class TypeMismatch(BadData):
 class Text(str):
     """Python type for /type/text."""
 
+    __slots__ = ()
+
     def __repr__(self):
         return "<text: %s>" % str.__repr__(self)
 
 
 class Reference(str):
     """Python type for reference type."""
+
+    __slots__ = ()
 
     def __repr__(self):
         return "<ref: %s>" % str.__repr__(self)
@@ -233,7 +237,6 @@ class SiteStore:
         """Initializes the store for the first time.
         This is called before doing the bootstrap.
         """
-        pass
 
     def set_cache(self, cache):
         pass

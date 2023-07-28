@@ -456,7 +456,7 @@ class account:
         if m := getattr(self, methodname, None):
             return m(site)
         else:
-            raise web.notfound()
+            raise web.notfound
 
     GET = POST = delegate
 
@@ -598,7 +598,7 @@ class readlog:
         try:
             json.loads(line)
         except ValueError:
-            raise web.BadRequest()
+            raise web.BadRequest
 
     def valid_json(self, line):
         try:
@@ -676,7 +676,7 @@ def request(path, method, data):
                 cls = get_class(classname)
                 tocall = getattr(cls(), method)
                 return tocall(*args)
-        raise web.notfound()
+        raise web.notfound
     finally:
         # hack to make cache work for local infobase connections
         cache.unloadhook()
