@@ -39,10 +39,10 @@ class TestStore(DBTest):
 
     def test_update(self, wildcard):
         store.put("foo", {"name": "foo"})
-        assert store.get("foo") == dict(name="foo", _key="foo", _rev=wildcard)
+        assert store.get("foo") == {"name": "foo", "_key": "foo", "_rev": wildcard}
 
         store.put("foo", {"name": "bar", "_rev": None})
-        assert store.get("foo") == dict(name="bar", _key="foo", _rev=wildcard)
+        assert store.get("foo") == {"name": "bar", "_key": "foo", "_rev": wildcard}
 
     def test_conflicts(self):
         foo = store.put("foo", {"name": "foo"})

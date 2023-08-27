@@ -27,7 +27,7 @@ def test_wildcard():
     wildcard = Wildcard()
     assert wildcard == 1
     assert wildcard == [1, 2, 3]
-    assert 1 == wildcard
+    assert wildcard == 1
     assert ["foo", 1, 2] == [wildcard, 1, 2]
 
 

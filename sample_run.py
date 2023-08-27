@@ -4,9 +4,9 @@ Sample run.py
 import infogami
 
 # your db parameters
-infogami.config.db_parameters = dict(
-    dbn='postgres', db="infogami", user='yourname', pw=''
-)
+infogami.config.db_parameters = {
+    'dbn': 'postgres', 'db': "infogami", 'user': 'yourname', 'pw': ''
+}
 
 # site name
 infogami.config.site = 'infogami.org'

@@ -1,3 +1,4 @@
+import contextlib
 import unittest
 
 import web
@@ -152,10 +153,9 @@ class TestInfobase(DBTest):
             {'key': '/a', 'type': '/type/object', 'a': 1},
             {'key': '/b', 'type': '/type/object', 'bad property': 1},
         ]
-        try:
+        with contextlib.suppress(Exception):
             site.save_many(q)
-        except Exception:
-            pass
+
 
         q = [
             {'key': '/a', 'type': '/type/object', 'a': 1},

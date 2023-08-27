@@ -75,10 +75,7 @@ app.add_processor(web.unloadhook(cache.unloadhook))
 
 
 def process_exception(e):
-    if isinstance(e, common.InfobaseException):
-        status = e.status
-    else:
-        status = "500 Internal Server Error"
+    status = e.status if isinstance(e, common.InfobaseException) else "500 Internal Server Error"
 
     msg = str(e)
     raise web.HTTPError(status, {}, msg)
@@ -158,10 +155,7 @@ def get_data():
 
 
 def input(*required, **defaults):
-    if 'infobase_input' in web.ctx:
-        d = web.ctx.infobase_input
-    else:
-        d = web.input()
+    d = web.ctx.infobase_input if "infobase_input" in web.ctx else web.input()
 
     for k in required:
         if k not in d:
@@ -527,7 +521,7 @@ class account:
         i = input('email')
         a = site.get_account_manager()
         username, code = a.get_user_code(i.email)
-        return dict(username=username, code=code)
+        return {"username": username, "code": code}
 
     def GET_check_reset_code(self, site):
         # TODO: remove this
@@ -709,7 +703,7 @@ def parse_db_parameters(d):
     if user is None:
         user = os.getenv("USER")
 
-    result = dict(dbn=dbn, db=db, user=user, pw=pw)
+    result = {"dbn": dbn, "db": db, "user": user, "pw": pw}
     if 'host' in d:
         result['host'] = d['host']
     return result

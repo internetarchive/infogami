@@ -40,9 +40,9 @@ def parse_args():
     if len(args) != 1:
         parser.error("incorrect number of arguments")
 
-    web.config.db_parameters = dict(
-        dbn='postgres', db=args[0], user=options.user, pw=options.pw, host=options.host
-    )
+    web.config.db_parameters = {
+        "dbn": 'postgres', "db": args[0], "user": options.user, "pw": options.pw, "host": options.host
+    }
 
 
 db = None

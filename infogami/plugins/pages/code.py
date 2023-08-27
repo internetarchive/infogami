@@ -63,10 +63,7 @@ def _readpages(root):
     pages = {}
     for path in listfiles(root, filter=lambda path: path.endswith('.page')):
         path = path[: -len(".page")]
-        if path == "__root__":
-            name = ""
-        else:
-            name = path
+        name = "" if path == "__root__" else path
         pages[name] = read(root, path)
     return pages
 
@@ -128,13 +125,13 @@ def thing2dict(page):
                 t['child'] = True
                 return t
             else:
-                return dict(name=x.name)
+                return {"name": x.name}
         elif isinstance(x, list):
             return [simplify(a, page) for a in x]
         else:
             return x
 
-    data = dict(name=page.name, type={'name': page.type.name})
+    data = {"name": page.name, "type": {'name': page.type.name}}
     d = data['d'] = {}
     for k, v in page.d.items():
         d[k] = simplify(v, page)

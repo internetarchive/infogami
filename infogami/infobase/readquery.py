@@ -40,7 +40,7 @@ def run_things_query(store, query):
 
         # special care for '*'
         if '*' in fields:
-            f = {k: None for k in thingdata.keys()}
+            f = {k: None for k in thingdata}
             fields.pop('*')
             f.update(fields)
             fields = f
@@ -192,14 +192,14 @@ def find_datatype(type, key, value):
     'str'
     """
     # special properties
-    d = dict(
-        key="key",
-        type="ref",
-        permission="ref",
-        child_permission="ref",
-        created="datetime",
-        last_modified="datetime",
-    )
+    d = {
+        'key': "key",
+        'type': "ref",
+        'permission': "ref",
+        'child_permission': "ref",
+        'created': "datetime",
+        'last_modified': "datetime",
+    }
 
     if key in d:
         return d[key]

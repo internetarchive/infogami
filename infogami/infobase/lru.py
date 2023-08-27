@@ -1,5 +1,6 @@
 """Infobase cache.
 """
+import contextlib
 
 
 class Node:
@@ -193,10 +194,9 @@ class LRU:
 
     @synchronized
     def delete(self, key):
-        try:
+        with contextlib.suppress(KeyError):
             del self[key]
-        except KeyError:
-            pass
+
 
     @synchronized
     def delete_many(self, keys):

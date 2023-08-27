@@ -65,7 +65,7 @@ def hash_passwords():
         except Exception:
             # setup preferences for broken accounts, so that they can use forgot password.
             preferences = db.new_version(
-                u, 'preferences', db.get_type(ctx.site, 'type/thing'), dict(password='')
+                u, 'preferences', db.get_type(ctx.site, 'type/thing'), {'password': ''}
             )
             preferences.save()
 
@@ -81,9 +81,9 @@ def upgrade_types():
     type = db.get_type(ctx.site, "type/type")
     types = tdb.Things(parent=ctx.site, type=type)
     types = [t for t in types if 'properties' not in t.d and 'is_primitive' not in t.d]
-    primitives = dict(
-        int='type/int', integer='type/int', string='type/string', text='type/text'
-    )
+    primitives = {
+        'int': 'type/int', 'integer': 'type/int', 'string': 'type/string', 'text': 'type/text'
+    }
 
     newtypes = {}
     for t in types:

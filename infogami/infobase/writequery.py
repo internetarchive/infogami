@@ -103,7 +103,7 @@ class SaveProcessor:
         # Finding the the types in one shot instead of querying each one separately.
         for doc in docs:
             self.types[doc['key']] = parse_type(doc.get('type'))
-        refs = list(k for k in self.find_references(docs) if k not in self.types)
+        refs = [k for k in self.find_references(docs) if k not in self.types]
         self.types.update(self.find_types(refs))
 
         prev_data = self.get_many(keys)
@@ -188,7 +188,7 @@ class SaveProcessor:
 
         type = data.get('type')
         if type is None:
-            raise common.BadData(message="missing type", at=dict(key=key))
+            raise common.BadData(message="missing type", at={'key': key})
         type = self.process_value(type, self.get_property(None, 'type'))
         type = self.get_thing(type)
 
@@ -233,7 +233,7 @@ class SaveProcessor:
         for key in data:
             if not rx.match(key):
                 raise common.BadData(
-                    message="Bad Property: %s" % repr(key), at=dict(key=self.key)
+                    message="Bad Property: %s" % repr(key), at={'key': self.key}
                 )
 
     def process_data(self, d, type, old_data=None, prefix=""):
@@ -346,10 +346,7 @@ class WriteQueryProcessor:
     def remove_connects(self, query):
         for k, v in query.items():
             if isinstance(v, dict) and 'connect' in v:
-                if 'key' in v:
-                    value = v['key'] and common.Reference(v['key'])
-                else:
-                    value = v['value']
+                value = v['key'] and common.Reference(v['key']) if 'key' in v else v['value']
                 query[k] = value
         return query
 
@@ -376,13 +373,9 @@ class WriteQueryProcessor:
         data = copy.deepcopy(data)
 
         for k, v in query.items():
-            if isinstance(v, dict):
-                if 'connect' in v:
-                    if 'key' in v:
-                        value = v['key'] and common.Reference(v['key'])
-                    else:
-                        value = v['value']
-                    self.connect(data, k, v['connect'], value)
+            if isinstance(v, dict) and 'connect' in v:
+                value = v['key'] and common.Reference(v['key']) if 'key' in v else v['value']
+                self.connect(data, k, v['connect'], value)
         return data
 
     def connect(self, data, name, connect, value):
@@ -407,9 +400,8 @@ class WriteQueryProcessor:
         elif connect == 'insert':
             if value not in data[name]:
                 data[name].append(value)
-        elif connect == 'delete':
-            if value in data[name]:
-                data[name].remove(value)
+        elif connect == 'delete' and value in data[name]:
+            data[name].remove(value)
         return data
 
 

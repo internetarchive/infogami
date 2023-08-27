@@ -36,7 +36,7 @@ select = [
     # "ARG",  # flake8-unused-arguments
     # "B",    # flake8-bugbear
     # "BLE",  # flake8-blind-except
-    # "C4",   # flake8-comprehensions
+    "C4",   # flake8-comprehensions
     # "COM",  # flake8-commas
     # "D",    # pydocstyle
     # "DTZ",  # flake8-datetimez
@@ -49,7 +49,7 @@ select = [
     # "INP",  # flake8-no-pep420
     # "ISC",  # flake8-implicit-str-concat
     # "N",    # pep8-naming
-    # "PERF", # Perflint
+    "PERF", # Perflint
     # "PGH",  # pygrep-hooks
     # "PT",   # flake8-pytest-style
     # "PTH",  # flake8-use-pathlib
@@ -57,7 +57,7 @@ select = [
     # "RET",  # flake8-return
     # "RUF",  # Ruff-specific rules
     # "S",    # flake8-bandit
-    # "SIM",  # flake8-simplify
+    "SIM",  # flake8-simplify
     # "SLF",  # flake8-self
     # "T20",  # flake8-print
     # "TD",   # flake8-todos
@@ -75,6 +75,8 @@ ignore = [
     "PLW0602",
     "PLW0603",
     "PLW2901",
+    "SIM108",
+    "SIM115",
     "UP03",
 ]
 line-length = 146

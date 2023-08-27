@@ -5,14 +5,14 @@ import web
 
 from infogami.infobase import client, dbstore, server
 
-db_parameters = dict(
-    host='postgres',
-    dbn='postgres',
-    db='infobase_test',
-    user=os.getenv('USER'),
-    pw='',
-    pooling=False,
-)
+db_parameters = {
+    'host': 'postgres',
+    'dbn': 'postgres',
+    'db': 'infobase_test',
+    'user': os.getenv('USER'),
+    'pw': '',
+    'pooling': False,
+}
 
 
 @web.memoize

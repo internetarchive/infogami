@@ -210,10 +210,7 @@ class Document:
         return self.documentElement.toxml()
 
     def normalizeEntities(self, text, avoidDoubleNormalizing=False):
-        if avoidDoubleNormalizing:
-            regexps = ENTITY_NORMALIZATION_EXPRESSIONS_SOFT
-        else:
-            regexps = ENTITY_NORMALIZATION_EXPRESSIONS
+        regexps = ENTITY_NORMALIZATION_EXPRESSIONS_SOFT if avoidDoubleNormalizing else ENTITY_NORMALIZATION_EXPRESSIONS
 
         for regexp, substitution in regexps:
             text = regexp.sub(substitution, text)
@@ -330,15 +327,11 @@ class Element:
 
         buffer += "<" + self.nodeName
 
-        if self.nodeName in ['p', 'li', 'ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6']:
-            if "dir" not in self.attribute_values:
-                if self.bidi:
-                    bidi = self.bidi
-                else:
-                    bidi = self.doc.bidi
+        if self.nodeName in ['p', 'li', 'ul', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'] and "dir" not in self.attribute_values:
+            bidi = self.bidi if self.bidi else self.doc.bidi
 
-                if bidi == "rtl":
-                    self.setAttribute("dir", "rtl")
+            if bidi == "rtl":
+                self.setAttribute("dir", "rtl")
 
         for attr in self.attributes:
             value = self.attribute_values[attr]
@@ -504,10 +497,7 @@ class HtmlBlockPreprocessor(Preprocessor):
             return True
         if right_tag == "--" and left_tag == "--":
             return True
-        elif left_tag == right_tag[1:] and right_tag[0] != "<":
-            return True
-        else:
-            return False
+        return bool(left_tag == right_tag[1:] and right_tag[0] != "<")
 
     def _is_oneliner(self, tag):
         return tag in ['hr', 'hr/']
@@ -1032,7 +1022,7 @@ class CorePatterns:
 
     def __init__(self):
         self.regExp = {}
-        for key in self.patterns.keys():
+        for key in self.patterns:
             self.regExp[key] = re.compile("^%s$" % self.patterns[key], re.DOTALL)
 
         self.regExp['containsline'] = re.compile(r'^([-]*)$|^([=]*)$', re.M)
@@ -1128,10 +1118,7 @@ class Markdown:
                     % (ext, extension_module_name),
                 )
             else:
-                if ext in configs:
-                    configs_for_ext = configs[ext]
-                else:
-                    configs_for_ext = []
+                configs_for_ext = configs.get(ext, [])
                 extension = module.makeExtension(configs_for_ext)
                 extension.extendMarkdown(self, globals())
 
@@ -1531,31 +1518,30 @@ class Markdown:
 
         # check if any of this nodes have children that need processing
 
-        if isinstance(node, Element):
-            if node.nodeName not in ("code", "pre"):
-                for child in node.childNodes:
-                    if isinstance(child, TextNode):
-                        result = self._handleInlineWrapper(child.value)
+        if isinstance(node, Element) and node.nodeName not in ("code", "pre"):
+            for child in node.childNodes:
+                if isinstance(child, TextNode):
+                    result = self._handleInlineWrapper(child.value)
 
-                        if result:
-                            if result == [child]:
-                                continue
+                    if result:
+                        if result == [child]:
+                            continue
 
-                            result.reverse()
-                            # to make insertion easier
+                        result.reverse()
+                        # to make insertion easier
 
-                            position = node.childNodes.index(child)
+                        position = node.childNodes.index(child)
 
-                            node.removeChild(child)
+                        node.removeChild(child)
 
-                            for item in result:
-                                if isinstance(item, str):
-                                    if len(item) > 0:
-                                        node.insertChild(
-                                            position, self.doc.createTextNode(item)
-                                        )
-                                else:
-                                    node.insertChild(position, item)
+                        for item in result:
+                            if isinstance(item, str):
+                                if len(item) > 0:
+                                    node.insertChild(
+                                        position, self.doc.createTextNode(item)
+                                    )
+                            else:
+                                node.insertChild(position, item)
 
         if node:
             # Those are in the reverse order!
@@ -1691,7 +1677,7 @@ class Extension:
             return ""
 
     def getConfigInfo(self):
-        return [(key, self.config[key][1]) for key in self.config.keys()]
+        return [(key, self.config[key][1]) for key in self.config]
 
     def setConfig(self, key, value):
         self.config[key][0] = value
@@ -1786,7 +1772,7 @@ def parse_options():
 
     (options, args) = parser.parse_args()
 
-    if not len(args) == 1:
+    if len(args) != 1:
         parser.print_help()
         return None
     else:

@@ -7,7 +7,7 @@ def get_all_templates(site):
         return []
     q = {'type': '/type/template', 'limit': 1000}
     # return [site.get(key) for key in site.things(q)]
-    return site.get_many([key for key in site.things(q)])
+    return site.get_many(list(site.things(q)))
 
 
 def get_all_macros(site):
@@ -16,7 +16,7 @@ def get_all_macros(site):
         return []
     q = {'type': '/type/macro', 'limit': 1000}
     # return [site.get(key) for key in site.things(q)]
-    return site.get_many([key for key in site.things(q)])
+    return site.get_many(list(site.things(q)))
 
 
 def get_all_sites():

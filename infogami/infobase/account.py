@@ -175,7 +175,7 @@ class AccountManager:
             # for loop to avoid unexpected errors in case of bad data.
             old_email_docs = store.query("account-email", 'username', username)
             for email_doc in old_email_docs:
-                doc = dict(_key=email_doc['key'], _delete=True)
+                doc = {"_key": email_doc['key'], "_delete": True}
                 docs.append(doc)
 
             new_email_doc = {
@@ -363,7 +363,7 @@ class AccountManager:
         )
 
         timestamp = timestamp or datetime.utcnow()
-        event_data = dict(username=user.key, email=email, password=enc_password)
+        event_data = {"username": user.key, "email": email, "password": enc_password}
         self.site._fire_event(
             "update_user",
             timestamp=timestamp,

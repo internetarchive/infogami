@@ -80,9 +80,8 @@ class FootnoteExtension(markdown.Extension):
 
     def findFootnotesPlaceholder(self, doc):
         def findFootnotePlaceholderFn(node=None, indent=0):
-            if node.type == 'text':
-                if node.value.find(self.getConfig("PLACE_MARKER")) > -1:
-                    return True
+            if node.type == 'text' and node.value.find(self.getConfig("PLACE_MARKER")) > -1:
+                return True
 
         if fn_div_list := doc.find(findFootnotePlaceholderFn):
             return fn_div_list[0]
@@ -112,7 +111,7 @@ class FootnoteExtension(markdown.Extension):
         ol = doc.createElement("ol")
         div.appendChild(ol)
 
-        footnotes = [(self.used_footnotes[id], id) for id in self.footnotes.keys()]
+        footnotes = [(self.used_footnotes[id], id) for id in self.footnotes]
         footnotes.sort()
 
         for i, id in footnotes:

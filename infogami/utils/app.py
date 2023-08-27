@@ -253,7 +253,7 @@ def path_processor(handler):
     """Processor to make sure path is normalized."""
     npath = normpath(web.ctx.path)
     if npath != web.ctx.path:
-        if web.ctx.method in ['GET' or 'HEAD']:
+        if web.ctx.method in ["GET"]:
             # give absolute url for redirect. There is a bug in web.py
             # that causes infinite redicts when web.ctx.path startswith "//"
             raise web.seeother(web.ctx.home + npath + web.ctx.query)

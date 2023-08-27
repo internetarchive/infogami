@@ -30,7 +30,7 @@ def create_site():
 
 def fakeload():
     # web.load()
-    app.load(dict(REQUEST_METHOD="GET", PATH_INFO="/install"))
+    app.load({'REQUEST_METHOD': "GET", 'PATH_INFO': "/install"})
     web.ctx.ip = None
     context.load()
     context.error = None
@@ -83,10 +83,7 @@ def layout_processor(handler):
         web.ctx.headers = [h for h in web.ctx.headers if h[0].lower() != 'content-type']
         web.header('Content-Type', out.content_type)
 
-    if hasattr(out, 'rawtext'):
-        html = out.rawtext
-    else:
-        html = render_site(config.site, out)
+    html = out.rawtext if hasattr(out, 'rawtext') else render_site(config.site, out)
 
     # cleanup references to avoid memory leaks
     web.ctx.site._cache.clear()

@@ -4,7 +4,7 @@ import web
 
 
 def better_diff(a, b):
-    labels = dict(equal="", insert='add', replace='mod', delete='rem')
+    labels = {"equal": "", "insert": 'add', "replace": 'mod', "delete": 'rem'}
 
     map = []
     for tag, i1, i2, j1, j2 in SequenceMatcher(a=a, b=b).get_opcodes():

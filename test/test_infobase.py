@@ -101,7 +101,7 @@ class InfobaseTestCase(unittest.TestCase):
             skip_additional = b.pop('*', False)
             if not skip_additional:
                 assert list(a) == list(b)
-            for k in b.keys():
+            for k in b:
                 self.assertEquals2(a[k], b[k])
         elif isinstance(a, list):
             assert len(a) == len(b)

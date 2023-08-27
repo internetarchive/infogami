@@ -123,7 +123,7 @@ class edit(delegate.mode):
                 p['comment_'] = comment
                 return render.editpage(p)
         elif action == 'delete':
-            q = dict(key=i['key'], type=dict(key='/type/delete'))
+            q = {'key': i['key'], 'type': {'key': '/type/delete'}}
 
             try:
                 web.ctx.site.save(q, comment)

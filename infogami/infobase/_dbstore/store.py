@@ -77,10 +77,7 @@ class Store:
             return self.delete(key, doc.get("_rev"))
 
         # conflict check is enabled by default. It can be disabled by passing _rev=None in the document.
-        if "_rev" in doc and doc["_rev"] is None:
-            enable_conflict_check = False
-        else:
-            enable_conflict_check = True
+        enable_conflict_check = not ("_rev" in doc and doc["_rev"] is None)
 
         doc.pop("_key", None)
         rev = doc.pop("_rev", None)
@@ -197,10 +194,7 @@ class Store:
         self.db.delete("store_index", where="store_id=$id", vars=locals())
 
     def add_index(self, id, key, data):
-        if isinstance(data, dict):
-            type = data.get("type", "")
-        else:
-            type = ""
+        type = data.get("type", "") if isinstance(data, dict) else ""
         d = [web.storage(store_id=id, type=type, name="_key", value=key)]
         ignored = ["type"]
         for name, value in set(self.indexer.index(data)):

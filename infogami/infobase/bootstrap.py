@@ -12,15 +12,15 @@
 
 
 def _type(key, name, desc, properties=[], backreferences=[], kind='regular'):
-    return dict(
-        key=key,
-        type={'key': '/type/type'},
-        name=name,
-        desc=desc,
-        kind=kind,
-        properties=properties,
-        backreferences=backreferences,
-    )
+    return {
+        'key': key,
+        'type': {'key': '/type/type'},
+        'name': name,
+        'desc': desc,
+        'kind': kind,
+        'properties': properties,
+        'backreferences': backreferences,
+    }
 
 
 def _property(name, expected_type, unique=True, description='', **kw):
@@ -256,7 +256,7 @@ def bootstrap(site, admin_password):
         username="admin",
         email="admin@example.com",
         password=admin_password,
-        data=dict(displayname="Administrator"),
+        data={'displayname': "Administrator"},
         _activate=True,
     )
     a.update_user_details("admin", verified=True)
@@ -267,7 +267,7 @@ def bootstrap(site, admin_password):
             username=username,
             email="userbot@example.com",
             password=random_password(),
-            data=dict(displayname=username),
+            data={'displayname': username},
             _activate=True,
         )
         a.update_user_details(username, verified=True)

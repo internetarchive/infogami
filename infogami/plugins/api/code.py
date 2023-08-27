@@ -119,7 +119,7 @@ class infobase_request:
                 result = json.loads(out)
                 for k in result.get('created', []) + result.get('updated', []):
                     web.ctx.site._run_hooks(
-                        "on_new_version", request("/get", data=dict(key=k))
+                        "on_new_version", request("/get", data={"key": k})
                     )
         except Exception as e:
             import traceback
@@ -152,10 +152,7 @@ def jsonapi(f):
         if i.callback:
             out = f'{i.callback}({out});'
 
-        if web.input(_method="GET", text="false").text.lower() == "true":
-            content_type = "text/plain"
-        else:
-            content_type = "application/json"
+        content_type = "text/plain" if web.input(_method="GET", text="false").text.lower() == "true" else "application/json"
 
         return delegate.RawText(out, content_type=content_type)
 
@@ -191,7 +188,7 @@ class view(delegate.mode):
     def GET(self, path):
         i = web.input(v=None)
         v = safeint(i.v, None)
-        data = dict(key=path, revision=v)
+        data = {"key": path, "revision": v}
         return request('/get', data=data)
 
     @jsonapi
@@ -243,7 +240,7 @@ class history(delegate.mode):
         )
         query['key'] = path
         query['sort'] = '-created'
-        return request('/versions', data=dict(query=json.dumps(query)))
+        return request('/versions', data={"query": json.dumps(query)})
 
 
 class recentchanges(delegate.page):
@@ -270,9 +267,9 @@ class recentchanges(delegate.page):
             )
 
         if features.is_enabled("recentchanges_v2"):
-            return request('/_recentchanges', data=dict(query=query))
+            return request('/_recentchanges', data={"query": query})
         else:
-            return request('/versions', data=dict(query=query))
+            return request('/versions', data={"query": query})
 
 
 class query(delegate.page):
@@ -285,7 +282,7 @@ class query(delegate.page):
         query = i.pop('query')
         if not query:
             query = json.dumps(make_query(i))
-        return request('/things', data=dict(query=query, details="true"))
+        return request('/things', data={"query": query, "details": "true"})
 
 
 class login(delegate.page):

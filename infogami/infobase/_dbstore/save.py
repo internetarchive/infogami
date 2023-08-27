@@ -38,35 +38,35 @@ class SaveImpl:
             records = self._get_records_for_save(docs, timestamp)
             self._update_thing_table(records)
 
-            changes = [dict(key=r.key, revision=r.revision) for r in records]
+            changes = [{"key": r.key, "revision": r.revision} for r in records]
             bot = bool(
                 author and (self.get_user_details(author) or {}).get('bot', False)
             )
 
             # add transaction
-            changeset = dict(
-                kind=action,
-                author=author and {"key": author},
-                ip=ip,
-                comment=comment,
-                timestamp=timestamp.isoformat(),
-                bot=bot,
-                changes=changes,
-                data=data or {},
-            )
+            changeset = {
+                "kind": action,
+                "author": author and {"key": author},
+                "ip": ip,
+                "comment": comment,
+                "timestamp": timestamp.isoformat(),
+                "bot": bot,
+                "changes": changes,
+                "data": data or {},
+            }
             tx_id = self._add_transaction(changeset)
             changeset['id'] = str(tx_id)
 
             # add versions
             versions = [
-                dict(thing_id=r.id, revision=r.revision, transaction_id=tx_id)
+                {"thing_id": r.id, "revision": r.revision, "transaction_id": tx_id}
                 for r in records
             ]
             self.db.multiple_insert('version', versions, seqname=False)
 
             # add data
             data = [
-                dict(thing_id=r.id, revision=r.revision, data=simplejson.dumps(r.data))
+                {"thing_id": r.id, "revision": r.revision, "data": simplejson.dumps(r.data)}
                 for r in records
             ]
             self.db.multiple_insert('data', data, seqname=False)
@@ -215,13 +215,13 @@ class SaveImpl:
 
         # insert new records
         new = [
-            dict(
-                key=r.key,
-                type=r.type,
-                latest_revision=1,
-                created=r.created,
-                last_modified=r.last_modified,
-            )
+            {
+                "key": r.key,
+                "type": r.type,
+                "latest_revision": 1,
+                "created": r.created,
+                "last_modified": r.last_modified,
+            }
             for r in records
             if r.revision == 1
         ]
@@ -481,7 +481,7 @@ class IndexUtil:
             # ignore values longer than 2048, the limit specified by the db schema.
             group = self.ignore_long_values(group)
             data = [
-                dict(thing_id=thing_id, key_id=property_id, value=v)
+                {"thing_id": thing_id, "key_id": property_id, "value": v}
                 for (thing_id, property_id), values in group.items()
                 for v in values
             ]
@@ -503,7 +503,7 @@ class IndexUtil:
             if thing_ids:
                 self.db.delete(table, where='thing_id IN $thing_ids', vars=locals())
 
-            for thing_id, pids in d.items():
+            for thing_id in d:
                 self.db.delete(
                     table, where="thing_id=$thing_id AND key_id IN $pids", vars=locals()
                 )

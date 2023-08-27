@@ -76,19 +76,19 @@ class TestAccount:
         f = site.account_manager._verify_login
         enc_password = self.encrypt("secret")
 
-        assert f(dict(enc_password=enc_password, status="active"), "secret") == "ok"
+        assert f({"enc_password": enc_password, "status": "active"}, "secret") == "ok"
         assert (
-            f(dict(enc_password=enc_password, status="active"), "bad-password")
+            f({"enc_password": enc_password, "status": "active"}, "bad-password")
             == "account_bad_password"
         )
 
         # pending accounts should return "account_not_verified" if the password is correct
         assert (
-            f(dict(enc_password=enc_password, status="pending"), "secret")
+            f({"enc_password": enc_password, "status": "pending"}, "secret")
             == "account_not_verified"
         )
         assert (
-            f(dict(enc_password=enc_password, status="pending"), "bad-password")
+            f({"enc_password": enc_password, "status": "pending"}, "bad-password")
             == "account_bad_password"
         )
 

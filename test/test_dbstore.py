@@ -16,9 +16,9 @@ class InfobaseTestCase(unittest.TestCase):
 def site():
     # TODO: this does not clear data between tests. Make this work in scope=class
     user = os.getenv('USER')
-    web.config.db_parameters = dict(
-        host='postgres', dbn='postgres', db='infobase_test', user=user, pw=''
-    )
+    web.config.db_parameters = {
+        'host': 'postgres', 'dbn': 'postgres', 'db': 'infobase_test', 'user': user, 'pw': ''
+    }
     store = dbstore.DBStore(dbstore.Schema())
     store.db.printing = False
     ib = infobase.Infobase(store, 'secret')
@@ -30,9 +30,9 @@ class DBStoreTest(InfobaseTestCase):
     def _test_save(self):
         store = self.get_site_store()
 
-        d = dict(
-            key='/x', type={'key': '/type/type'}, title='foo', x={'x': 1, 'y': 'foo'}
-        )
+        d = {
+            'key': '/x', 'type': {'key': '/type/type'}, 'title': 'foo', 'x': {'x': 1, 'y': 'foo'}
+        }
         store.save('/x', d)
 
         d = store.get('/x')._get_data()
@@ -44,10 +44,10 @@ class DBStoreTest(InfobaseTestCase):
 
 class TestSaveTest:
     def testSave(self, site):
-        d = dict(key='/foo', type='/type/object')
+        d = {'key': '/foo', 'type': '/type/object'}
         assert site.save('/foo', d) == {'key': '/foo', 'revision': 1}
 
-        d = dict(key='/foo', type='/type/object', x=1)
+        d = {'key': '/foo', 'type': '/type/object', 'x': 1}
         assert site.save('/foo', d) == {'key': '/foo', 'revision': 2}
 
     def new(self, site, error=None, **d):
@@ -109,7 +109,7 @@ class TestSaveTest:
                 site,
                 key=key,
                 type=type,
-                link=dict(title='foo', link='http://infogami.org'),
+                link={'title': 'foo', 'link': 'http://infogami.org'},
             )
             d = site.get(key)._get_data()
             assert d['link']['title'] == 'foo'
@@ -140,7 +140,7 @@ class TestSaveTest:
     )
     def test_things_with_embeddable_types(self, site):
         def link(title, url):
-            return dict(title=title, url='http://example.com/' + url)
+            return {'title': title, 'url': 'http://example.com/' + url}
 
         self.new(
             site, key='/x', type='/type/object', links=[link('a', 'a'), link('b', 'b')]

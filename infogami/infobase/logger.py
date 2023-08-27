@@ -117,12 +117,12 @@ class Logger:
         f = self._open(path, 'a')
         f.write(
             json.dumps(
-                dict(
-                    action=action,
-                    site=sitename,
-                    timestamp=timestamp.isoformat(),
-                    data=data,
-                )
+                {
+                    'action': action,
+                    'site': sitename,
+                    'timestamp': timestamp.isoformat(),
+                    'data': data,
+                }
             )
         )
         f.write('\n')

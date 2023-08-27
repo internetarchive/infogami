@@ -340,7 +340,7 @@ class LogPlayback:
             username=d.username,
             email=d.email,
             enc_password=d.password,
-            data=dict(displayname=d.displayname),
+            data={'displayname': d.displayname},
             ip=d.ip,
             timestamp=timestamp,
         )

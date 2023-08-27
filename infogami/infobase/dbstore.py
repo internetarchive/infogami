@@ -135,7 +135,7 @@ class DBSiteStore(common.SiteStore):
         if not keys:
             return '{}'
 
-        xkeys = [web.reparam('$k', dict(k=k)) for k in keys]
+        xkeys = [web.reparam('$k', {"k": k}) for k in keys]
         query = (
             'SELECT thing.key, data.data from thing, data '
             + 'WHERE data.revision = thing.latest_revision and data.thing_id=thing.id '
@@ -162,14 +162,14 @@ class DBSiteStore(common.SiteStore):
         logger.debug(
             "saving %d docs - %s",
             len(docs),
-            dict(
-                timestamp=timestamp,
-                comment=comment,
-                data=data,
-                ip=ip,
-                author=author,
-                action=action,
-            ),
+            {
+                "timestamp": timestamp,
+                "comment": comment,
+                "data": data,
+                "ip": ip,
+                "author": author,
+                "action": action,
+            },
         )
 
         s = SaveImpl(self.db, self.schema, self.indexer, self.property_manager)
@@ -406,7 +406,7 @@ class DBSiteStore(common.SiteStore):
         if config.query_timeout:
             self.db.query(
                 "SELECT set_config('statement_timeout', $query_timeout, false)",
-                dict(query_timeout=config.query_timeout),
+                {"query_timeout": config.query_timeout},
             )
 
         if 'thing' in table_names:
@@ -535,7 +535,7 @@ class DBSiteStore(common.SiteStore):
         if config.query_timeout:
             self.db.query(
                 "SELECT set_config('statement_timeout', $query_timeout, false)",
-                dict(query_timeout=config.query_timeout),
+                {"query_timeout": config.query_timeout},
             )
 
         result = self.db.select(
@@ -611,15 +611,15 @@ class DBSiteStore(common.SiteStore):
             id = self.new_thing(key='/type/type')
             last_modified = datetime.datetime.utcnow()
 
-            data = dict(
-                key='/type/type',
-                type={'key': '/type/type'},
-                last_modified={'type': '/type/datetime', 'value': last_modified},
-                created={'type': '/type/datetime', 'value': last_modified},
-                revision=1,
-                latest_revision=1,
-                id=id,
-            )
+            data = {
+                "key": '/type/type',
+                "type": {'key': '/type/type'},
+                "last_modified": {'type': '/type/datetime', 'value': last_modified},
+                "created": {'type': '/type/datetime', 'value': last_modified},
+                "revision": 1,
+                "latest_revision": 1,
+                "id": id,
+            }
 
             self.db.update('thing', type=id, where='id=$id', vars=locals())
             self.db.insert('version', False, thing_id=id, revision=1)

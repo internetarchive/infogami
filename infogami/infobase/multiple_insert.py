@@ -79,20 +79,20 @@ def multiple_insert(tablename, values, seqname=None, _test=False):
 
 
 if __name__ == "__main__":
-    web.config.db_parameters = dict(
-        dbn='postgres', db='coverthing_test', user='anand', pw=''
-    )
+    web.config.db_parameters = {
+        'dbn': 'postgres', 'db': 'coverthing_test', 'user': 'anand', 'pw': ''
+    }
     web.config.db_printing = True
     web.load()
 
     def data(id):
         return [
-            dict(thing_id=id, key='isbn', value=1, datatype=1),
-            dict(thing_id=id, key='source', value='amazon', datatype=1),
-            dict(thing_id=id, key='image', value='foo', datatype=10),
+            {'thing_id': id, 'key': 'isbn', 'value': 1, 'datatype': 1},
+            {'thing_id': id, 'key': 'source', 'value': 'amazon', 'datatype': 1},
+            {'thing_id': id, 'key': 'image', 'value': 'foo', 'datatype': 10},
         ]
 
-    ids = multiple_insert('thing', [dict(dummy=1)] * 10)
+    ids = multiple_insert('thing', [{'dummy': 1}] * 10)
     values = []
     for id in ids:
         values += data(id)

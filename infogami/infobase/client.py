@@ -1,4 +1,5 @@
 """Infobase client."""
+import contextlib
 import datetime
 import json
 import logging
@@ -245,7 +246,7 @@ class Site:
         revision = revision and int(revision)
 
         if (key, revision) not in self._cache:
-            data = dict(key=key, revision=revision)
+            data = {"key": key, "revision": revision}
             try:
                 result = self._request('/get', data=data)
             except ClientException as e:
@@ -288,10 +289,7 @@ class Site:
             except ValueError:
                 return 0
 
-        if 'env' in web.ctx:
-            i = web.input(_method='GET')
-        else:
-            i = web.storage()
+        i = web.input(_method="GET") if "env" in web.ctx else web.storage()
         page_size = 20
         backreferences = {}
 
@@ -346,7 +344,7 @@ class Site:
                 keys = keys[100:]
             return things
 
-        data = dict(keys=json.dumps(keys))
+        data = {"keys": json.dumps(keys)}
         result = self._request('/get_many', data=data)
         things = []
 
@@ -397,7 +395,7 @@ class Site:
         self._run_hooks('before_new_version', query)
         _query = json.dumps(query)
         result = self._request(
-            '/write', 'POST', dict(query=_query, comment=comment, action=action)
+            '/write', 'POST', {"query": _query, "comment": comment, "action": action}
         )
         self._run_hooks('on_new_version', query)
         self._invalidate_cache(result.created + result.updated)
@@ -428,12 +426,12 @@ class Site:
         result = self._request(
             '/save_many',
             'POST',
-            dict(
-                query=_query,
-                comment=comment,
-                action=action,
-                data=json.dumps(data),
-            ),
+            {
+                "query": _query,
+                "comment": comment,
+                "action": action,
+                "data": json.dumps(data),
+            },
         )
         self._invalidate_cache([r['key'] for r in result])
         for q in query:
@@ -442,13 +440,12 @@ class Site:
 
     def _invalidate_cache(self, keys):
         for k in keys:
-            try:
+            with contextlib.suppress(KeyError):
                 del self._cache[k, None]
-            except KeyError:
-                pass
+
 
     def can_write(self, key):
-        perms = self._request('/permission', 'GET', dict(key=key))
+        perms = self._request('/permission', 'GET', {"key": key})
         return perms['write']
 
     def _run_hooks(self, name, query):
@@ -468,18 +465,18 @@ class Site:
 
     def login(self, username, password, remember=False):
         return self._request(
-            '/account/login', 'POST', dict(username=username, password=password)
+            '/account/login', 'POST', {"username": username, "password": password}
         )
 
     def register(self, username, displayname, email, password):
-        data = dict(
-            username=username, displayname=displayname, email=email, password=password
-        )
+        data = {
+            "username": username, "displayname": displayname, "email": email, "password": password
+        }
         _run_hooks("before_register", data)
         return self._request('/account/register', 'POST', data)
 
     def activate_account(self, username):
-        data = dict(username=username)
+        data = {"username": username}
         return self._request('/account/activate', 'POST', data)
 
     def update_account(self, username, **kw):
@@ -491,14 +488,14 @@ class Site:
         """Finds account by username or email."""
         if username is None and email is None:
             return None
-        data = dict(username=username, email=email)
+        data = {"username": username, "email": email}
         return self._request("/account/find", "GET", data)
 
     def update_user(self, old_password, new_password, email):
         return self._request(
             '/account/update_user',
             'POST',
-            dict(old_password=old_password, new_password=new_password, email=email),
+            {"old_password": old_password, "new_password": new_password, "email": email},
         )
 
     def update_user_details(self, username, **kw):
@@ -513,21 +510,21 @@ class Site:
         This called to send forgot password email.
         This should be called after logging in as admin.
         """
-        return self._request('/account/get_reset_code', 'GET', dict(email=email))
+        return self._request('/account/get_reset_code', 'GET', {"email": email})
 
     def check_reset_code(self, username, code):
         return self._request(
-            '/account/check_reset_code', 'GET', dict(username=username, code=code)
+            '/account/check_reset_code', 'GET', {"username": username, "code": code}
         )
 
     def get_user_email(self, username):
-        return self._request('/account/get_user_email', 'GET', dict(username=username))
+        return self._request('/account/get_user_email', 'GET', {"username": username})
 
     def reset_password(self, username, code, password):
         return self._request(
             '/account/reset_password',
             'POST',
-            dict(username=username, code=code, password=password),
+            {"username": username, "code": code, "password": password},
         )
 
     def get_user(self):
@@ -591,14 +588,14 @@ class Store:
                 type, name, value, offset=offset, include_docs=include_docs
             )
 
-        params = dict(
-            type=type,
-            name=name,
-            value=value,
-            limit=limit,
-            offset=offset,
-            include_docs=str(include_docs),
-        )
+        params = {
+            "type": type,
+            "name": name,
+            "value": value,
+            "limit": limit,
+            "offset": offset,
+            "include_docs": str(include_docs),
+        }
         params = {k: v for k, v in params.items() if v is not None}
         return self._request("_query", method="GET", data=params)
 

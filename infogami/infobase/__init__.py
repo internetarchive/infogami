@@ -47,5 +47,5 @@ if __name__ == "__main__":
 
     dbname = os.environ.get('INFOBASE_DB', 'infobase')
     web.config.db_printing = True
-    web.config.db_parameters = dict(dbn='postgres', db=dbname)
+    web.config.db_parameters = {"dbn": 'postgres', "db": dbname}
     run()

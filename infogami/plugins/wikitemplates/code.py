@@ -50,7 +50,7 @@ class WikiSource(Mapping):
         return len(self.templates)
 
     def keys(self):
-        return [self.unprocess_key(k) for k in self.templates.keys()]
+        return [self.unprocess_key(k) for k in self.templates]
 
     def process_key(self, key):
         return '/templates/%s.tmpl' % key
@@ -241,7 +241,7 @@ def movetemplates(prefix_pattern=None):
                 key=wikipath,
                 type={"key": '/type/template'},
                 title=title,
-                body=dict(connect='update', value=body),
+                body={"connect": 'update', "value": body},
             )
             templates.append(d)
 
@@ -306,7 +306,7 @@ class template_preferences(delegate.page):
         prefs = web.ctx.site.get(context.user.key + "/preferences")
         path = (prefs and prefs.get('template_root')) or "/"
         f = forms.template_preferences()
-        f.fill(dict(path=path))
+        f.fill({"path": path})
         return render.template_preferences(f)
 
     @require_login

@@ -9,7 +9,7 @@ from infogami.utils.delegate import app
 # overwrite _cleanup to stop clearing thread state between requests
 app._cleanup = lambda *a: None
 
-db_parameters = dict(dbn="postgres", db="infogami_test", user=os.environ["USER"], pw="")
+db_parameters = {"dbn": "postgres", "db": "infogami_test", "user": os.environ["USER"], "pw": ""}
 
 
 def setup_module(module):
