@@ -503,7 +503,7 @@ class IndexUtil:
             if thing_ids:
                 self.db.delete(table, where='thing_id IN $thing_ids', vars=locals())
 
-            for thing_id in d:
+            for thing_id, pids in d.items():  # noqa: PERF102
                 self.db.delete(
                     table, where="thing_id=$thing_id AND key_id IN $pids", vars=locals()
                 )

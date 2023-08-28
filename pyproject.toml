@@ -8,6 +8,7 @@ show_error_context = true
 select = [
     "AIR",    # Airflow
     "ASYNC",  # flake8-async
+    "C4",   # flake8-comprehensions
     "C90",    # McCabe cyclomatic complexity
     "CPY",    # flake8-copyright
     "DJ",     # flake8-django
@@ -20,10 +21,12 @@ select = [
     "INT",    # flake8-gettext
     "NPY",    # NumPy-specific rules
     "PD",     # pandas-vet
+    "PERF", # Perflint
     "PIE",    # flake8-pie
     "PL",     # Pylint
     "PYI",    # flake8-pyi
     "RSE",    # flake8-raise
+    "SIM",  # flake8-simplify
     "SLOT",   # flake8-slots
     "T10",    # flake8-debugger
     "TCH",    # flake8-type-checking
@@ -36,7 +39,6 @@ select = [
     # "ARG",  # flake8-unused-arguments
     # "B",    # flake8-bugbear
     # "BLE",  # flake8-blind-except
-    "C4",   # flake8-comprehensions
     # "COM",  # flake8-commas
     # "D",    # pydocstyle
     # "DTZ",  # flake8-datetimez
@@ -49,7 +51,6 @@ select = [
     # "INP",  # flake8-no-pep420
     # "ISC",  # flake8-implicit-str-concat
     # "N",    # pep8-naming
-    "PERF", # Perflint
     # "PGH",  # pygrep-hooks
     # "PT",   # flake8-pytest-style
     # "PTH",  # flake8-use-pathlib
@@ -57,7 +58,6 @@ select = [
     # "RET",  # flake8-return
     # "RUF",  # Ruff-specific rules
     # "S",    # flake8-bandit
-    "SIM",  # flake8-simplify
     # "SLF",  # flake8-self
     # "T20",  # flake8-print
     # "TD",   # flake8-todos
