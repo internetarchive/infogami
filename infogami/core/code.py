@@ -288,6 +288,7 @@ class logout(delegate.page):
     path = "/account/logout"
 
     def POST(self):
+        web.setcookie('pd', "", expires=-1)
         web.setcookie(config.login_cookie_name, "", expires=-1)
         referer = web.ctx.env.get('HTTP_REFERER', '/')
         raise web.seeother(referer)
