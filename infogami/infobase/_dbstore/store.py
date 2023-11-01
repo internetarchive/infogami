@@ -12,7 +12,7 @@ This provides a simple and limited interface for storing, retrieving, querying d
     - list(limit=100, offset=0) -> keys
     - query(type, name, value, limit=100, offset=0) -> keys
 
-Each doument can have an optional type property that can be used while querying.
+Each document can have an optional type property that can be used while querying.
 The query interface is limited to only one name, value. No joins are possible and
 the result is always ordered by the internal id.
 
