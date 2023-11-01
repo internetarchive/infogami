@@ -93,7 +93,6 @@ class LocalConnection(Connection):
 
     def __init__(self, **params):
         Connection.__init__(self)
-        pass
 
     def request(self, sitename, path, method='GET', data=None):
         path = "/" + sitename + path

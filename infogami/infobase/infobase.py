@@ -74,7 +74,6 @@ class Infobase:
                 listener(event)
             except Exception:
                 common.record_exception()
-                pass
 
 
 class Site:
