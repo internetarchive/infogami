@@ -731,7 +731,7 @@ def load_config(config_file):
     update_config(runtime_config)
 
 
-def update_config(runtime_config):
+def update_config(runtime_config, overwrite_db_params=True):
     # update config
     for k, v in runtime_config.items():
         setattr(config, k, v)
@@ -742,7 +742,8 @@ def update_config(runtime_config):
         plugins.append(__import__(p, None, None, ["x"]))
         logger.info("loading plugin %s", p)
 
-    web.config.db_parameters = parse_db_parameters(config.db_parameters)
+    if overwrite_db_params:
+        web.config.db_parameters = parse_db_parameters(config.db_parameters)
 
     # initialize cache
     cache_params = config.get('cache', {'type': 'none'})
