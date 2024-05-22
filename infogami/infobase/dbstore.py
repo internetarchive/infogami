@@ -291,8 +291,11 @@ class DBSiteStore(common.SiteStore):
                     raise StopIteration
                 c.value = metadata.id
             if c.op == '~':
-                op = Literal('LIKE')
-                c.value = c.value.replace('*', '%').replace('_', r'\_')
+                op = Literal('ILIKE')
+                # Asterisks as part of the author's name query from patron input are escaped in Open Library
+                # so they don't become % wild card searches. E.g. an author styled as "Muñ*z" shouldn't have
+                # their "*" become a wild card. Other wild cards added by code should be converted to %, though.
+                c.value = r'\*'.join(part.replace('*', '%') for part in c.value.split(r'\*')).replace('_', r'\_')
             else:
                 op = Literal(c.op)
 

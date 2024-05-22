@@ -237,7 +237,6 @@ class SiteStore:
         """Initializes the store for the first time.
         This is called before doing the bootstrap.
         """
-        ...
 
     def set_cache(self, cache):
         pass
