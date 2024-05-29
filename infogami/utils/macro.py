@@ -80,13 +80,19 @@ def macro_eval(macro, macro_call: str) -> str:
         for arg in args:
             if not isinstance(arg, ast.Constant):
                 return "ERROR: Invalid arg: {{" + macro_call + "}}"
-        args = cast(list[ast.Constant], args)
         for key, value in kwargs.items():
             assert isinstance(key, str)
             if not isinstance(value, ast.Constant):
                 return "ERROR: Invalid keyword arg: {{" +macro_call + "}}"
-        kwargs = cast(dict[str, ast.Constant], kwargs)
-        return macro(*[arg.value for arg in args], **{key: value.value for key, value in kwargs.items()})
+
+        # Need these to appease mypy
+        args_typed = cast(list[ast.Constant], args)
+        kwargs_typed = cast(dict[str, ast.Constant], kwargs)
+
+        return macro(
+            *[arg.value for arg in args_typed],
+            **{key: value.value for key, value in kwargs_typed.items()},
+        )
     except (AssertionError, SyntaxError):
         return "ERROR: Invalid macro: {{" + macro_call + "}}"
 
