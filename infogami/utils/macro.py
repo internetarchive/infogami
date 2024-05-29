@@ -4,7 +4,9 @@ Macro extension to markdown.
 Macros take argument string as input and returns result as markdown text.
 """
 
+import ast
 import os
+from typing import cast
 
 import web
 
@@ -39,24 +41,61 @@ def load_macros(plugin_root, lazy=False):
 # -- macro execution
 
 
-def safeeval_args(args):
-    """Evalues the args string safely using templator."""
-    result = [None]
-
-    def f(*args, **kwargs):
-        result[0] = args, kwargs
-
-    code = "$def with (f)\n$f(%s)" % args
-    web.template.Template(web.safestr(code))(f)
-    return result[0]
-
+def macro_eval(macro, macro_call: str) -> str:
+    """
+    >>> def dummy_macro(*args, **kwargs):
+    ...    return 'SUCCESS: ' + repr(args) + ' ' + repr(kwargs)
+    >>> macro_eval(dummy_macro, 'foo("hello")')
+    "SUCCESS: ('hello',) {}"
+    >>> macro_eval(dummy_macro, 'foo(123)')
+    'SUCCESS: (123,) {}'
+    >>> macro_eval(dummy_macro, 'foo(bar=3.14)')
+    "SUCCESS: () {'bar': 3.14}"
+    >>> macro_eval(dummy_macro, 'foo()')
+    'SUCCESS: () {}'
+    >>> macro_eval(dummy_macro, 'foo(evil)')
+    'ERROR: Invalid arg: {{foo(evil)}}'
+    >>> macro_eval(dummy_macro, 'foo(3*3)')
+    'ERROR: Invalid arg: {{foo(3*3)}}'
+    >>> macro_eval(dummy_macro, 'foo(web.ctx.site.get("foo"))')
+    'ERROR: Invalid arg: {{foo(web.ctx.site.get("foo"))}}'
+    >>> macro_eval(dummy_macro, 'foo("hi", this="works")')
+    "SUCCESS: ('hi',) {'this': 'works'}"
+    >>> macro_eval(dummy_macro, 'foo("hah", 3*3)')
+    'ERROR: Invalid arg: {{foo("hah", 3*3)}}'
+    >>> macro_eval(dummy_macro, 'foo(nope="hah", this=3*3)')
+    'ERROR: Invalid keyword arg: {{foo(nope="hah", this=3*3)}}'
+    >>> macro_eval(dummy_macro, 'foo(123)web.ctx.site.get("foo")')
+    'ERROR: Invalid macro: {{foo(123)web.ctx.site.get("foo")}}'
+    """
+    try:
+        tree = ast.parse(macro_call)
+        assert len(tree.body) == 1
+        body_root = tree.body[0]
+        assert isinstance(body_root, ast.Expr)
+        call_node = body_root.value
+        assert isinstance(call_node, ast.Call)
+        args = call_node.args
+        kwargs = { keyword.arg: keyword.value for keyword in call_node.keywords}
+        for arg in args:
+            if not isinstance(arg, ast.Constant):
+                return "ERROR: Invalid arg: {{" + macro_call + "}}"
+        args = cast(list[ast.Constant], args)
+        for key, value in kwargs.items():
+            assert isinstance(key, str)
+            if not isinstance(value, ast.Constant):
+                return "ERROR: Invalid keyword arg: {{" +macro_call + "}}"
+        kwargs = cast(dict[str, ast.Constant], kwargs)
+        return macro(*[arg.value for arg in args], **{key: value.value for key, value in kwargs.items()})
+    except (AssertionError, SyntaxError):
+        return "ERROR: Invalid macro: {{" + macro_call + "}}"
 
 def call_macro(name, args):
     if name in macrostore:
         try:
             macro = macrostore[name]
-            args, kwargs = safeeval_args(args)
-            result = macro(*args, **kwargs)
+            macro_string = name + "(" + args + ")"
+            result = macro_eval(macro, macro_string)
         except Exception as e:
             i = web.input(_method="GET", debug="false")
             if i.debug.lower() == "true":
