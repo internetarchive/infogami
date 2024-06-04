@@ -290,8 +290,8 @@ class DBSiteStore(common.SiteStore):
                     # Raise StopIteration to indicate empty result.
                     raise StopIteration
                 c.value = metadata.id
-            if c.op in ['~', '%']:
-                op = Literal('ILIKE' if c.op == '%' else 'LIKE')
+            if c.op in ['~', '~i']:
+                op = Literal('ILIKE' if c.op == '~i' else 'LIKE')
                 # Asterisks as part of the author's name query from patron input are escaped in Open Library
                 # so they don't become % wild card searches. E.g. an author styled as "Muñ*z" shouldn't have
                 # their "*" become a wild card. Other wild cards added by code should be converted to %, though.
