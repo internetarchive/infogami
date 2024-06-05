@@ -239,7 +239,7 @@ def parse_key(key):
     >>> parse_key('foo!=')
     ('foo', '!=')
     """
-    operators = ["!=", "=", "<", "<=", ">=", ">", "~"]
+    operators = ["!=", "=", "<", "<=", ">=", ">", "~", "~i"]
     operator = "="
     for op in operators:
         if key.endswith(op):
