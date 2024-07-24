@@ -154,7 +154,7 @@ def replace_macros(html, macros):
 
 class MacroExtension(markdown.Extension):
     def extendMarkdown(self, md, md_globals):
-        md.inlinePatterns.append(MacroPattern(md))
+        md.inlinePatterns.insert(0, MacroPattern(md))
         md.macro_count = 0
         md.macros = {}
 
