@@ -5,5 +5,5 @@ set -e -v
 # Run linters and formatters
 black --skip-string-normalization .
 codespell
-ruff .  # See pyproject.toml for args
+ruff check .  # See pyproject.toml for args
 mypy --install-types --non-interactive .
