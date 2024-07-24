@@ -1,4 +1,5 @@
 """Infobase client."""
+
 import datetime
 import json
 import logging

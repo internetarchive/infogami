@@ -1,6 +1,7 @@
 """
 wikitemplates: allow keeping templates and macros in wiki
 """
+
 import os
 from collections.abc import Mapping
 from io import StringIO

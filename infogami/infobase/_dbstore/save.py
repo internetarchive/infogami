@@ -1,5 +1,6 @@
 """Implementation of save for dbstore.
 """
+
 from collections import defaultdict
 
 import simplejson
