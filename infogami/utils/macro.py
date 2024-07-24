@@ -76,14 +76,14 @@ def macro_eval(macro, macro_call: str) -> str:
         call_node = body_root.value
         assert isinstance(call_node, ast.Call)
         args = call_node.args
-        kwargs = { keyword.arg: keyword.value for keyword in call_node.keywords}
+        kwargs = {keyword.arg: keyword.value for keyword in call_node.keywords}
         for arg in args:
             if not isinstance(arg, ast.Constant):
                 return "ERROR: Invalid arg: {{" + macro_call + "}}"
         for key, value in kwargs.items():
             assert isinstance(key, str)
             if not isinstance(value, ast.Constant):
-                return "ERROR: Invalid keyword arg: {{" +macro_call + "}}"
+                return "ERROR: Invalid keyword arg: {{" + macro_call + "}}"
 
         # Need these to appease mypy
         args_typed = cast(list[ast.Constant], args)
@@ -95,6 +95,7 @@ def macro_eval(macro, macro_call: str) -> str:
         )
     except (AssertionError, SyntaxError):
         return "ERROR: Invalid macro: {{" + macro_call + "}}"
+
 
 def call_macro(name, args):
     if name in macrostore:

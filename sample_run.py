@@ -1,6 +1,7 @@
 """
 Sample run.py
 """
+
 import infogami
 
 # your db parameters

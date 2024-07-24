@@ -1,5 +1,6 @@
 """Script to migrate data from 0.4 to 0.5
 """
+
 import os
 import sys
 from optparse import OptionParser

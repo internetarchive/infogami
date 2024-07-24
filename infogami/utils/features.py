@@ -1,5 +1,6 @@
 """Feature flags support for Infogami.
 """
+
 import web
 
 from infogami.utils.context import context

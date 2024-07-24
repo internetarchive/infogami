@@ -1,5 +1,6 @@
 """Run all doctests in infogami.
 """
+
 from test import webtest
 
 

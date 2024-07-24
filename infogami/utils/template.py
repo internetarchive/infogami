@@ -8,6 +8,7 @@ There could also be multiple sources of templates. For example, from plugins
 and from the wiki. The `Render` class takes care of providing the correct
 template from multiple template sources and error handling.
 """
+
 import os
 import time
 import traceback

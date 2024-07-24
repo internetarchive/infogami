@@ -1,6 +1,7 @@
 """
 Infobase.
 """
+
 import sys
 
 import web

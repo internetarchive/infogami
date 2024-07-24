@@ -1,5 +1,6 @@
 """Maintains a registry of path pattern vs type names to guess type from path when a page is newly created.
 """
+
 import re
 
 from infogami.utils import storage

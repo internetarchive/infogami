@@ -416,7 +416,6 @@ class Preprocessor:
 
 
 class HeaderPreprocessor(Preprocessor):
-
     """
     Replaces underlined headers with hashed headers to avoid
     the need for lookahead later.
@@ -1103,7 +1102,7 @@ class Markdown:
             STRONG_PATTERN,
             STRONG_PATTERN_2,
             EMPHASIS_PATTERN,
-            EMPHASIS_PATTERN_2
+            EMPHASIS_PATTERN_2,
             # The order of the handlers matters!!!
         ]
 
