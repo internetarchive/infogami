@@ -1,6 +1,7 @@
 """
 Infogami read/write API.
 """
+
 import json
 from functools import wraps
 

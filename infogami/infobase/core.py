@@ -1,5 +1,6 @@
 """Core datastructures for Infogami.
 """
+
 import copy
 import json
 

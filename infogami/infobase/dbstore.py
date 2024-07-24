@@ -295,7 +295,9 @@ class DBSiteStore(common.SiteStore):
                 # Asterisks as part of the author's name query from patron input are escaped in Open Library
                 # so they don't become % wild card searches. E.g. an author styled as "Muñ*z" shouldn't have
                 # their "*" become a wild card. Other wild cards added by code should be converted to %, though.
-                c.value = r'\*'.join(part.replace('*', '%') for part in c.value.split(r'\*')).replace('_', r'\_')
+                c.value = r'\*'.join(
+                    part.replace('*', '%') for part in c.value.split(r'\*')
+                ).replace('_', r'\_')
             else:
                 op = Literal(c.op)
 

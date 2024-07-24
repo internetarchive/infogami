@@ -11,6 +11,7 @@ See Bug#231831 for details.
     >>> loads(dumps({u'x': u'\u1234'.encode('utf-8')}))
     {u'x': u'\u1234'}
 """
+
 import datetime
 
 import simplejson

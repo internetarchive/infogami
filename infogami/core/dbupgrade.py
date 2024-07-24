@@ -1,6 +1,7 @@
 """
 module for doing database upgrades when code changes.
 """
+
 import web
 
 import infogami

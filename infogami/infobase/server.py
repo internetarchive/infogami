@@ -1,7 +1,6 @@
 """Infobase server to expose the API.
 """
 
-
 __version__ = "0.5dev"
 
 import json

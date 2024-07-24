@@ -1,6 +1,7 @@
 """
 Threaded context for infogami.
 """
+
 import web
 
 # Placeholder for keeping context defaults. This is populated by
