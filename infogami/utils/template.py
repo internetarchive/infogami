@@ -15,7 +15,7 @@ import traceback
 
 import web
 
-from infogami.utils import storage
+from infogami.utils import features, storage
 
 # There are some backward-incompatible changes in web.py 0.34 which makes Infogami fail.
 assert web.__version__ != "0.34", "Please pip install --upgrade web.py"
@@ -163,8 +163,7 @@ def saferender(templates, *a, **kw):
         except Exception as e:
             # help to debug template errors.
             # when called with debug=true, the debug error is displayed.
-            i = web.input(_method='GET', debug="false")
-            if i.debug.lower() == "true":
+            if features.is_enabled("debug"):
                 raise
 
             from . import delegate, view  # avoids circular imports

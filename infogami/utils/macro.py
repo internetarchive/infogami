@@ -10,7 +10,7 @@ from typing import cast
 
 import web
 
-from infogami.utils import storage, template
+from infogami.utils import features, storage, template
 from infogami.utils.markdown import markdown
 
 # macros loaded from disk
@@ -104,8 +104,7 @@ def call_macro(name, args):
             macro_string = name + "(" + args + ")"
             result = macro_eval(macro, macro_string)
         except Exception as e:
-            i = web.input(_method="GET", debug="false")
-            if i.debug.lower() == "true":
+            if features.is_enabled("debug"):
                 raise
             result = f"{name} failed with error: <pre>{web.websafe(str(e))}</pre>"
             import traceback
