@@ -138,8 +138,7 @@ def make_query(store, query, prefix=""):
     q.prefix = prefix
     q.offset = common.safeint(query.pop('offset', None), 0)
     q.limit = common.safeint(query.pop('limit', 20), 20)
-    if q.limit > 1000:
-        q.limit = 1000
+    q.limit = min(q.limit, 1000)
     sort = query.pop('sort', None)
 
     nested = prefix != ""
@@ -256,8 +255,7 @@ def make_versions_query(store, query):
 
     q.offset = common.safeint(query.pop('offset', None), 0)
     q.limit = common.safeint(query.pop('limit', 20), 20)
-    if q.limit > 1000:
-        q.limit = 1000
+    q.limit = min(q.limit, 1000)
     q.sort = query.pop('sort', '-created')
 
     columns = [
