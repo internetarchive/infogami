@@ -45,6 +45,9 @@ def fakeload():
     context.user = None
     web.ctx.site = create_site()
 
+    # Load features
+    features.loadhook()
+
 
 def initialize_context():
     web.ctx.site = create_site()
