@@ -52,7 +52,7 @@ def loadhook():
 
 def is_enabled(flag):
     """Tests whether the given feature flag is enabled for this request."""
-    return flag in web.ctx.features
+    return flag in context.features
 
 
 def filter_disabled():
