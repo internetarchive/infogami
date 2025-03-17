@@ -4,6 +4,7 @@ set -e -v
 
 # Run linters and formatters
 black --skip-string-normalization .
-codespell
+codespell \
+    --exclude-file=infogami/core/files/js/repetition/repetition-model.js
 ruff check .  # See pyproject.toml for args
 mypy --install-types --non-interactive .

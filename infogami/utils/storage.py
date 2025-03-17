@@ -57,7 +57,7 @@ class ReadOnlyDict:
 
 
 class DictPile(Mapping):
-    """Pile of ditionaries.
+    """Pile of dictionaries.
     A key in top dictionary covers the key with the same name in the bottom dictionary.
 
         >>> a = {'x': 1, 'y': 2}
