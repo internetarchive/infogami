@@ -258,7 +258,7 @@ def path_processor(handler):
             # that causes infinite redicts when web.ctx.path startswith "//"
             raise web.seeother(web.ctx.home + npath + web.ctx.query)
         else:
-            raise app.notfound
+            raise app.notfound()
     else:
         return handler()
 
