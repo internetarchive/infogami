@@ -78,7 +78,14 @@ class TestStore:
     global s  # site.store
 
     def setup_method(self, method):
-        s.clear()
+        keys = s.keys()
+        for k in keys:
+            del s[k]
+    
+    def teardown_method(self, method):
+        keys = s.keys()
+        for k in keys:
+            del s[k]
 
     def test_getitem(self, wildcard):
         try:

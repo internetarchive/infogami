@@ -574,11 +574,6 @@ class Store:
         docs = [dict(doc, _key=key) for key, doc in d2.items()]
         self._request("_save_many", method="POST", data=json.dumps(docs))
 
-    def clear(self):
-        """Removes all keys from the store. Use this with caution!"""
-        for k in self.keys(limit=-1):
-            del self[k]
-
     def query(
         self, type=None, name=None, value=None, limit=100, offset=0, include_docs=False
     ):
