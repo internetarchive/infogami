@@ -531,8 +531,8 @@ class Site:
         )
 
     def get_user(self):
-        # avoid hitting infobase when there is no cookie.
-        if web.cookies().get(config.login_cookie_name) is None:
+        # avoid hitting infobase when there is no auth token set.
+        if self._conn.get_auth_token() is None:
             return None
         try:
             data = self._request('/account/get_user')
