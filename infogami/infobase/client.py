@@ -75,7 +75,7 @@ class Connection:
     def get_auth_token(self):
         return self.auth_token
 
-    def request(self, sitename, path, method='GET', data=None):
+    def request(self, sitename: str, path: str, method='GET', data=None):
         raise NotImplementedError
 
     def handle_error(self, status, error):
@@ -223,16 +223,16 @@ class LazyObject:
 
 
 class Site:
-    def __init__(self, conn, sitename):
+    def __init__(self, conn: Connection, sitename: str):
         self._conn = conn
         self.name = sitename
         # cache for storing pages requested in this HTTP request
-        self._cache = {}
+        self._cache: dict[tuple[str, int | None], web.storage] = {}
 
         self.store = Store(conn, sitename)
         self.seq = Sequence(conn, sitename)
 
-    def _request(self, path, method='GET', data=None):
+    def _request(self, path: str, method: str = 'GET', data=None):
         out = self._conn.request(self.name, path, method, data)
 
         # Allow connection to return dict
@@ -240,7 +240,7 @@ class Site:
             out = json.loads(out)
         return storify(out)
 
-    def _get(self, key, revision=None):
+    def _get(self, key: str, revision: int | None = None):
         """Returns properties of the thing with the specified key."""
         revision = revision and int(revision)
 
@@ -558,7 +558,7 @@ class Store:
     Each document can have an optional type (default is "") and all the (type, name, value) triples are indexed.
     """
 
-    def __init__(self, conn, sitename):
+    def __init__(self, conn: Connection, sitename: str):
         self.conn = conn
         self.name = sitename
 
@@ -669,7 +669,7 @@ class Sequence:
             print(seq.next_value("foo"))
     """
 
-    def __init__(self, conn, sitename):
+    def __init__(self, conn: Connection, sitename: str):
         self.conn = conn
         self.name = sitename
 
