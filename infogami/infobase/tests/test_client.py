@@ -34,7 +34,7 @@ class TestRecentChanges:
         assert changes == [
             {
                 "id": wildcard,
-                "kind": "update",
+                "kind": "default-update",
                 "author": None,
                 "ip": wildcard,
                 "timestamp": wildcard,
@@ -46,7 +46,7 @@ class TestRecentChanges:
 
         assert site.get_change(changes[0]["id"]).dict() == {
             "id": wildcard,
-            "kind": "update",
+            "kind": "default-update",
             "author": None,
             "ip": wildcard,
             "timestamp": wildcard,
