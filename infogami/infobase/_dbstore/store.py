@@ -39,12 +39,12 @@ from infogami.infobase import common
 class Store:
     """JSON Store."""
 
-    def __init__(self, db):
+    def __init__(self, db: web.DB):
         self.db = db
         self.indexer = StoreIndexer()
         self.listener = None
 
-    def get_row(self, key, for_update=False):
+    def get_row(self, key: str, for_update: bool = False):
         q = "SELECT * FROM store WHERE key=$key"
         if for_update:
             q += " FOR UPDATE NOWAIT"

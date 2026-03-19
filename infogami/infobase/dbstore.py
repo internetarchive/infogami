@@ -3,6 +3,7 @@
 import datetime
 import logging
 import time
+from typing import TYPE_CHECKING, cast
 
 import web
 
@@ -12,7 +13,10 @@ from infogami.infobase._dbstore import sequence, store
 from infogami.infobase._dbstore.indexer import Indexer
 from infogami.infobase._dbstore.read import RecentChanges, get_bot_users
 from infogami.infobase._dbstore.save import PropertyManager, SaveImpl
-from infogami.infobase._dbstore.schema import Schema  # noqa: F401
+from infogami.infobase._dbstore.schema import Schema
+
+if TYPE_CHECKING:
+    from infogami.infobase.cache import Cache
 
 default_schema = None
 
@@ -25,7 +29,7 @@ def process_json(key, json_data):
 
 
 class DBSiteStore(common.SiteStore):
-    def __init__(self, db, schema):
+    def __init__(self, db: web.DB, schema: Schema):
         self.db = db
         self.schema = schema
         self.sitename = None
@@ -33,13 +37,13 @@ class DBSiteStore(common.SiteStore):
         self.store = store.Store(self.db)
         self.seq = sequence.SequenceImpl(self.db)
 
-        self.cache = None
+        self.cache: "Cache | None" = None
         self.property_manager = PropertyManager(self.db)
 
     def get_store(self):
         return self.store
 
-    def set_cache(self, cache):
+    def set_cache(self, cache: "Cache"):
         self.cache = cache
 
     def get_metadata(self, key, for_update=False):
@@ -657,9 +661,9 @@ class DBStore(common.Store):
     It always returns a the same site irrespective of the sitename.
     """
 
-    def __init__(self, schema):
+    def __init__(self, schema: Schema):
         self.schema = schema
-        self.sitestore = None
+        self.sitestore: DBSiteStore | None = None
         self.db = create_database(**web.config.db_parameters)
 
     def has_initialized(self):
@@ -669,7 +673,7 @@ class DBStore(common.Store):
         except Exception:
             return False
 
-    def create(self, sitename):
+    def create(self, sitename: str) -> DBSiteStore:
         if self.sitestore is None:
             self.sitestore = DBSiteStore(self.db, self.schema)
             if not self.has_initialized():
@@ -678,7 +682,7 @@ class DBStore(common.Store):
         self.sitestore.initialize()
         return self.sitestore
 
-    def get(self, sitename):
+    def get(self, sitename: str) -> DBSiteStore | None:
         if self.sitestore is None:
             sitestore = DBSiteStore(self.db, self.schema)
             if not self.has_initialized():
@@ -699,9 +703,9 @@ class DBStore(common.Store):
 class MultiDBStore(DBStore):
     """DBStore that works with multiple sites."""
 
-    def __init__(self, schema):
+    def __init__(self, schema: Schema):
         self.schema = schema
-        self.sitestores = {}
+        self.sitestores: dict[str, MultiDBSiteStore] = {}
         self.db = create_database(**web.config.db_parameters)
 
     def create(self, sitename):
@@ -783,8 +787,8 @@ class MultiDBSiteStore(DBSiteStore):
         pass
 
 
-def create_database(**params):
-    db = web.database(**params)
+def create_database(**params) -> web.DB:
+    db = cast("web.DB", web.database(**params))
 
     # monkey-patch query method to collect stats
     _query = db.query
