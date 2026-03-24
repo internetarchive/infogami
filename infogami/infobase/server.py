@@ -689,20 +689,22 @@ def parse_db_parameters(d):
     if d is None:
         return None
 
-    # support both <engine, database, username, password> and <dbn, db, user, pw>.
+    # support both <engine, database, username, password, port> and <dbn, db, user, pw, port>.
     if 'database' in d:
-        dbn, db, user, pw = (
+        dbn, db, user, pw, port = (
             d.get('engine', 'postgres'),
             d['database'],
             d.get('username'),
             d.get('password') or '',
+            d.get('port')
         )
     else:
-        dbn, db, user, pw = (
+        dbn, db, user, pw, port = (
             d.get('dbn', 'postgres'),
             d['db'],
             d.get('user'),
             d.get('pw') or '',
+            d.get('port')
         )
 
     if user is None:
@@ -711,6 +713,8 @@ def parse_db_parameters(d):
     result = dict(dbn=dbn, db=db, user=user, pw=pw)
     if 'host' in d:
         result['host'] = d['host']
+    if port is not None:
+        result['port'] = port
     return result
 
 
