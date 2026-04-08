@@ -130,7 +130,7 @@ class SaveImpl:
 
         d = []
 
-        def append_rows(records: list[tuple], action_type: str) -> None:
+        def append_rows(records: set[tuple], action_type: str) -> None:
             for r in records:
                 d.append(
                     {
