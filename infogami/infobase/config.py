@@ -33,7 +33,7 @@ use_machine_comment = False
 use_bot_column = True
 
 # Store additional transaction metadata in the `transaction_details` table
-use_transaction_details_table = True
+use_transaction_details_table = False
 
 verify_user_email = False
 
