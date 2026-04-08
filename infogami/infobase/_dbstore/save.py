@@ -72,7 +72,10 @@ class SaveImpl:
             ]
             self.db.multiple_insert('data', data, seqname=False)
 
-            self._update_index(records)
+            deletes, inserts = self._update_index(records)
+
+            if config.use_transaction_details_table:
+                self._add_transaction_details(deletes, inserts, tx_id, author, bot)
         except Exception:
             dbtx.rollback()
             raise
@@ -116,6 +119,37 @@ class SaveImpl:
         if d:
             self.db.multiple_insert("transaction_index", d, seqname=False)
 
+    def _add_transaction_details(self, deletes: dict, inserts: dict, txn_id: int, author_key: str, is_bot: bool) -> None:
+        delete_keys = deletes.keys()
+        insert_keys = inserts.keys()
+        author_id = self.thing_ids[author_key]
+
+        updates = delete_keys & insert_keys
+        removes = delete_keys - insert_keys
+        creates = insert_keys - delete_keys
+
+        d = []
+
+        def append_rows(records: set[tuple], action_type: str) -> None:
+            for r in records:
+                d.append(
+                    {
+                        "transaction_id": txn_id,
+                        "thing_id": r[1],
+                        "key_id": r[2],
+                        "author_id": author_id,
+                        "is_bot": is_bot,
+                        "property_action": action_type,
+                    }
+                )
+
+        append_rows(updates, "update")
+        append_rows(removes, "delete")
+        append_rows(creates, "create")
+
+        if d:
+            self.db.multiple_insert("transaction_details", d)
+
     def reindex(self, keys):
         records = self._load_records(keys).values()
 
@@ -134,7 +168,7 @@ class SaveImpl:
             tx.commit()
 
     def _update_index(self, records):
-        self.indexUtil.update_index(records)
+        return self.indexUtil.update_index(records)
 
     def dedupe(self, docs):
         x = set()
@@ -420,6 +454,8 @@ class IndexUtil:
 
         self.delete_index(deletes)
         self.insert_index(inserts)
+
+        return deletes, inserts
 
     def compile_index(self, index):
         """Compiles doc-index into db-index."""
