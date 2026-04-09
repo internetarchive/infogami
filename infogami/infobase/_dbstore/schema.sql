@@ -80,11 +80,11 @@ RETURNS text AS
 LANGUAGE SQL;
 
 create table transaction_details (
-    id serial primary key,
+    id bigserial primary key,
     transaction_id integer references transaction(id),
     thing_id integer references thing(id),
     key_id integer references property(id),
-    property_action text,
+    action text,
     author_id integer references thing(id),
     is_bot boolean,
     created timestamp without time zone default (current_timestamp at time zone 'utc')
