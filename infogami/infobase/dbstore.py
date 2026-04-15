@@ -158,7 +158,7 @@ class DBSiteStore(common.SiteStore):
 
     def save_many(self, docs, timestamp, comment, data, ip, author, action=None):
         docs = list(docs)
-        action = action or "bulk_update"
+        action = action or "default-bulk-update"
         logger.debug(
             "saving %d docs - %s",
             len(docs),
@@ -210,7 +210,7 @@ class DBSiteStore(common.SiteStore):
         logger.debug("saving %s", key)
         timestamp = timestamp or datetime.datetime.utcnow
         return self.save_many(
-            [doc], timestamp, comment, data, ip, author, action=action or "update"
+            [doc], timestamp, comment, data, ip, author, action=action or "default-update"
         )
 
     def reindex(self, keys):
