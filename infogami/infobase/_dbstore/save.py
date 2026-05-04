@@ -139,7 +139,7 @@ class SaveImpl:
                         "key_id": r[2],
                         "author_id": author_id,
                         "is_bot": is_bot,
-                        "property_action": action_type,
+                        "action": action_type,
                     }
                 )
 
