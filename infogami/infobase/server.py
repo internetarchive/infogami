@@ -187,10 +187,10 @@ def from_json(s):
         raise common.BadData(message="Bad JSON: " + str(e))
 
 
-_infobase = None
+_infobase: infobase.Infobase | None = None
 
 
-def get_site(sitename):
+def get_site(sitename: str) -> infobase.Site | None:
     global _infobase
     if not _infobase:
         schema = dbstore.default_schema or dbstore.Schema()

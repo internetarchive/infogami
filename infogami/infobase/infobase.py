@@ -7,6 +7,8 @@ Each site is an independent collection of objects.
 
 import datetime
 import json
+from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import web
 
@@ -20,27 +22,30 @@ from infogami.infobase import (
     writequery,
 )
 
+if TYPE_CHECKING:
+    from infogami.infobase.dbstore import DBSiteStore, DBStore
+
 
 class Infobase:
     """Infobase contains multiple sites."""
 
-    def __init__(self, store, secret_key):
+    def __init__(self, store: "DBStore", secret_key: str):
         self.store = store
         self.secret_key = secret_key
-        self.sites = {}
-        self.event_listeners = []
+        self.sites: "dict[str, Site]" = {}
+        self.event_listeners: "list[Callable]" = []
 
         if config.startup_hook:
             config.startup_hook(self)
 
-    def create(self, sitename):
+    def create(self, sitename: str) -> "Site":
         """Creates a new site with the sitename."""
         site = Site(self, sitename, self.store.create(sitename), self.secret_key)
         site.bootstrap()
         self.sites[sitename] = site
         return site
 
-    def get(self, sitename):
+    def get(self, sitename: str) -> "Site | None":
         """Returns the site with the given name."""
         if sitename in self.sites:
             site = self.sites[sitename]
@@ -48,20 +53,20 @@ class Infobase:
             store = self.store.get(sitename)
             if store is None:
                 return None
-            site = Site(self, sitename, self.store.get(sitename), self.secret_key)
+            site = Site(self, sitename, store, self.secret_key)
             self.sites[sitename] = site
         return site
 
-    def delete(self, sitename):
+    def delete(self, sitename: str):
         """Deletes the site with the given name."""
         if sitename in self.sites:
             del self.sites[sitename]
         return self.store.delete(sitename)
 
-    def add_event_listener(self, listener):
+    def add_event_listener(self, listener: Callable):
         self.event_listeners.append(listener)
 
-    def remove_event_listener(self, listener):
+    def remove_event_listener(self, listener: Callable):
         try:
             self.event_listeners.remove(listener)
         except ValueError:
@@ -78,7 +83,13 @@ class Infobase:
 class Site:
     """A site of infobase."""
 
-    def __init__(self, _infobase, sitename, store, secret_key):
+    def __init__(
+        self,
+        _infobase: Infobase,
+        sitename: str,
+        store: "DBSiteStore",
+        secret_key: str,
+    ):
         self._infobase = _infobase
         self.sitename = sitename
         self.store = store
@@ -86,7 +97,7 @@ class Site:
         self.store.set_cache(self.cache)
         self.account_manager = account.AccountManager(self, secret_key)
 
-        self._triggers = {}
+        self._triggers: dict[str, list[Callable]] = {}
         store.store.set_listener(self._log_store_action)
         store.seq.set_listener(self._log_store_action)
 

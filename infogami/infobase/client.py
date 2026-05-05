@@ -69,10 +69,10 @@ class Connection:
     def __init__(self):
         self.auth_token = None
 
-    def set_auth_token(self, token):
+    def set_auth_token(self, token: str) -> None:
         self.auth_token = token
 
-    def get_auth_token(self):
+    def get_auth_token(self) -> str | None:
         return self.auth_token
 
     def request(self, sitename, path, method='GET', data=None):
@@ -223,11 +223,11 @@ class LazyObject:
 
 
 class Site:
-    def __init__(self, conn, sitename):
+    def __init__(self, conn: Connection, sitename: str):
         self._conn = conn
         self.name = sitename
         # cache for storing pages requested in this HTTP request
-        self._cache = {}
+        self._cache: dict[tuple[str, int | None], web.storage] = {}
 
         self.store = Store(conn, sitename)
         self.seq = Sequence(conn, sitename)
