@@ -10,7 +10,7 @@ import web
 
 import infogami
 from infogami.infobase import client
-from infogami.utils import delegate, features
+from infogami.utils import delegate
 from infogami.utils.view import safeint
 
 _VALID_JSONP_CALLBACK = re.compile(r'^[a-zA-Z_$][a-zA-Z0-9_$.]*$')
@@ -273,10 +273,7 @@ class recentchanges(delegate.page):
                 )
             )
 
-        if features.is_enabled("recentchanges_v2"):
-            return request('/_recentchanges', data=dict(query=query))
-        else:
-            return request('/versions', data=dict(query=query))
+        return request('/_recentchanges', data=dict(query=query))
 
 
 class query(delegate.page):
