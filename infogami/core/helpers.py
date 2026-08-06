@@ -86,7 +86,24 @@ class betterlist(list):
             self.append(None)
 
     def setdefault(self, index, value):
-        index = int(index)
+        """Set a value at the given index, expanding the list as needed.
+
+        Non-numeric indices (e.g. template placeholders like
+        '[row_translated_names]') are silently ignored so that unprocessed
+        repetition-widget rows do not crash form submission.
+
+        >>> bl = betterlist()
+        >>> bl.setdefault('0', 'a')
+        'a'
+        >>> bl.setdefault('[row_translated_names]', 'x') is None
+        True
+        >>> bl  # list is unchanged after non-numeric index
+        ['a']
+        """
+        try:
+            index = int(index)
+        except (ValueError, TypeError):
+            return None
         self.fill(index + 1)
         if self[index] is None:
             self[index] = value
