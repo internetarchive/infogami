@@ -16,14 +16,14 @@ jobs:
       # - if: "contains(matrix.python-version, '-dev')"
       #  run: sudo apt-get install -y libxml2 libxslt-dev
       - name: Checkout Open Library
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: internetarchive/openlibrary
       - name: Checkout current Infogami
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           path: vendor/infogami
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -r requirements_test.txt
