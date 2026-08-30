@@ -165,15 +165,15 @@ class Store:
     Store manages one or many SiteStores.
     """
 
-    def create(self, sitename):
+    def create(self, sitename: str) -> "SiteStore":
         """Creates a new site with the given name and returns store for it."""
         raise NotImplementedError
 
-    def get(self, sitename):
+    def get(self, sitename: str) -> "SiteStore | None":
         """Returns store object for the given sitename."""
         raise NotImplementedError
 
-    def delete(self, sitename):
+    def delete(self, sitename: str):
         """Deletes the store for the specified sitename."""
         raise NotImplementedError
 
