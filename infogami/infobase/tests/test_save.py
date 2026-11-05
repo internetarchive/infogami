@@ -443,9 +443,8 @@ class _PostgresSaveRace:
         )
         self.control_lock_held = False
         self.worker.join(timeout=10)
-        assert not self.worker.is_alive(), (
-            "Reader did not finish after releasing the test gate"
-        )
+        if self.worker.is_alive():
+            raise AssertionError("Reader did not finish after releasing the test gate")
         result = self.result_queue.get_nowait()
         if isinstance(result, BaseException):
             raise result

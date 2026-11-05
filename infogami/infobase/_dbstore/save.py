@@ -252,7 +252,9 @@ class SaveImpl:
             if r.id not in data_by_thing_id:
                 # Normal saves hold this thing-row lock while appending the new
                 # data revision, so this indicates inconsistent database state.
-                raise RuntimeError("Missing current data for locked Infobase record: %s" % r.key)
+                raise RuntimeError(
+                    "Missing current data for locked Infobase record: %s" % r.key
+                )
             r.data = data_by_thing_id[r.id]
             r.revision = r.latest_revision
             json_data = r.data and self.process_json(r.key, r.data)
