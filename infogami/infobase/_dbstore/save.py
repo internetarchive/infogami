@@ -215,27 +215,49 @@ class SaveImpl:
         return [make_record(doc) for doc in docs]
 
     def _load_records(self, keys):
-        """Returns a dictionary of records for the given keys.
+        """Return records keyed by key for the given keys.
 
-        The records are queried FOR UPDATE to lock those rows from concurrent updates.
-        Each record is a storage object with (id, key, type, revision, last_modified, data) keys.
+        Each record contains the thing fields plus ``revision`` and parsed
+        ``data``: ``id``, ``key``, ``type``, ``revision``, ``last_modified``,
+        ``created``, and ``data``.
+
+        Lock the thing rows before reading their current data. Joining thing and
+        data in the locking query can miss a row if a concurrent save commits
+        between the join and row lock acquisition.
         """
         try:
-            rows = self.db.query(
-                "SELECT thing.*, data.data FROM thing, data"
-                + " WHERE thing.key in $keys"
-                + " AND data.thing_id=thing.id AND data.revision = thing.latest_revision"
-                + " FOR UPDATE NOWAIT",
-                vars=locals(),
+            things = list(
+                self.db.query(
+                    "SELECT * FROM thing WHERE thing.key in $keys FOR UPDATE NOWAIT",
+                    vars=locals(),
+                )
             )
         except Exception:
             raise common.Conflict(keys=keys, reason="Edit conflict detected.")
 
-        records = {r.key: r for r in rows}
-        for r in records.values():
+        if not things:
+            return {}
+
+        thing_ids = [thing.id for thing in things]
+        data_rows = self.db.query(
+            "SELECT thing.id AS thing_id, data.data FROM thing, data"
+            " WHERE thing.id in $thing_ids"
+            " AND data.thing_id=thing.id AND data.revision=thing.latest_revision",
+            vars=locals(),
+        )
+        data_by_thing_id = {row.thing_id: row.data for row in data_rows}
+
+        records = {}
+        for r in things:
+            if r.id not in data_by_thing_id:
+                # Normal saves hold this thing-row lock while appending the new
+                # data revision, so this indicates inconsistent database state.
+                raise RuntimeError("Missing current data for locked Infobase record: %s" % r.key)
+            r.data = data_by_thing_id[r.id]
             r.revision = r.latest_revision
             json_data = r.data and self.process_json(r.key, r.data)
             r.data = simplejson.loads(json_data)
+            records[r.key] = r
         return records
 
     def _fill_types(self, records):

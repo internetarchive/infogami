@@ -1,5 +1,10 @@
 import datetime
 import json
+import queue
+import re
+import threading
+import time
+import uuid
 
 import pytest
 import web
@@ -290,6 +295,196 @@ class Test_save(DBTest):
             "changes": [{"key": "/foo", "revision": 1}],
             "data": {},
         }
+
+
+def test_load_records_locks_things_before_loading_data():
+    thing = web.storage(id=1, key="/race", latest_revision=2)
+    current_data = {
+        "key": "/race",
+        "type": {"key": "/type/object"},
+        "title": "latest",
+    }
+
+    class FakeDB:
+        def __init__(self):
+            self.queries = []
+
+        def query(self, query, vars):
+            self.queries.append(query)
+            if len(self.queries) == 1:
+                return [thing]
+            return [web.storage(thing_id=1, data=json.dumps(current_data))]
+
+    fake_db = FakeDB()
+    records = SaveImpl(fake_db)._load_records(["/race"])
+
+    locking_query = " ".join(fake_db.queries[0].lower().split())
+    data_query = " ".join(fake_db.queries[1].lower().split())
+    assert re.search(r"\bfrom\s+thing\s+where\b", locking_query)
+    assert "for update nowait" in locking_query
+    assert not re.search(r"\bjoin\s+data\b|,\s*data\b", locking_query)
+    assert re.search(r"\bfrom\s+thing\s*,\s*data\b", data_query)
+    assert re.search(r"data\.thing_id\s*=\s*thing\.id", data_query)
+    assert re.search(r"data\.revision\s*=\s*thing\.latest_revision", data_query)
+    assert "for update" not in data_query
+    assert records["/race"].revision == 2
+    assert records["/race"].data == current_data
+
+
+class _GatedDB:
+    def __init__(self, connection, gate_function):
+        self.connection = connection
+        self.gate_function = gate_function
+
+    def query(self, query, *args, **kwargs):
+        if "FOR UPDATE NOWAIT" in query:
+            query = query.replace(
+                " FOR UPDATE NOWAIT",
+                f" AND {self.gate_function}() FOR UPDATE NOWAIT",
+            )
+        return self.connection.query(query, *args, **kwargs)
+
+
+class _PostgresSaveRace:
+    def __init__(self):
+        self.lock_id = uuid.uuid4().int % (2**62)
+        self.gate_function = f"infogami_test_gate_{uuid.uuid4().hex}"
+        self.key = f"/race-test/{uuid.uuid4().hex}"
+        self.db_setup = web.database(**utils.db_parameters)
+        self.db_writer = web.database(**utils.db_parameters)
+        self.db_control = web.database(**utils.db_parameters)
+        self.thing_id = None
+        self.function_created = False
+        self.control_lock_held = False
+        self.worker = None
+        self.worker_pid_queue = queue.Queue()
+        self.result_queue = queue.Queue()
+
+    def setup(self):
+        self.thing_id = self.db_setup.insert("thing", key=self.key, latest_revision=1)
+        old_data = {"key": self.key, "type": {"key": "/type/object"}, "title": "before"}
+        self.db_setup.insert(
+            "data",
+            seqname=False,
+            thing_id=self.thing_id,
+            revision=1,
+            data=json.dumps(old_data),
+        )
+        self.db_control.query(
+            f"CREATE FUNCTION {self.gate_function}() RETURNS boolean "
+            f"LANGUAGE plpgsql VOLATILE "
+            f"AS 'BEGIN PERFORM pg_advisory_lock({self.lock_id}); RETURN TRUE; END;'"
+        )
+        self.function_created = True
+        self.db_control.query(
+            "SELECT pg_advisory_lock($lock_id)", vars={"lock_id": self.lock_id}
+        )
+        self.control_lock_held = True
+
+    def _load_record(self):
+        db_reader = web.database(**utils.db_parameters)
+        try:
+            pid = db_reader.query("SELECT pg_backend_pid() AS pid")[0].pid
+            self.worker_pid_queue.put(pid)
+            transaction = db_reader.transaction()
+            try:
+                database = _GatedDB(db_reader, self.gate_function)
+                records = SaveImpl(database)._load_records([self.key])
+                self.result_queue.put(records)
+            except BaseException as error:
+                self.result_queue.put(error)
+            finally:
+                transaction.rollback()
+        finally:
+            db_reader.ctx.clear()
+
+    def start_reader(self):
+        self.worker = threading.Thread(target=self._load_record, daemon=True)
+        self.worker.start()
+        return self.worker_pid_queue.get(timeout=10)
+
+    def wait_for_lock_gate(self, worker_pid):
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            activity = list(
+                self.db_control.query(
+                    "SELECT wait_event_type, wait_event FROM pg_stat_activity WHERE pid=$pid",
+                    vars={"pid": worker_pid},
+                )
+            )
+            if (
+                activity
+                and activity[0].wait_event_type == "Lock"
+                and activity[0].wait_event == "advisory"
+            ):
+                return
+            time.sleep(0.01)
+        raise AssertionError("Reader did not reach the test advisory-lock gate")
+
+    def commit_concurrent_revision(self):
+        transaction = self.db_writer.transaction()
+        new_data = {"key": self.key, "type": {"key": "/type/object"}, "title": "after"}
+        self.db_writer.query(
+            "UPDATE thing SET latest_revision=2 WHERE id=$thing_id",
+            vars={"thing_id": self.thing_id},
+        )
+        self.db_writer.insert(
+            "data",
+            seqname=False,
+            thing_id=self.thing_id,
+            revision=2,
+            data=json.dumps(new_data),
+        )
+        transaction.commit()
+
+    def finish_reader(self):
+        self.db_control.query(
+            "SELECT pg_advisory_unlock($lock_id)", vars={"lock_id": self.lock_id}
+        )
+        self.control_lock_held = False
+        self.worker.join(timeout=10)
+        assert not self.worker.is_alive(), (
+            "Reader did not finish after releasing the test gate"
+        )
+        result = self.result_queue.get_nowait()
+        if isinstance(result, BaseException):
+            raise result
+        return result[self.key]
+
+    def close(self):
+        if self.control_lock_held:
+            self.db_control.query(
+                "SELECT pg_advisory_unlock($lock_id)", vars={"lock_id": self.lock_id}
+            )
+        if self.worker is not None and self.worker.is_alive():
+            self.worker.join(timeout=10)
+        if self.function_created:
+            self.db_control.query(f"DROP FUNCTION IF EXISTS {self.gate_function}()")
+        if self.thing_id is not None:
+            self.db_setup.delete(
+                "data", where="thing_id=$thing_id", vars={"thing_id": self.thing_id}
+            )
+            self.db_setup.delete(
+                "thing", where="id=$thing_id", vars={"thing_id": self.thing_id}
+            )
+        for connection in (self.db_setup, self.db_writer, self.db_control):
+            connection.ctx.clear()
+
+
+def test_load_records_sees_data_committed_after_lock_query_snapshot():
+    """A separate transaction can commit between snapshot acquisition and row locking."""
+    race = _PostgresSaveRace()
+    try:
+        race.setup()
+        worker_pid = race.start_reader()
+        # The test-only SQL gate blocks after statement-snapshot acquisition but before locking.
+        race.wait_for_lock_gate(worker_pid)
+        race.commit_concurrent_revision()
+        record = race.finish_reader()
+        assert record.revision == 2
+        assert record.data["title"] == "after"
+    finally:
+        race.close()
 
 
 class MockDB:
