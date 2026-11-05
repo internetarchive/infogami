@@ -10,20 +10,22 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12"]
-    runs-on: ubuntu-latest
+        python-version: ["3.14.5"]
+    # Open Library requires Python 3.14.5, which isn't available on
+    # ubuntu-latest (26.04) yet.
+    runs-on: ubuntu-24.04
     steps:
       # - if: "contains(matrix.python-version, '-dev')"
       #  run: sudo apt-get install -y libxml2 libxslt-dev
       - name: Checkout Open Library
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           repository: internetarchive/openlibrary
       - name: Checkout current Infogami
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
           path: vendor/infogami
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -r requirements_test.txt
