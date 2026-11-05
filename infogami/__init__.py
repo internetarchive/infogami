@@ -18,7 +18,7 @@ dbupgrade       upgrade the database
 help            show this
 """
 
-_actions = []
+_actions: list = []
 
 
 def action(f):
@@ -27,7 +27,7 @@ def action(f):
     return f
 
 
-_install_hooks = []
+_install_hooks: list = []
 
 
 def install_hook(f):

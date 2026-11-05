@@ -746,7 +746,7 @@ class Nothing:
 
 nothing = Nothing()
 
-_thing_class_registry = {}
+_thing_class_registry: dict = {}
 
 
 def register_thing_class(type, klass):
@@ -998,7 +998,7 @@ class Changeset:
         return klass(site, data)
 
 
-_changeset_class_register = {}
+_changeset_class_register: dict = {}
 
 
 def register_changeset_class(kind, klass):
@@ -1010,7 +1010,7 @@ register_thing_class(None, Thing)
 register_thing_class('/type/type', Type)
 
 # hooks can be registered by extending the hook class
-hooks = []
+hooks: list = []
 
 
 class metahook(type):

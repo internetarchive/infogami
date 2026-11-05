@@ -6,7 +6,7 @@ import re
 from infogami.utils import storage
 
 default_type = '/type/page'
-type_patterns = storage.OrderedDict()
+type_patterns: dict[str, str] = storage.OrderedDict()
 
 
 def register_type(pattern, typename):

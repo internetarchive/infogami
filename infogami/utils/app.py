@@ -18,7 +18,7 @@ modes: dict[str, dict] = {}
 pages: dict[str, dict] = {}
 views: dict[str, dict] = collections.defaultdict(dict)
 
-encodings = set()
+encodings: set = set()
 media_types = {"application/json": "json"}
 
 

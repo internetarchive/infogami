@@ -212,7 +212,7 @@ def admin_login(site=None):
     web.ctx.site.login('admin', config.admin_password)
 
 
-exception_hooks = []
+exception_hooks: list = []
 
 
 def add_exception_hook(hook):
