@@ -81,7 +81,7 @@ class TestStore:
         keys = s.keys()
         for k in keys:
             del s[k]
-    
+
     def teardown_method(self, method):
         keys = s.keys()
         for k in keys:
@@ -216,3 +216,34 @@ class TestAccount:
             pass
         else:
             assert False, "Login should fail when used with wrong password"
+
+
+class TestSiteGetRevision:
+    def save_doc(self, key, title):
+        doc = {"key": key, "type": {"key": "/type/object"}, "title": title}
+        return site.save(doc)
+
+    def test_revision_from_query_string(self):
+        # Callers pass ?v= straight from web.input(), so revision may be a str.
+        self.save_doc("/revision-test", "first")
+        self.save_doc("/revision-test", "second")
+        site._cache.clear()
+
+        assert site.get("/revision-test", "1").title == "first"
+        assert site.get("/revision-test", 1).title == "first"
+        assert site.get("/revision-test", "2").title == "second"
+        assert ("/revision-test", 1) in site._cache
+        assert ("/revision-test", "1") not in site._cache
+
+    def test_empty_revision_means_latest(self):
+        self.save_doc("/revision-latest", "first")
+        site._cache.clear()
+
+        for revision in (None, "", 0):
+            assert site.get("/revision-latest", revision).title == "first"
+        assert list(site._cache) == [("/revision-latest", None)]
+
+        # Saving must invalidate the cached "latest" entry for every spelling.
+        self.save_doc("/revision-latest", "second")
+        for revision in (None, "", 0):
+            assert site.get("/revision-latest", revision).title == "second"
