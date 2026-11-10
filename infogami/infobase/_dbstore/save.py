@@ -12,6 +12,9 @@ from infogami.infobase._dbstore.schema import INDEXED_DATATYPES, Schema
 
 __all__ = ["SaveImpl"]
 
+# PostgreSQL error code for unique_violation.
+_UNIQUE_VIOLATION = "23505"
+
 
 class SaveImpl:
     """Save implementation."""
@@ -217,20 +220,32 @@ class SaveImpl:
     def _load_records(self, keys):
         """Returns a dictionary of records for the given keys.
 
-        The records are queried FOR UPDATE to lock those rows from concurrent updates.
+        The thing rows are locked FOR UPDATE to prevent concurrent updates.
         Each record is a storage object with (id, key, type, revision, last_modified, data) keys.
         """
+        # Lock the thing rows first, then read them with their data in a separate
+        # query. Locking a join of thing and data in one query can drop a row when
+        # a concurrent save commits between the query's snapshot and taking the lock:
+        # Postgres rechecks the updated thing row against the old data row, the join
+        # no longer matches, and the existing record looks new.
         try:
-            rows = self.db.query(
-                "SELECT thing.*, data.data FROM thing, data"
-                + " WHERE thing.key in $keys"
-                + " AND data.thing_id=thing.id AND data.revision = thing.latest_revision"
-                + " FOR UPDATE NOWAIT",
-                vars=locals(),
-            )
+            locked = self.db.query(
+                "SELECT id FROM thing WHERE key in $keys FOR UPDATE NOWAIT",
+                vars={"keys": keys},
+            ).list()
         except Exception:
             raise common.Conflict(keys=keys, reason="Edit conflict detected.")
 
+        if not locked:
+            return {}
+
+        # Rows are locked now, so this sees their latest committed revision.
+        rows = self.db.query(
+            "SELECT thing.*, data.data FROM thing, data"
+            " WHERE thing.id in $ids"
+            " AND data.thing_id=thing.id AND data.revision = thing.latest_revision",
+            vars={"ids": [r.id for r in locked]},
+        )
         records = {r.key: r for r in rows}
         for r in records.values():
             r.revision = r.latest_revision
@@ -262,7 +277,16 @@ class SaveImpl:
         ]
 
         if new:
-            ids = self.db.multiple_insert('thing', new)
+            try:
+                ids = self.db.multiple_insert('thing', new)
+            except Exception as e:
+                # Another save created one of these keys after _load_records
+                # looked for it. Report that as an edit conflict, not a 500.
+                if getattr(e, 'pgcode', None) == _UNIQUE_VIOLATION:
+                    raise common.Conflict(
+                        keys=[r['key'] for r in new], reason="Edit conflict detected."
+                    )
+                raise
             # assign id to the new records
             for r, id in zip(new, ids):
                 d[r['key']].id = id

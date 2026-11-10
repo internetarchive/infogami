@@ -8,7 +8,7 @@ import web
 
 from infogami.infobase import infobase, server
 
-commands = {}
+commands: dict = {}
 
 
 def command(f):

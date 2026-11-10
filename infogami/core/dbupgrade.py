@@ -14,7 +14,7 @@ def get_db_version():
     return tdb.root.d.get('__version__', 0)
 
 
-upgrades = []
+upgrades: list = []
 
 
 def upgrade(f):

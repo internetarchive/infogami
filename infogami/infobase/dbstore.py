@@ -18,6 +18,23 @@ default_schema = None
 
 logger = logging.getLogger("infobase")
 
+_VERSIONS_CONDITION_KEYS = frozenset(
+    {
+        'key',
+        'type',
+        'author',
+        'ip',
+        'comment',
+        'created',
+        'bot',
+        'revision',
+    }
+)
+
+
+class _NoVersionsMatch(Exception):
+    """A versions() condition refers to an object that doesn't exist."""
+
 
 def process_json(key, json_data):
     """Hook to process json data."""
@@ -210,7 +227,13 @@ class DBSiteStore(common.SiteStore):
         logger.debug("saving %s", key)
         timestamp = timestamp or datetime.datetime.utcnow
         return self.save_many(
-            [doc], timestamp, comment, data, ip, author, action=action or "default-update"
+            [doc],
+            timestamp,
+            comment,
+            data,
+            ip,
+            author,
+            action=action or "default-update",
         )
 
     def reindex(self, keys):
@@ -468,6 +491,45 @@ class DBSiteStore(common.SiteStore):
         engine = RecentChanges(self.db)
         return engine.get_change(id)
 
+    def _get_versions_id(self, key):
+        if meta := self.get_metadata(key):
+            return meta.id
+        # A non-existing object in the query should result in no matches.
+        raise _NoVersionsMatch
+
+    def _get_versions_bot_condition(self, value):
+        bots = get_bot_users(self.db)
+        if value is True or str(value).lower() == "true":
+            return web.reparam(" AND transaction.author_id IN $bots", {"bots": bots})
+        return web.reparam(
+            " AND (transaction.author_id NOT IN $bots OR transaction.author_id IS NULL)",
+            {"bots": bots},
+        )
+
+    def _get_versions_condition(self, key, value):
+        # key is interpolated into the SQL below, so it must come from the allowlist.
+        if key not in _VERSIONS_CONDITION_KEYS:
+            raise ValueError(f"Invalid versions condition key: {key!r}")
+
+        if key == 'bot' and not config.use_bot_column:
+            return self._get_versions_bot_condition(value)
+
+        if key == 'key':
+            key = 'thing_id'
+            value = self._get_versions_id(value)
+        elif key == 'revision':
+            key = 'version.revision'
+        elif key == 'type':
+            key = 'thing.type'
+            value = self._get_versions_id(value)
+        elif key == 'author':
+            key = 'transaction.author_id'
+            value = self._get_versions_id(value)
+        else:
+            key = 'transaction.' + key
+
+        return web.reparam(' AND %s=$value' % key, {'value': value})
+
     def versions(self, query):
         what = 'thing.key, version.revision, transaction.*'
         where = (
@@ -477,53 +539,11 @@ class DBSiteStore(common.SiteStore):
         if config.get('use_machine_comment'):
             what += ", version.machine_comment"
 
-        def get_id(key):
-            if meta := self.get_metadata(key):
-                return meta.id
-            else:
-                raise StopIteration
-
-        _VERSIONS_CONDITION_KEYS = frozenset({
-            'key', 'type', 'author', 'ip', 'comment', 'created', 'bot', 'revision',
-        })
         for c in query.conditions:
-            key, value = c.key, c.value
-            if key not in _VERSIONS_CONDITION_KEYS:
-                raise ValueError(f"Invalid versions condition key: {key!r}")
-
             try:
-                if key == 'key':
-                    key = 'thing_id'
-                    value = get_id(value)
-                elif key == 'revision':
-                    key = 'version.revision'
-                elif key == 'type':
-                    key = 'thing.type'
-                    value = get_id(value)
-                elif key == 'author':
-                    key = 'transaction.author_id'
-                    value = get_id(value)
-                else:
-                    # 'bot' column is not enabled
-                    if key == 'bot' and not config.use_bot_column:
-                        bots = get_bot_users(self.db)
-                        if value is True or str(value).lower() == "true":
-                            where += web.reparam(
-                                " AND transaction.author_id IN $bots", {"bots": bots}
-                            )
-                        else:
-                            where += web.reparam(
-                                " AND (transaction.author_id NOT IN $bots OR transaction.author_id IS NULL)",
-                                {"bots": bots},
-                            )
-                        continue
-                    else:
-                        key = 'transaction.' + key
-            except StopIteration:
-                # StopIteration is raised when a non-existing object is referred in the query
+                where += self._get_versions_condition(c.key, c.value)
+            except _NoVersionsMatch:
                 return []
-
-            where += web.reparam(' AND %s=$value' % key, locals())
 
         sort = query.sort
         if sort and sort.startswith('-'):
