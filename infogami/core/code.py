@@ -346,7 +346,7 @@ class reset_password(delegate.page):
                 return "Failed to reset password.<br/><br/> Reason: " + str(e)
 
 
-_preferences = []
+_preferences: list = []
 
 
 def register_preferences(cls):

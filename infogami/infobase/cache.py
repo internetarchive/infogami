@@ -77,7 +77,7 @@ class MemcachedDict:
         self.memcache_client.flush_all()
 
 
-_cache_classes = {}
+_cache_classes: dict = {}
 
 
 def register_cache(type, klass):

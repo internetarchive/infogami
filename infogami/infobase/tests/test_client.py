@@ -34,7 +34,7 @@ class TestRecentChanges:
         assert changes == [
             {
                 "id": wildcard,
-                "kind": "update",
+                "kind": "default-update",
                 "author": None,
                 "ip": wildcard,
                 "timestamp": wildcard,
@@ -46,7 +46,7 @@ class TestRecentChanges:
 
         assert site.get_change(changes[0]["id"]).dict() == {
             "id": wildcard,
-            "kind": "update",
+            "kind": "default-update",
             "author": None,
             "ip": wildcard,
             "timestamp": wildcard,
@@ -78,7 +78,14 @@ class TestStore:
     global s  # site.store
 
     def setup_method(self, method):
-        s.clear()
+        keys = s.keys()
+        for k in keys:
+            del s[k]
+    
+    def teardown_method(self, method):
+        keys = s.keys()
+        for k in keys:
+            del s[k]
 
     def test_getitem(self, wildcard):
         try:

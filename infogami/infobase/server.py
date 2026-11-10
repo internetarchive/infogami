@@ -115,15 +115,13 @@ def jsonify(f):
             )
 
             common.record_exception()
-            # call web.internalerror to send email when web.internalerror is set to web.emailerrors
-            process_exception(
-                common.InfobaseException(error="internal_error", message=str(e))
-            )
 
             if web.ctx.get('infobase_localmode'):
                 raise common.InfobaseException(message=str(e))
             else:
-                process_exception(e)
+                process_exception(
+                    common.InfobaseException(error="internal_error", message="internal error")
+                )
 
         # use default=str to deal with TypeError: datetime is not JSON serializable
         result = d.json_data if isinstance(d, JSON) else json.dumps(d, default=str)
@@ -187,10 +185,10 @@ def from_json(s):
         raise common.BadData(message="Bad JSON: " + str(e))
 
 
-_infobase = None
+_infobase: infobase.Infobase | None = None
 
 
-def get_site(sitename):
+def get_site(sitename: str) -> infobase.Site | None:
     global _infobase
     if not _infobase:
         schema = dbstore.default_schema or dbstore.Schema()
@@ -689,20 +687,22 @@ def parse_db_parameters(d):
     if d is None:
         return None
 
-    # support both <engine, database, username, password> and <dbn, db, user, pw>.
+    # support both <engine, database, username, password, port> and <dbn, db, user, pw, port>.
     if 'database' in d:
-        dbn, db, user, pw = (
+        dbn, db, user, pw, port = (
             d.get('engine', 'postgres'),
             d['database'],
             d.get('username'),
             d.get('password') or '',
+            d.get('port')
         )
     else:
-        dbn, db, user, pw = (
+        dbn, db, user, pw, port = (
             d.get('dbn', 'postgres'),
             d['db'],
             d.get('user'),
             d.get('pw') or '',
+            d.get('port')
         )
 
     if user is None:
@@ -711,6 +711,8 @@ def parse_db_parameters(d):
     result = dict(dbn=dbn, db=db, user=user, pw=pw)
     if 'host' in d:
         result['host'] = d['host']
+    if port is not None:
+        result['port'] = port
     return result
 
 

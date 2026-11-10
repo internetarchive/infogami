@@ -69,10 +69,10 @@ class Connection:
     def __init__(self):
         self.auth_token = None
 
-    def set_auth_token(self, token):
+    def set_auth_token(self, token: str | None) -> None:
         self.auth_token = token
 
-    def get_auth_token(self):
+    def get_auth_token(self) -> str | None:
         return self.auth_token
 
     def request(self, sitename: str, path: str, method='GET', data=None):
@@ -531,8 +531,8 @@ class Site:
         )
 
     def get_user(self):
-        # avoid hitting infobase when there is no cookie.
-        if web.cookies().get(config.login_cookie_name) is None:
+        # avoid hitting infobase when there is no auth token set.
+        if self._conn.get_auth_token() is None:
             return None
         try:
             data = self._request('/account/get_user')
@@ -573,11 +573,6 @@ class Store:
         d2 = dict(d, **kw)
         docs = [dict(doc, _key=key) for key, doc in d2.items()]
         self._request("_save_many", method="POST", data=json.dumps(docs))
-
-    def clear(self):
-        """Removes all keys from the store. Use this with caution!"""
-        for k in self.keys(limit=-1):
-            del self[k]
 
     def query(
         self, type=None, name=None, value=None, limit=100, offset=0, include_docs=False
@@ -751,7 +746,7 @@ class Nothing:
 
 nothing = Nothing()
 
-_thing_class_registry = {}
+_thing_class_registry: dict = {}
 
 
 def register_thing_class(type, klass):
@@ -1003,7 +998,7 @@ class Changeset:
         return klass(site, data)
 
 
-_changeset_class_register = {}
+_changeset_class_register: dict = {}
 
 
 def register_changeset_class(kind, klass):
@@ -1015,7 +1010,7 @@ register_thing_class(None, Thing)
 register_thing_class('/type/type', Type)
 
 # hooks can be registered by extending the hook class
-hooks = []
+hooks: list = []
 
 
 class metahook(type):

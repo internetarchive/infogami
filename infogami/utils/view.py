@@ -15,7 +15,7 @@ from infogami.utils.flash import add_flash_message, get_flash_messages
 from infogami.utils.markdown import markdown, mdx_footnotes
 from infogami.utils.template import get_template, render, render_template
 
-wiki_processors = []
+wiki_processors: list = []
 
 
 def register_wiki_processor(p):

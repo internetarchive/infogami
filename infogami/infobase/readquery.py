@@ -249,6 +249,12 @@ def parse_key(key):
     return key, operator
 
 
+_VERSIONS_SORT_COLUMNS = frozenset({
+    'created',
+    'id',
+})
+
+
 def make_versions_query(store, query):
     """Creates a versions query object from query dict."""
     q = Query()
@@ -256,7 +262,12 @@ def make_versions_query(store, query):
     q.offset = common.safeint(query.pop('offset', None), 0)
     q.limit = common.safeint(query.pop('limit', 20), 20)
     q.limit = min(q.limit, 1000)
-    q.sort = query.pop('sort', '-created')
+
+    raw_sort = query.pop('sort', '-created')
+    sort_col = raw_sort.lstrip('-')
+    if sort_col not in _VERSIONS_SORT_COLUMNS:
+        raise ValueError(f"Invalid sort column: {sort_col!r}")
+    q.sort = raw_sort
 
     columns = [
         'key',

@@ -5,7 +5,7 @@ import web
 
 from infogami.utils.context import context
 
-feature_flags = {}
+feature_flags: dict = {}
 
 
 def set_feature_flags(flags):
@@ -16,7 +16,7 @@ def set_feature_flags(flags):
         feature_flags = flags
 
 
-filters = {}
+filters: dict = {}
 
 
 def register_filter(name, method):

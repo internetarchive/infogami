@@ -12,6 +12,9 @@ from infogami.infobase._dbstore.schema import INDEXED_DATATYPES, Schema
 
 __all__ = ["SaveImpl"]
 
+# PostgreSQL error code for unique_violation.
+_UNIQUE_VIOLATION = "23505"
+
 
 class SaveImpl:
     """Save implementation."""
@@ -72,7 +75,10 @@ class SaveImpl:
             ]
             self.db.multiple_insert('data', data, seqname=False)
 
-            self._update_index(records)
+            deletes, inserts = self._update_index(records)
+
+            if config.use_transaction_details_table:
+                self._add_transaction_details(deletes, inserts, tx_id, author, bot)
         except Exception:
             dbtx.rollback()
             raise
@@ -116,6 +122,37 @@ class SaveImpl:
         if d:
             self.db.multiple_insert("transaction_index", d, seqname=False)
 
+    def _add_transaction_details(self, deletes: dict, inserts: dict, txn_id: int, author_key: str, is_bot: bool) -> None:
+        delete_keys = deletes.keys()
+        insert_keys = inserts.keys()
+        author_id = self.thing_ids[author_key]
+
+        updates = delete_keys & insert_keys
+        removes = delete_keys - insert_keys
+        creates = insert_keys - delete_keys
+
+        d = []
+
+        def append_rows(records: set[tuple], action_type: str) -> None:
+            for r in records:
+                d.append(
+                    {
+                        "transaction_id": txn_id,
+                        "thing_id": r[1],
+                        "key_id": r[2],
+                        "author_id": author_id,
+                        "is_bot": is_bot,
+                        "action": action_type,
+                    }
+                )
+
+        append_rows(updates, "update")
+        append_rows(removes, "delete")
+        append_rows(creates, "create")
+
+        if d:
+            self.db.multiple_insert("transaction_details", d)
+
     def reindex(self, keys):
         records = self._load_records(keys).values()
 
@@ -134,7 +171,7 @@ class SaveImpl:
             tx.commit()
 
     def _update_index(self, records):
-        self.indexUtil.update_index(records)
+        return self.indexUtil.update_index(records)
 
     def dedupe(self, docs):
         x = set()
@@ -183,20 +220,32 @@ class SaveImpl:
     def _load_records(self, keys):
         """Returns a dictionary of records for the given keys.
 
-        The records are queried FOR UPDATE to lock those rows from concurrent updates.
+        The thing rows are locked FOR UPDATE to prevent concurrent updates.
         Each record is a storage object with (id, key, type, revision, last_modified, data) keys.
         """
+        # Lock the thing rows first, then read them with their data in a separate
+        # query. Locking a join of thing and data in one query can drop a row when
+        # a concurrent save commits between the query's snapshot and taking the lock:
+        # Postgres rechecks the updated thing row against the old data row, the join
+        # no longer matches, and the existing record looks new.
         try:
-            rows = self.db.query(
-                "SELECT thing.*, data.data FROM thing, data"
-                + " WHERE thing.key in $keys"
-                + " AND data.thing_id=thing.id AND data.revision = thing.latest_revision"
-                + " FOR UPDATE NOWAIT",
-                vars=locals(),
-            )
+            locked = self.db.query(
+                "SELECT id FROM thing WHERE key in $keys FOR UPDATE NOWAIT",
+                vars={"keys": keys},
+            ).list()
         except Exception:
             raise common.Conflict(keys=keys, reason="Edit conflict detected.")
 
+        if not locked:
+            return {}
+
+        # Rows are locked now, so this sees their latest committed revision.
+        rows = self.db.query(
+            "SELECT thing.*, data.data FROM thing, data"
+            " WHERE thing.id in $ids"
+            " AND data.thing_id=thing.id AND data.revision = thing.latest_revision",
+            vars={"ids": [r.id for r in locked]},
+        )
         records = {r.key: r for r in rows}
         for r in records.values():
             r.revision = r.latest_revision
@@ -228,7 +277,16 @@ class SaveImpl:
         ]
 
         if new:
-            ids = self.db.multiple_insert('thing', new)
+            try:
+                ids = self.db.multiple_insert('thing', new)
+            except Exception as e:
+                # Another save created one of these keys after _load_records
+                # looked for it. Report that as an edit conflict, not a 500.
+                if getattr(e, 'pgcode', None) == _UNIQUE_VIOLATION:
+                    raise common.Conflict(
+                        keys=[r['key'] for r in new], reason="Edit conflict detected."
+                    )
+                raise
             # assign id to the new records
             for r, id in zip(new, ids):
                 d[r['key']].id = id
@@ -420,6 +478,8 @@ class IndexUtil:
 
         self.delete_index(deletes)
         self.insert_index(inserts)
+
+        return deletes, inserts
 
     def compile_index(self, index):
         """Compiles doc-index into db-index."""

@@ -3,16 +3,19 @@ Infogami read/write API.
 """
 
 import json
+import re
 from functools import wraps
 
 import web
 
 import infogami
 from infogami.infobase import client
-from infogami.utils import delegate, features
+from infogami.utils import delegate
 from infogami.utils.view import safeint
 
-hooks = {}
+_VALID_JSONP_CALLBACK = re.compile(r'^[a-zA-Z_$][a-zA-Z0-9_$.]*$')
+
+hooks: dict = {}
 
 
 def add_hook(name, cls):
@@ -80,7 +83,7 @@ class infobase_request:
             out = conn.request(sitename, path, method, data)
             return '{"status": "ok", "result": %s}' % out
         except client.ClientException as e:
-            return '{"status": "fail", "message": "%s"}' % str(e)
+            return json.dumps({"status": "fail", "message": str(e)})
 
     GET = delegate
 
@@ -150,7 +153,7 @@ def jsonapi(f):
 
         i = web.input(_method='GET', callback=None)
 
-        if i.callback:
+        if i.callback and _VALID_JSONP_CALLBACK.match(i.callback):
             out = f'{i.callback}({out});'
 
         if web.input(_method="GET", text="false").text.lower() == "true":
@@ -270,10 +273,7 @@ class recentchanges(delegate.page):
                 )
             )
 
-        if features.is_enabled("recentchanges_v2"):
-            return request('/_recentchanges', data=dict(query=query))
-        else:
-            return request('/versions', data=dict(query=query))
+        return request('/_recentchanges', data=dict(query=query))
 
 
 class query(delegate.page):

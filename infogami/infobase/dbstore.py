@@ -3,6 +3,7 @@
 import datetime
 import logging
 import time
+from typing import TYPE_CHECKING, cast
 
 import web
 
@@ -12,11 +13,31 @@ from infogami.infobase._dbstore import sequence, store
 from infogami.infobase._dbstore.indexer import Indexer
 from infogami.infobase._dbstore.read import RecentChanges, get_bot_users
 from infogami.infobase._dbstore.save import PropertyManager, SaveImpl
-from infogami.infobase._dbstore.schema import Schema  # noqa: F401
+from infogami.infobase._dbstore.schema import Schema
+
+if TYPE_CHECKING:
+    from infogami.infobase.cache import Cache
 
 default_schema = None
 
 logger = logging.getLogger("infobase")
+
+_VERSIONS_CONDITION_KEYS = frozenset(
+    {
+        'key',
+        'type',
+        'author',
+        'ip',
+        'comment',
+        'created',
+        'bot',
+        'revision',
+    }
+)
+
+
+class _NoVersionsMatch(Exception):
+    """A versions() condition refers to an object that doesn't exist."""
 
 
 def process_json(key, json_data):
@@ -25,7 +46,7 @@ def process_json(key, json_data):
 
 
 class DBSiteStore(common.SiteStore):
-    def __init__(self, db, schema):
+    def __init__(self, db: web.DB, schema: Schema):
         self.db = db
         self.schema = schema
         self.sitename = None
@@ -33,13 +54,13 @@ class DBSiteStore(common.SiteStore):
         self.store = store.Store(self.db)
         self.seq = sequence.SequenceImpl(self.db)
 
-        self.cache = None
+        self.cache: "Cache | None" = None
         self.property_manager = PropertyManager(self.db)
 
     def get_store(self):
         return self.store
 
-    def set_cache(self, cache):
+    def set_cache(self, cache: "Cache"):
         self.cache = cache
 
     def get_metadata(self, key, for_update=False):
@@ -158,7 +179,7 @@ class DBSiteStore(common.SiteStore):
 
     def save_many(self, docs, timestamp, comment, data, ip, author, action=None):
         docs = list(docs)
-        action = action or "bulk_update"
+        action = action or "default-bulk-update"
         logger.debug(
             "saving %d docs - %s",
             len(docs),
@@ -210,7 +231,13 @@ class DBSiteStore(common.SiteStore):
         logger.debug("saving %s", key)
         timestamp = timestamp or datetime.datetime.utcnow
         return self.save_many(
-            [doc], timestamp, comment, data, ip, author, action=action or "update"
+            [doc],
+            timestamp,
+            comment,
+            data,
+            ip,
+            author,
+            action=action or "default-update",
         )
 
     def reindex(self, keys):
@@ -468,6 +495,45 @@ class DBSiteStore(common.SiteStore):
         engine = RecentChanges(self.db)
         return engine.get_change(id)
 
+    def _get_versions_id(self, key):
+        if meta := self.get_metadata(key):
+            return meta.id
+        # A non-existing object in the query should result in no matches.
+        raise _NoVersionsMatch
+
+    def _get_versions_bot_condition(self, value):
+        bots = get_bot_users(self.db)
+        if value is True or str(value).lower() == "true":
+            return web.reparam(" AND transaction.author_id IN $bots", {"bots": bots})
+        return web.reparam(
+            " AND (transaction.author_id NOT IN $bots OR transaction.author_id IS NULL)",
+            {"bots": bots},
+        )
+
+    def _get_versions_condition(self, key, value):
+        # key is interpolated into the SQL below, so it must come from the allowlist.
+        if key not in _VERSIONS_CONDITION_KEYS:
+            raise ValueError(f"Invalid versions condition key: {key!r}")
+
+        if key == 'bot' and not config.use_bot_column:
+            return self._get_versions_bot_condition(value)
+
+        if key == 'key':
+            key = 'thing_id'
+            value = self._get_versions_id(value)
+        elif key == 'revision':
+            key = 'version.revision'
+        elif key == 'type':
+            key = 'thing.type'
+            value = self._get_versions_id(value)
+        elif key == 'author':
+            key = 'transaction.author_id'
+            value = self._get_versions_id(value)
+        else:
+            key = 'transaction.' + key
+
+        return web.reparam(' AND %s=$value' % key, {'value': value})
+
     def versions(self, query):
         what = 'thing.key, version.revision, transaction.*'
         where = (
@@ -477,63 +543,19 @@ class DBSiteStore(common.SiteStore):
         if config.get('use_machine_comment'):
             what += ", version.machine_comment"
 
-        def get_id(key):
-            if meta := self.get_metadata(key):
-                return meta.id
-            else:
-                raise StopIteration
-
         for c in query.conditions:
-            key, value = c.key, c.value
-            assert key in [
-                'key',
-                'type',
-                'author',
-                'ip',
-                'comment',
-                'created',
-                'bot',
-                'revision',
-            ]
-
             try:
-                if key == 'key':
-                    key = 'thing_id'
-                    value = get_id(value)
-                elif key == 'revision':
-                    key = 'version.revision'
-                elif key == 'type':
-                    key = 'thing.type'
-                    value = get_id(value)
-                elif key == 'author':
-                    key = 'transaction.author_id'
-                    value = get_id(value)
-                else:
-                    # 'bot' column is not enabled
-                    if key == 'bot' and not config.use_bot_column:
-                        bots = get_bot_users(self.db)
-                        if value is True or str(value).lower() == "true":
-                            where += web.reparam(
-                                " AND transaction.author_id IN $bots", {"bots": bots}
-                            )
-                        else:
-                            where += web.reparam(
-                                " AND (transaction.author_id NOT IN $bots OR transaction.author_id IS NULL)",
-                                {"bots": bots},
-                            )
-                        continue
-                    else:
-                        key = 'transaction.' + key
-            except StopIteration:
-                # StopIteration is raised when a non-existing object is referred in the query
+                where += self._get_versions_condition(c.key, c.value)
+            except _NoVersionsMatch:
                 return []
-
-            where += web.reparam(' AND %s=$value' % key, locals())
 
         sort = query.sort
         if sort and sort.startswith('-'):
             sort = sort[1:] + ' desc'
 
+        sort_col = sort.split()[0] if sort else 'created'
+        if not sort_col.isalpha():
+            raise ValueError(f"Invalid sort column: {sort_col!r}")
         sort = 'transaction.' + sort
 
         t = self.db.transaction()
@@ -657,9 +679,9 @@ class DBStore(common.Store):
     It always returns a the same site irrespective of the sitename.
     """
 
-    def __init__(self, schema):
+    def __init__(self, schema: Schema):
         self.schema = schema
-        self.sitestore = None
+        self.sitestore: DBSiteStore | None = None
         self.db = create_database(**web.config.db_parameters)
 
     def has_initialized(self):
@@ -669,7 +691,7 @@ class DBStore(common.Store):
         except Exception:
             return False
 
-    def create(self, sitename):
+    def create(self, sitename: str) -> DBSiteStore:
         if self.sitestore is None:
             self.sitestore = DBSiteStore(self.db, self.schema)
             if not self.has_initialized():
@@ -678,7 +700,7 @@ class DBStore(common.Store):
         self.sitestore.initialize()
         return self.sitestore
 
-    def get(self, sitename):
+    def get(self, sitename: str) -> DBSiteStore | None:
         if self.sitestore is None:
             sitestore = DBSiteStore(self.db, self.schema)
             if not self.has_initialized():
@@ -699,9 +721,9 @@ class DBStore(common.Store):
 class MultiDBStore(DBStore):
     """DBStore that works with multiple sites."""
 
-    def __init__(self, schema):
+    def __init__(self, schema: Schema):
         self.schema = schema
-        self.sitestores = {}
+        self.sitestores: dict[str, MultiDBSiteStore] = {}
         self.db = create_database(**web.config.db_parameters)
 
     def create(self, sitename):
@@ -783,8 +805,8 @@ class MultiDBSiteStore(DBSiteStore):
         pass
 
 
-def create_database(**params):
-    db = web.database(**params)
+def create_database(**params) -> web.DB:
+    db = cast("web.DB", web.database(**params))
 
     # monkey-patch query method to collect stats
     _query = db.query
