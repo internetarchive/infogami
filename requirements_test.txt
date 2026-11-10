@@ -1,7 +1,7 @@
 -r requirements.txt
 black
 codespell
-mypy
+mypy==2.4.1
 psycopg2
 pytest
 ruff==0.7.3

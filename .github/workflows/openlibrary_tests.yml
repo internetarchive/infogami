@@ -7,12 +7,9 @@ on:
   workflow_dispatch:
 jobs:
   openlibrary_tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ["3.14.5"]
-    # Open Library requires Python 3.14.5, which isn't available on
-    # ubuntu-latest (26.04) yet.
+    # Pinned: Open Library requires Python 3.14.5, and actions/setup-python has
+    # no 3.14.5 build for ubuntu-latest (26.04). Go back to ubuntu-latest once
+    # Open Library moves to 3.14.6 or later.
     runs-on: ubuntu-24.04
     steps:
       # - if: "contains(matrix.python-version, '-dev')"
@@ -27,6 +24,7 @@ jobs:
           path: vendor/infogami
       - uses: actions/setup-python@v7
         with:
-          python-version: ${{ matrix.python-version }}
+          # Use whatever Python Open Library's pyproject.toml requires.
+          python-version-file: pyproject.toml
       - run: pip install -r requirements_test.txt
       - run: make test-py
