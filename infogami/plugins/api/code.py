@@ -15,7 +15,7 @@ from infogami.utils.view import safeint
 
 _VALID_JSONP_CALLBACK = re.compile(r'^[a-zA-Z_$][a-zA-Z0-9_$.]*$')
 
-hooks = {}
+hooks: dict = {}
 
 
 def add_hook(name, cls):
