@@ -75,7 +75,7 @@ class Connection:
     def get_auth_token(self) -> str | None:
         return self.auth_token
 
-    def request(self, sitename: str, path: str, method='GET', data=None):
+    def request(self, sitename: str, path: str, method: str = 'GET', data=None):
         raise NotImplementedError
 
     def handle_error(self, status, error):
@@ -240,9 +240,9 @@ class Site:
             out = json.loads(out)
         return storify(out)
 
-    def _get(self, key: str, revision: int | None = None):
+    def _get(self, key: str, revision: int | str | None = None):
         """Returns properties of the thing with the specified key."""
-        revision = revision and int(revision)
+        revision = int(revision) if revision else None
 
         if (key, revision) not in self._cache:
             data = dict(key=key, revision=revision)
