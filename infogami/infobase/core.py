@@ -143,9 +143,12 @@ class Thing:
         return common.format_data(self._get_data())
 
     def get_property(self, name):
-        for p in self.get('properties', []):
+        # Scan the raw properties so that only the matching one is _process()ed.
+        # Going through self.get('properties') instead resolves the expected_type
+        # Reference of every property on the type, which costs a store lookup each.
+        for p in self._data.get('properties', []):
             if p.get('name') == name:
-                return p
+                return self._process(p)
 
     @staticmethod
     def from_json(store, key, data):
