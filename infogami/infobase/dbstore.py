@@ -32,6 +32,10 @@ _VERSIONS_CONDITION_KEYS = frozenset(
 )
 
 
+class _NoVersionsMatch(Exception):
+    """A versions() condition refers to an object that doesn't exist."""
+
+
 def process_json(key, json_data):
     """Hook to process json data."""
     return json_data
@@ -223,7 +227,13 @@ class DBSiteStore(common.SiteStore):
         logger.debug("saving %s", key)
         timestamp = timestamp or datetime.datetime.utcnow
         return self.save_many(
-            [doc], timestamp, comment, data, ip, author, action=action or "default-update"
+            [doc],
+            timestamp,
+            comment,
+            data,
+            ip,
+            author,
+            action=action or "default-update",
         )
 
     def reindex(self, keys):
@@ -485,7 +495,7 @@ class DBSiteStore(common.SiteStore):
         if meta := self.get_metadata(key):
             return meta.id
         # A non-existing object in the query should result in no matches.
-        raise StopIteration
+        raise _NoVersionsMatch
 
     def _get_versions_bot_condition(self, value):
         bots = get_bot_users(self.db)
@@ -497,6 +507,10 @@ class DBSiteStore(common.SiteStore):
         )
 
     def _get_versions_condition(self, key, value):
+        # key is interpolated into the SQL below, so it must come from the allowlist.
+        if key not in _VERSIONS_CONDITION_KEYS:
+            raise ValueError(f"Invalid versions condition key: {key!r}")
+
         if key == 'bot' and not config.use_bot_column:
             return self._get_versions_bot_condition(value)
 
@@ -526,13 +540,9 @@ class DBSiteStore(common.SiteStore):
             what += ", version.machine_comment"
 
         for c in query.conditions:
-            key, value = c.key, c.value
-            if key not in _VERSIONS_CONDITION_KEYS:
-                raise ValueError(f"Invalid versions condition key: {key!r}")
-
             try:
-                where += self._get_versions_condition(key, value)
-            except StopIteration:
+                where += self._get_versions_condition(c.key, c.value)
+            except _NoVersionsMatch:
                 return []
 
         sort = query.sort
