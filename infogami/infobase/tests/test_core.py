@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from infogami.infobase.core import Thing
 
 
@@ -59,16 +61,18 @@ class TestThingGetProperty:
         assert p.name == 'number_of_pages'
         assert p.expected_type.key == '/type/int'
 
-    def test_resolves_expected_type_for_every_property(self):
-        for expected in ['/type/string', '/type/int', '/type/work']:
-            store, type_ = make_type(EDITION_PROPERTIES)
-            name = {
-                '/type/string': 'title',
-                '/type/int': 'number_of_pages',
-                '/type/work': 'works',
-            }[expected]
+    @pytest.mark.parametrize(
+        ('name', 'expected'),
+        [
+            ('title', '/type/string'),
+            ('number_of_pages', '/type/int'),
+            ('works', '/type/work'),
+        ],
+    )
+    def test_resolves_expected_type_for_every_property(self, name, expected):
+        store, type_ = make_type(EDITION_PROPERTIES)
 
-            assert type_.get_property(name).expected_type.key == expected
+        assert type_.get_property(name).expected_type.key == expected
 
     def test_returns_none_for_an_unknown_name(self):
         store, type_ = make_type(EDITION_PROPERTIES)
