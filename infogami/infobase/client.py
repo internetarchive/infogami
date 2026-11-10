@@ -69,7 +69,7 @@ class Connection:
     def __init__(self):
         self.auth_token = None
 
-    def set_auth_token(self, token: str) -> None:
+    def set_auth_token(self, token: str | None) -> None:
         self.auth_token = token
 
     def get_auth_token(self) -> str | None:
