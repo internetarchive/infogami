@@ -414,71 +414,68 @@ class WriteQueryProcessor:
 
 
 def serialize(query):
-    """TODO: Remove this line and fix doctests below."""
-    # fmt: off
     r"""Serializes a nested query such that each subquery acts on a single object.
 
-        >>> q = {
-        ...     'create': 'unless_exists',
-        ...     'key': '/foo',
-        ...     'type': '/type/book',
-        ...     'author': {
-        ...        'create': 'unless_exists',
-        ...        'key': '/bar',
-        ...     },
-        ...     'descption': {'value': 'foo', 'type': '/type/text'}
-        ... }
-        >>> serialize(q)
-        [{
-            'create': 'unless_exists',
-            'key': '/bar'
-        }, {
-            'author': {
-                'key': '/bar'
-            },
-            'create': 'unless_exists',
-            'descption': {
-                'type': '/type/text',
-                'value': 'foo'
-            },
-            'key': '/foo',
-            'type': '/type/book'
-        }]
-        >>> q = {
-        ...     'create': 'unless_exists',
-        ...     'key': '/foo',
-        ...     'authors': {
-        ...         'connect': 'update_list',
-        ...         'value': [{
-        ...             'create': 'unless_exists',
-        ...             'key': '/a/1'
-        ...         }, {
-        ...             'create': 'unless_exists',
-        ...             'key': 'a/2'
-        ...         }]
-        ...     }
-        ... }
-        >>> serialize(q)
-        [{
-            'create': 'unless_exists',
-            'key': '/a/1'
-        }, {
-            'create': 'unless_exists',
-            'key': 'a/2'
-        }, {
-            'authors': {
-                'connect': 'update_list',
-                'value': [{
-                    'key': '/a/1'
-                }, {
-                    'key': 'a/2'
-                }]
-            },
-            'create': 'unless_exists',
-            'key': '/foo'
-        }]
+    >>> q = {
+    ...     'create': 'unless_exists',
+    ...     'key': '/foo',
+    ...     'type': '/type/book',
+    ...     'author': {
+    ...        'create': 'unless_exists',
+    ...        'key': '/bar',
+    ...     },
+    ...     'descption': {'value': 'foo', 'type': '/type/text'}
+    ... }
+    >>> serialize(q) == [{
+    ...     'create': 'unless_exists',
+    ...     'key': '/bar'
+    ... }, {
+    ...     'author': {
+    ...         'key': '/bar'
+    ...     },
+    ...     'create': 'unless_exists',
+    ...     'descption': {
+    ...         'type': '/type/text',
+    ...         'value': 'foo'
+    ...     },
+    ...     'key': '/foo',
+    ...     'type': '/type/book'
+    ... }]
+    True
+    >>> q = {
+    ...     'create': 'unless_exists',
+    ...     'key': '/foo',
+    ...     'authors': {
+    ...         'connect': 'update_list',
+    ...         'value': [{
+    ...             'create': 'unless_exists',
+    ...             'key': '/a/1'
+    ...         }, {
+    ...             'create': 'unless_exists',
+    ...             'key': 'a/2'
+    ...         }]
+    ...     }
+    ... }
+    >>> serialize(q) == [{
+    ...     'create': 'unless_exists',
+    ...     'key': '/a/1'
+    ... }, {
+    ...     'create': 'unless_exists',
+    ...     'key': 'a/2'
+    ... }, {
+    ...     'authors': {
+    ...         'connect': 'update_list',
+    ...         'value': [{
+    ...             'key': '/a/1'
+    ...         }, {
+    ...             'key': 'a/2'
+    ...         }]
+    ...     },
+    ...     'create': 'unless_exists',
+    ...     'key': '/foo'
+    ... }]
+    True
     """
-    # fmt: on
 
     def flatten(query, result, path=[], from_list=False):
         """This does two things.
