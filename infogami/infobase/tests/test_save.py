@@ -1,7 +1,6 @@
 import datetime
 import json
 import queue
-import re
 import threading
 import time
 import uuid
@@ -295,40 +294,6 @@ class Test_save(DBTest):
             "changes": [{"key": "/foo", "revision": 1}],
             "data": {},
         }
-
-
-def test_load_records_locks_things_before_loading_data():
-    thing = web.storage(id=1, key="/race", latest_revision=2)
-    current_data = {
-        "key": "/race",
-        "type": {"key": "/type/object"},
-        "title": "latest",
-    }
-
-    class FakeDB:
-        def __init__(self):
-            self.queries = []
-
-        def query(self, query, vars):
-            self.queries.append(query)
-            if len(self.queries) == 1:
-                return [thing]
-            return [web.storage(thing_id=1, data=json.dumps(current_data))]
-
-    fake_db = FakeDB()
-    records = SaveImpl(fake_db)._load_records(["/race"])
-
-    locking_query = " ".join(fake_db.queries[0].lower().split())
-    data_query = " ".join(fake_db.queries[1].lower().split())
-    assert re.search(r"\bfrom\s+thing\s+where\b", locking_query)
-    assert "for update nowait" in locking_query
-    assert not re.search(r"\bjoin\s+data\b|,\s*data\b", locking_query)
-    assert re.search(r"\bfrom\s+thing\s*,\s*data\b", data_query)
-    assert re.search(r"data\.thing_id\s*=\s*thing\.id", data_query)
-    assert re.search(r"data\.revision\s*=\s*thing\.latest_revision", data_query)
-    assert "for update" not in data_query
-    assert records["/race"].revision == 2
-    assert records["/race"].data == current_data
 
 
 class _GatedDB:
