@@ -8,6 +8,7 @@ import uuid
 import pytest
 import web
 
+from infogami.infobase import common
 from infogami.infobase._dbstore.save import IndexUtil, PropertyManager, SaveImpl
 from infogami.infobase.tests import utils
 from infogami.infobase.tests.pytest_wildcard import wildcard  # noqa: F401
@@ -294,6 +295,23 @@ class Test_save(DBTest):
             "changes": [{"key": "/foo", "revision": 1}],
             "data": {},
         }
+
+    def test_concurrent_create_is_conflict(self, monkeypatch):
+        """Creating a key that another save created after our lookup is a 409, not a 500."""
+        s = SaveImpl(db)
+        # Simulate the race: the key exists, but _load_records ran before it was created.
+        db.insert("thing", key="/a")
+        monkeypatch.setattr(s, "_load_records", lambda keys: {})
+
+        with pytest.raises(common.Conflict):
+            s.save(
+                [{"key": "/a", "type": {"key": "/type/object"}}],
+                timestamp=datetime.datetime(2010, 1, 1, 1, 1, 1),
+                comment="create",
+                ip="1.2.3.4",
+                author=None,
+                action="save",
+            )
 
 
 class _GatedDB:

@@ -12,6 +12,9 @@ from infogami.infobase._dbstore.schema import INDEXED_DATATYPES, Schema
 
 __all__ = ["SaveImpl"]
 
+# PostgreSQL error code for unique_violation.
+_UNIQUE_VIOLATION = "23505"
+
 
 class SaveImpl:
     """Save implementation."""
@@ -274,7 +277,16 @@ class SaveImpl:
         ]
 
         if new:
-            ids = self.db.multiple_insert('thing', new)
+            try:
+                ids = self.db.multiple_insert('thing', new)
+            except Exception as e:
+                # Another save created one of these keys after _load_records
+                # looked for it. Report that as an edit conflict, not a 500.
+                if getattr(e, 'pgcode', None) == _UNIQUE_VIOLATION:
+                    raise common.Conflict(
+                        keys=[r['key'] for r in new], reason="Edit conflict detected."
+                    )
+                raise
             # assign id to the new records
             for r, id in zip(new, ids):
                 d[r['key']].id = id
