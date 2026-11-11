@@ -190,6 +190,14 @@ def make_query(store, query, prefix=""):
 # caching at all.
 _datatype_cache = lru.LRU(1000)
 
+_TYPE2DATATYPE = {
+    '/type/string': 'str',
+    '/type/int': 'int',
+    '/type/float': 'float',
+    '/type/boolean': 'boolean',
+    '/type/datetime': 'datetime',
+}
+
 
 def _datatype_cache_key(type, key):
     """Cache key for one property of a type, or None if it must not be cached.
@@ -202,6 +210,20 @@ def _datatype_cache_key(type, key):
     if revision is None:
         return None
     return getattr(type._store, 'sitename', None), type.key, revision, key
+
+
+def _schema_datatype(type, key):
+    """The datatype ``key`` has on ``type``, from the type schema."""
+    cache_key = _datatype_cache_key(type, key)
+    if cache_key is not None and (cached := _datatype_cache.get(cache_key)) is not None:
+        return cached
+
+    p = type.get_property(key)
+    datatype = (p and _TYPE2DATATYPE.get(p.expected_type.key, 'ref')) or "str"
+
+    if cache_key is not None:
+        _datatype_cache[cache_key] = datatype
+    return datatype
 
 
 def find_datatype(type, key, value):
@@ -235,28 +257,8 @@ def find_datatype(type, key, value):
     elif isinstance(value, common.Reference):
         return 'ref'
 
-    type2datatype = {
-        '/type/string': 'str',
-        '/type/int': 'int',
-        '/type/float': 'float',
-        '/type/boolean': 'boolean',
-        '/type/datetime': 'datetime',
-    }
-
     # if possible, get the datatype from the type schema
-    if type is None:
-        return "str"
-
-    cache_key = _datatype_cache_key(type, key)
-    if cache_key is not None and (cached := _datatype_cache.get(cache_key)) is not None:
-        return cached
-
-    p = type.get_property(key)
-    datatype = (p and type2datatype.get(p.expected_type.key, 'ref')) or "str"
-
-    if cache_key is not None:
-        _datatype_cache[cache_key] = datatype
-    return datatype
+    return _schema_datatype(type, key) if type is not None else "str"
 
 
 def parse_key(key):
@@ -283,10 +285,12 @@ def parse_key(key):
     return key, operator
 
 
-_VERSIONS_SORT_COLUMNS = frozenset({
-    'created',
-    'id',
-})
+_VERSIONS_SORT_COLUMNS = frozenset(
+    {
+        'created',
+        'id',
+    }
+)
 
 
 def make_versions_query(store, query):

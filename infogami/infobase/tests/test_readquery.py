@@ -171,6 +171,6 @@ class TestDatatypeCache:
         store.requested.clear()
 
         assert readquery.find_datatype(type_, 'title', None) == 'str'
-        assert store.requested == after_first, (
-            "with no revision to key on, the result must be recomputed"
-        )
+        assert (
+            store.requested == after_first
+        ), "with no revision to key on, the result must be recomputed"
