@@ -1,9 +1,0 @@
-{
-    'key': '/type/i18n',
-    'type': {'key': '/type/type'},
-    'name': 'i18n strings',
-    'description': 'Type for storing internationalization strings',
-    'kind': 'regular',
-    'properties': []
-}
-

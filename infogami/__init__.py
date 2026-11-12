@@ -14,7 +14,6 @@ Infogami
 list of commands:
 
 run             start the webserver
-dbupgrade       upgrade the database
 help            show this
 """
 
