@@ -4,6 +4,7 @@
 import collections
 import json
 import os
+import urllib.parse
 
 import web
 
@@ -256,7 +257,9 @@ def path_processor(handler):
         if web.ctx.method in ['GET' or 'HEAD']:
             # give absolute url for redirect. There is a bug in web.py
             # that causes infinite redicts when web.ctx.path startswith "//"
-            raise web.seeother(web.ctx.home + npath + web.ctx.query)
+            # web.ctx.path is unquoted; escape what a URL path can't hold as-is.
+            quoted_path = urllib.parse.quote(npath, safe="/:@!$&'()*+,;=")
+            raise web.seeother(web.ctx.home + quoted_path + web.ctx.query)
         else:
             raise app.notfound()
     else:
