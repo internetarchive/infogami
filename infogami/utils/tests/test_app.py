@@ -1,3 +1,8 @@
+import urllib.parse
+
+import pytest
+import web
+
 from infogami.utils import app
 
 
@@ -27,3 +32,28 @@ def test_parse_accept():
     assert app.parse_accept("text/plain;q=bad") == [{"media_type": "text/plain"}]
 
     assert app.parse_accept(";q=1") == [{"media_type": "", "q": 1.0}]
+
+
+@pytest.mark.parametrize(
+    ("url", "location"),
+    [
+        ("/books/OL1M/foo/", "/books/OL1M/foo"),
+        ("/books/OL1M/foo/?m=edit", "/books/OL1M/foo?m=edit"),
+        ("/books/ia:foo/", "/books/ia:foo"),
+        (
+            "/books/OL4210801M/Das_schwerho%CC%88rige_Kind/",
+            "/books/OL4210801M/Das_schwerho%CC%88rige_Kind",
+        ),
+    ],
+)
+def test_path_processor_quotes_redirect(url, location):
+    class Page:
+        def GET(self):
+            return "ok"
+
+    application = web.application(("/.*", Page), {})
+    application.add_processor(app.path_processor)
+    # WSGI servers pass PATH_INFO percent-decoded, as latin-1 characters.
+    response = application.request(urllib.parse.unquote(url, encoding="latin-1"))
+    assert response.status == "303 See Other"
+    assert response.headers["Location"] == "http://0.0.0.0:8080" + location
